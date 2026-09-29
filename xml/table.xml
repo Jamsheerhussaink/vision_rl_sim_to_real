@@ -1,0 +1,21 @@
+<mujoco model="table">
+  <asset>
+    <material name="table_mat" rgba="0.12 0.58 0.14 1"/> <!-- Green Table Top (matched from setup) -->
+    <material name="leg_mat" rgba="0.2 0.2 0.2 1"/>    <!-- Dark Gray Legs -->
+  </asset>
+
+  <worldbody>
+    <!-- Table elevated to z=0.34 so top surface is at z=0.35 -->
+    <body name="table" pos="0.25 0 0.34">
+      <!-- Table Top: surface at z=0.35 -->
+      <geom name="table_top" type="box" size="0.3 0.3 0.01" pos="0 0 0" material="table_mat" contype="1" conaffinity="1"/>
+      
+      <!-- Table Legs: from z=0 (floor) to z=0.33 (bottom of table top) -->
+      <!-- Half-height = 0.165, center at z=-0.175 relative to body -->
+      <geom name="leg1" type="box" size="0.02 0.02 0.165" pos="0.25 0.25 -0.175" material="leg_mat"/>
+      <geom name="leg2" type="box" size="0.02 0.02 0.165" pos="-0.25 0.25 -0.175" material="leg_mat"/>
+      <geom name="leg3" type="box" size="0.02 0.02 0.165" pos="0.25 -0.25 -0.175" material="leg_mat"/>
+      <geom name="leg4" type="box" size="0.02 0.02 0.165" pos="-0.25 -0.25 -0.175" material="leg_mat"/>
+    </body>
+  </worldbody>
+</mujoco>

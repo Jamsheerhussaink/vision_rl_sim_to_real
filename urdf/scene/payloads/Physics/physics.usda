@@ -1,0 +1,179 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "URDF USD Converter v0.3.2"
+    }
+    defaultPrim = "so101_workspace_scene"
+    endTimeCode = 1000000
+    kilogramsPerUnit = 1
+    metersPerUnit = 1
+    startTimeCode = 0
+    upAxis = "Z"
+)
+
+over "so101_workspace_scene"
+{
+    over "Geometry"
+    {
+        over "world"
+        {
+            over "table_top_link" (
+                prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysicsArticulationRootAPI", "NewtonArticulationRootAPI", "PhysicsMassAPI", "NewtonMassAPI"]
+            )
+            {
+                double[] newton:inertia = [1.45, 2.05, 3.2, 0, 0, 0]
+                bool newton:selfCollisionEnabled = 0
+                point3f physics:centerOfMass = (0, 0, -0.1)
+                float3 physics:diagonalInertia = (1.45, 2.05, 3.2)
+                float physics:mass = 15
+                quatf physics:principalAxes = (1, 0, 0, 0)
+
+                over "box_base_link" (
+                    prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysicsMassAPI", "NewtonMassAPI"]
+                )
+                {
+                    double[] newton:inertia = [0.00035, 0.00055, 0.00075, 0, 0, 0]
+                    point3f physics:centerOfMass = (0, 0, 0.035)
+                    float3 physics:diagonalInertia = (0.00035, 0.00055, 0.00075)
+                    float physics:mass = 0.08
+                    quatf physics:principalAxes = (1, 0, 0, 0)
+
+                    over "box_5" (
+                        prepend apiSchemas = ["NewtonCollisionAPI"]
+                    )
+                    {
+                    }
+
+                    over "box_6" (
+                        prepend apiSchemas = ["NewtonCollisionAPI"]
+                    )
+                    {
+                    }
+
+                    over "box_7" (
+                        prepend apiSchemas = ["NewtonCollisionAPI"]
+                    )
+                    {
+                    }
+
+                    over "box_8" (
+                        prepend apiSchemas = ["NewtonCollisionAPI"]
+                    )
+                    {
+                    }
+
+                    over "box_9" (
+                        prepend apiSchemas = ["NewtonCollisionAPI"]
+                    )
+                    {
+                    }
+                }
+
+                over "cube_link" (
+                    prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysicsMassAPI", "NewtonMassAPI"]
+                )
+                {
+                    double[] newton:inertia = [0.0000271, 0.0000271, 0.0000271, 0, 0, 0]
+                    point3f physics:centerOfMass = (0, 0, 0)
+                    float3 physics:diagonalInertia = (0.0000271, 0.0000271, 0.0000271)
+                    float physics:mass = 0.065
+                    quatf physics:principalAxes = (1, 0, 0, 0)
+
+                    over "box_1" (
+                        prepend apiSchemas = ["NewtonCollisionAPI"]
+                    )
+                    {
+                    }
+                }
+
+                over "box_1" (
+                    prepend apiSchemas = ["NewtonCollisionAPI"]
+                )
+                {
+                }
+
+                over "cylinder_4" (
+                    prepend apiSchemas = ["NewtonCollisionAPI"]
+                )
+                {
+                }
+
+                over "cylinder_5" (
+                    prepend apiSchemas = ["NewtonCollisionAPI"]
+                )
+                {
+                }
+
+                over "cylinder_6" (
+                    prepend apiSchemas = ["NewtonCollisionAPI"]
+                )
+                {
+                }
+
+                over "cylinder_7" (
+                    prepend apiSchemas = ["NewtonCollisionAPI"]
+                )
+                {
+                }
+            }
+
+            over "camera_link" (
+                prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysicsArticulationRootAPI", "NewtonArticulationRootAPI", "PhysicsMassAPI", "NewtonMassAPI"]
+            )
+            {
+                double[] newton:inertia = [0.00000557, 0.0000608, 0.0000612, 0, 0, 0]
+                bool newton:selfCollisionEnabled = 0
+                point3f physics:centerOfMass = (0, 0, 0)
+                float3 physics:diagonalInertia = (0.00000557, 0.0000608, 0.0000612)
+                float physics:mass = 0.072
+                quatf physics:principalAxes = (1, 0, 0, 0)
+
+                over "box_2" (
+                    prepend apiSchemas = ["NewtonCollisionAPI"]
+                )
+                {
+                }
+            }
+        }
+    }
+
+    over "Physics"
+    {
+        def PhysicsFixedJoint "world_to_table"
+        {
+            custom rel physics:body0
+            append rel physics:body0 = </so101_workspace_scene>
+            custom rel physics:body1
+            append rel physics:body1 = </so101_workspace_scene/Geometry/world/table_top_link>
+            point3f physics:localPos0 = (0, 0, 0.385)
+            point3f physics:localPos1 = (0, 0, 0)
+            quatf physics:localRot0 = (1, 0, 0, 0)
+            quatf physics:localRot1 = (1, 0, 0, 0)
+        }
+
+        def PhysicsFixedJoint "table_to_box"
+        {
+            custom rel physics:body0
+            append rel physics:body0 = </so101_workspace_scene/Geometry/world/table_top_link>
+            custom rel physics:body1
+            append rel physics:body1 = </so101_workspace_scene/Geometry/world/table_top_link/box_base_link>
+            point3f physics:localPos0 = (0.31, 0.2, 0.015)
+            point3f physics:localPos1 = (0, 0, 0)
+            quatf physics:localRot0 = (1, 0, 0, 0)
+            quatf physics:localRot1 = (1, 0, 0, 0)
+        }
+
+        def PhysicsFixedJoint "world_to_camera"
+        {
+            custom rel physics:body0
+            append rel physics:body0 = </so101_workspace_scene>
+            custom rel physics:body1
+            append rel physics:body1 = </so101_workspace_scene/Geometry/world/camera_link>
+            point3f physics:localPos0 = (0.12, -0.38, 0.82)
+            point3f physics:localPos1 = (0, 0, 0)
+            quatf physics:localRot0 = (0.73005974, -0.2253063, 0.28391945, 0.5793441)
+            quatf physics:localRot1 = (1, 0, 0, 0)
+        }
+    }
+}
+

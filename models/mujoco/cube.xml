@@ -1,0 +1,20 @@
+<mujoco model="cube">
+  <asset>
+    <!-- Bright Yellow Cube Material (5cm) -->
+    <material name="cube_mat" rgba="0.96 0.85 0.05 1.0" specular="0.25" shininess="0.3"/>
+  </asset>
+
+  <worldbody>
+    <!-- 5cm Yellow Cube placed on the dark green table (table surface at z=0.40m -> cube center at z=0.425m) -->
+    <body name="cube" pos="0.16 -0.01 0.425">
+      <freejoint name="cube_joint"/>
+      
+      <!-- 5cm Cube: half-size 0.025m, mass 65g, high static friction -->
+      <geom name="cube_geom" type="box" size="0.025 0.025 0.025" material="cube_mat" 
+            mass="0.065"
+            contype="1" conaffinity="1" 
+            friction="1.4 0.01 0.0005" 
+            solref="0.004 1" solimp="0.95 0.99 0.001"/>
+    </body>
+  </worldbody>
+</mujoco>

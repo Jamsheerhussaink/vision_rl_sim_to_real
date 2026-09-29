@@ -1,0 +1,16 @@
+<mujoco model="cube">
+  <asset>
+    <material name="cube_mat" rgba="1.0 0.88 0.02 1"/> <!-- Yellow -->
+  </asset>
+
+  <worldbody>
+    <!-- 5cm Cube on top of the table (z=0.375) -->
+    <body name="cube" pos="0.3 0.05 0.375">
+      <freejoint name="cube_joint"/>
+      
+      <geom name="cube_geom" type="box" size="0.025 0.025 0.025" material="cube_mat" 
+            contype="1" conaffinity="1" friction="1.5 0.005 0.0001" 
+            mass="0.055" solref="0.005 1" solimp="0.99 0.999 0.001"/>
+    </body>
+  </worldbody>
+</mujoco>

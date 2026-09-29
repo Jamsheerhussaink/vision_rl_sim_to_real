@@ -1,0 +1,48 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "URDF USD Converter v0.3.2"
+    }
+    endTimeCode = 1000000
+    kilogramsPerUnit = 1
+    metersPerUnit = 1
+    startTimeCode = 0
+    upAxis = "Z"
+)
+
+def Scope "Materials"
+{
+    def Material "cardboard_brown"
+    {
+        color3f inputs:diffuseColor = (0.50707865, 0.25295013, 0.10048152)
+        float inputs:metallic = 0
+        float inputs:opacity = 1
+        float inputs:roughness = 0.5
+        token inputs:wrapMode = "repeat"
+        token outputs:displacement (
+            displayGroup = "Outputs"
+        )
+        prepend token outputs:displacement.connect = </Materials/cardboard_brown/PreviewSurface.outputs:displacement>
+        token outputs:surface (
+            displayGroup = "Outputs"
+        )
+        prepend token outputs:surface.connect = </Materials/cardboard_brown/PreviewSurface.outputs:surface>
+        token outputs:volume (
+            displayGroup = "Outputs"
+        )
+
+        def Shader "PreviewSurface" (
+            apiSchemas = ["NodeDefAPI"]
+        )
+        {
+            token info:id = "UsdPreviewSurface"
+            prepend color3f inputs:diffuseColor.connect = </Materials/cardboard_brown.inputs:diffuseColor>
+            prepend float inputs:metallic.connect = </Materials/cardboard_brown.inputs:metallic>
+            prepend float inputs:opacity.connect = </Materials/cardboard_brown.inputs:opacity>
+            prepend float inputs:roughness.connect = </Materials/cardboard_brown.inputs:roughness>
+            token outputs:displacement
+            token outputs:surface
+        }
+    }
+}
+

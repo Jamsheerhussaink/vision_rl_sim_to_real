@@ -1,0 +1,48 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "URDF USD Converter v0.3.2"
+    }
+    endTimeCode = 1000000
+    kilogramsPerUnit = 1
+    metersPerUnit = 1
+    startTimeCode = 0
+    upAxis = "Z"
+)
+
+def Scope "Materials"
+{
+    def Material "cube_yellow"
+    {
+        color3f inputs:diffuseColor = (0.91140765, 0.6920712, 0.0039359396)
+        float inputs:metallic = 0
+        float inputs:opacity = 1
+        float inputs:roughness = 0.5
+        token inputs:wrapMode = "repeat"
+        token outputs:displacement (
+            displayGroup = "Outputs"
+        )
+        prepend token outputs:displacement.connect = </Materials/cube_yellow/PreviewSurface.outputs:displacement>
+        token outputs:surface (
+            displayGroup = "Outputs"
+        )
+        prepend token outputs:surface.connect = </Materials/cube_yellow/PreviewSurface.outputs:surface>
+        token outputs:volume (
+            displayGroup = "Outputs"
+        )
+
+        def Shader "PreviewSurface" (
+            apiSchemas = ["NodeDefAPI"]
+        )
+        {
+            token info:id = "UsdPreviewSurface"
+            prepend color3f inputs:diffuseColor.connect = </Materials/cube_yellow.inputs:diffuseColor>
+            prepend float inputs:metallic.connect = </Materials/cube_yellow.inputs:metallic>
+            prepend float inputs:opacity.connect = </Materials/cube_yellow.inputs:opacity>
+            prepend float inputs:roughness.connect = </Materials/cube_yellow.inputs:roughness>
+            token outputs:displacement
+            token outputs:surface
+        }
+    }
+}
+
