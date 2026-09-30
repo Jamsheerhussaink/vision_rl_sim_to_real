@@ -1,0 +1,140 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "URDF USD Converter v0.3.2"
+    }
+    defaultPrim = "green_table"
+    doc = """Generated from Composed Stage of root layer /home/ai/jamshi/vision_rl/urdf/table_2/payloads/base.usd
+"""
+    endTimeCode = 1000000
+    kilogramsPerUnit = 1
+    metersPerUnit = 1
+    startTimeCode = 0
+    subLayers = [
+        @./robot.usda@
+    ]
+    upAxis = "Z"
+)
+
+def Xform "green_table" (
+    prepend apiSchemas = ["GeomModelAPI"]
+    assetInfo = {
+        string name = "green_table"
+    }
+    kind = "component"
+)
+{
+    float3[] extentsHint = [(-0.6, -0.5, -2.3841857e-9), (0.6, 0.5, 0.4), (3.4028235e38, 3.4028235e38, 3.4028235e38), (-3.4028235e38, -3.4028235e38, -3.4028235e38), (3.4028235e38, 3.4028235e38, 3.4028235e38), (-3.4028235e38, -3.4028235e38, -3.4028235e38), (-0.6, -0.5, -2.3841857e-9), (0.6, 0.5, 0.4)]
+
+    def Scope "Materials"
+    {
+        def Material "dark_green_mat" (
+            instanceable = true
+            prepend references = @./materials.usda@</Materials/dark_green_mat>
+        )
+        {
+        }
+
+        def Material "matte_black_leg" (
+            instanceable = true
+            prepend references = @./materials.usda@</Materials/matte_black_leg>
+        )
+        {
+        }
+    }
+
+    def Scope "Geometry"
+    {
+        def Xform "table_base_link"
+        {
+            def Xform "table_top_link"
+            {
+                quatf xformOp:orient = (1, 0, 0, 0)
+                float3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (0, 0, 0.385)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Cube "box" (
+                    prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+                )
+                {
+                    float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+                    rel material:binding = </green_table/Materials/dark_green_mat>
+                    double size = 1
+                    quatf xformOp:orient = (1, 0, 0, 0)
+                    float3 xformOp:scale = (1.2, 1, 0.03)
+                    double3 xformOp:translate = (0, 0, 0)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                }
+
+                def Cylinder "cylinder" (
+                    prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+                )
+                {
+                    uniform token axis = "Z"
+                    float3[] extent = [(-0.025, -0.025, -0.185), (0.025, 0.025, 0.185)]
+                    double height = 0.37
+                    rel material:binding = </green_table/Materials/matte_black_leg>
+                    double radius = 0.025
+                    quatf xformOp:orient = (1, 0, 0, 0)
+                    float3 xformOp:scale = (1, 1, 1)
+                    double3 xformOp:translate = (0.52, 0.42, -0.2)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                }
+
+                def Cylinder "cylinder_1" (
+                    prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+                    displayName = "cylinder"
+                )
+                {
+                    uniform token axis = "Z"
+                    float3[] extent = [(-0.025, -0.025, -0.185), (0.025, 0.025, 0.185)]
+                    double height = 0.37
+                    rel material:binding = </green_table/Materials/matte_black_leg>
+                    double radius = 0.025
+                    quatf xformOp:orient = (1, 0, 0, 0)
+                    float3 xformOp:scale = (1, 1, 1)
+                    double3 xformOp:translate = (0.52, -0.42, -0.2)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                }
+
+                def Cylinder "cylinder_2" (
+                    prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+                    displayName = "cylinder"
+                )
+                {
+                    uniform token axis = "Z"
+                    float3[] extent = [(-0.025, -0.025, -0.185), (0.025, 0.025, 0.185)]
+                    double height = 0.37
+                    rel material:binding = </green_table/Materials/matte_black_leg>
+                    double radius = 0.025
+                    quatf xformOp:orient = (1, 0, 0, 0)
+                    float3 xformOp:scale = (1, 1, 1)
+                    double3 xformOp:translate = (-0.52, 0.42, -0.2)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                }
+
+                def Cylinder "cylinder_3" (
+                    prepend apiSchemas = ["MaterialBindingAPI", "PhysicsCollisionAPI"]
+                    displayName = "cylinder"
+                )
+                {
+                    uniform token axis = "Z"
+                    float3[] extent = [(-0.025, -0.025, -0.185), (0.025, 0.025, 0.185)]
+                    double height = 0.37
+                    rel material:binding = </green_table/Materials/matte_black_leg>
+                    double radius = 0.025
+                    quatf xformOp:orient = (1, 0, 0, 0)
+                    float3 xformOp:scale = (1, 1, 1)
+                    double3 xformOp:translate = (-0.52, -0.42, -0.2)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                }
+            }
+        }
+    }
+
+    def Scope "Physics"
+    {
+    }
+}
+

@@ -1,0 +1,25 @@
+<mujoco model="scene">
+  <option timestep="0.001" iterations="50" solver="Newton" gravity="0 0 -9.81"/>
+  
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="120" elevation="-20"/>
+  </visual>
+
+  <!-- Camera centered on the table surface -->
+  <statistic center="0.25 0 0.35" extent="0.8"/>
+
+  <worldbody>
+    <!-- Grey Floor Surface at z=0 -->
+    <geom name="floor" type="plane" size="0 0 0.1" rgba="0.6 0.6 0.6 1" contype="1" conaffinity="1"/>
+    
+    <!-- Soft Light Source -->
+    <light pos="0.3 0 1.5" dir="0 0 -1" directional="true" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
+  </worldbody>
+
+  <include file="so101_new_calib.xml"/>
+  <include file="table.xml"/>
+  <include file="cube.xml"/>
+  <include file="box.xml"/>
+</mujoco>

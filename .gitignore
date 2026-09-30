@@ -1,0 +1,71 @@
+# ==============================================================================
+# Vision RL - Sim-to-Real Gitignore
+# ==============================================================================
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution & Build
+build/
+dist/
+*.egg-info/
+develop-eggs/
+eggs/
+.eggs/
+
+# RL Checkpoints & Training Logs
+checkpoints/
+logs/
+*.pt
+*.pth
+*.zip
+*.npz
+*.tfevents.*
+events.out.tfevents.*
+monitor.csv
+
+# Temporary Renders, Comparison Images & Scratch Scripts
+compare_*.png
+final_compare*.png
+best_compare*.png
+sim_render*.png
+*grid*.png
+arm_pose_*.png
+lift_*.png
+fine_*.png
+sign_*.png
+fold_*.png
+scratch/
+scratch_*
+test_render*.png
+
+# IDEs, Editors & Assistant Metadata
+.vscode/
+.idea/
+.kilo/
+.waylog/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db

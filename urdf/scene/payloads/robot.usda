@@ -1,0 +1,79 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "URDF USD Converter v0.3.2"
+    }
+    defaultPrim = "so101_workspace_scene"
+    endTimeCode = 1000000
+    kilogramsPerUnit = 1
+    metersPerUnit = 1
+    startTimeCode = 0
+    upAxis = "Z"
+)
+
+over "so101_workspace_scene" (
+    prepend apiSchemas = ["IsaacRobotAPI"]
+)
+{
+    prepend rel isaac:physics:robotJoints = [
+        </so101_workspace_scene/Physics/world_to_table>,
+        </so101_workspace_scene/Physics/table_to_box>,
+        </so101_workspace_scene/Physics/world_to_camera>,
+    ]
+    prepend rel isaac:physics:robotLinks = [
+        </so101_workspace_scene/Geometry/world/table_top_link>,
+        </so101_workspace_scene/Geometry/world/camera_link>,
+        </so101_workspace_scene/Geometry/world/table_top_link/box_base_link>,
+    ]
+    token isaac:robotType = "Default"
+
+    over "Geometry"
+    {
+        over "world"
+        {
+            over "table_top_link" (
+                prepend apiSchemas = ["IsaacLinkAPI"]
+            )
+            {
+                over "box_base_link" (
+                    prepend apiSchemas = ["IsaacLinkAPI"]
+                )
+                {
+                }
+            }
+
+            over "camera_link" (
+                prepend apiSchemas = ["IsaacLinkAPI"]
+            )
+            {
+                over "camera_color_optical_frame" (
+                    prepend apiSchemas = ["IsaacSiteAPI"]
+                )
+                {
+                }
+            }
+        }
+    }
+
+    over "Physics"
+    {
+        over "world_to_table" (
+            prepend apiSchemas = ["IsaacJointAPI"]
+        )
+        {
+        }
+
+        over "table_to_box" (
+            prepend apiSchemas = ["IsaacJointAPI"]
+        )
+        {
+        }
+
+        over "world_to_camera" (
+            prepend apiSchemas = ["IsaacJointAPI"]
+        )
+        {
+        }
+    }
+}
+
