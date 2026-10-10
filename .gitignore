@@ -1,0 +1,20 @@
+.venv/
+.pytest_cache/
+.ruff_cache/
+**/__pycache__/
+**/*.egg-info/
+*.py[cod]
+build/
+dist/
+
+logs/
+outputs/
+videos/
+wandb/
+
+# Conversation history is local tooling output, not project source.
+.waylog/
+
+.vscode/settings.json
+.vscode/launch.json
+pyrightconfig.json

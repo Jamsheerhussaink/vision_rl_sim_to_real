@@ -1,139 +1,222 @@
-# SO-101 Sim-to-Real Pick & Place Project
+# isaac_vision_rl
 
-A physics-realistic, vision-guided Sim-to-Real robotics workcell for the **SO-101 robot arm** picking a **5cm yellow cube** and placing it into a **cardboard box** ($8\text{ cm height} \times 20\text{ cm length} \times 15\text{ cm width}$) on a **dark green table** viewed by an **Intel RealSense D415 RGB camera**, precisely calibrated to match the real-world setup in [`env final.png`](file:///home/ai/jamshi/vision_rl/env%20final.png).
+An installable downstream Isaac Lab task package generated with a standard uv `src` layout.
 
----
+This `isaaclab` branch contains the Isaac Lab SO-101 project. The evaluated
+simulation baseline is included at
+`artifacts/models/so101_lift_vision_3898/model_3898.pt`; see its
+[model guide](artifacts/models/so101_lift_vision_3898/README.md) for playback,
+evaluation commands, metadata and limitations. Evaluation summary reports are in
+`artifacts/evaluations/`. Active training runs, full logs, videos and local tooling
+history are excluded from this published snapshot.
 
-## 1. Engine Decision: Isaac Lab vs. MuJoCo for SO-101
+See [project cleanup and retained evidence](docs/project_cleanup.md) for the
+current checkpoints, maintained scripts and recovery archive.
 
-| Feature / Criteria | MuJoCo (v3.13) **[Recommended Primary]** | Isaac Lab (v3.0 EA / Isaac Sim 6.1.0) |
-|---|---|---|
-| **Contact Mechanics** | ⭐⭐⭐⭐⭐ Soft-contact solver (`solref`/`solimp`), realistic silicone pad compliance without penetration bugs. | ⭐⭐⭐ PhysX rigid body solver; prone to mesh edge clipping or explosive penetration on thin 3D prints unless heavily tuned. |
-| **Hardware Fit (SO-101 Servos)** | ⭐⭐⭐⭐⭐ Accurately models Feetech STS3215 gearbox backlash, armature inertia, and damping. Direct bridge to [LeRobot](https://github.com/huggingface/lerobot). | ⭐⭐⭐ Requires converting URDF to USD Articulation and tuning PhysX drive stiffness. |
-| **Camera Simulation** | ⭐⭐⭐⭐⭐ Intel RealSense D415 RGB sensor model ($16:9$, $1366 \times 768$, $42.5^\circ$ vertical FOV). Matches real photo perspective 1-to-1. | ⭐⭐⭐⭐⭐ Hardware RTX ray-traced rendering with physically based materials. |
-| **VRAM & Parallel Envs (RTX 5060 Ti 16GB)** | ⭐⭐⭐⭐⭐ Ultra-lightweight: runs 16-32 parallel worker processes with < 2GB VRAM total. | ⚠️ Heavy: Raytraced rendering in Isaac Sim across many parallel envs consumes substantial VRAM. |
-| **Iteration Speed** | Instant startup (< 0.2s), rapid debugging. | 30-60s Omniverse engine initialization. |
+The registered tasks are:
 
-### Decision Summary:
-- **Use MuJoCo as your main training and control pipeline**: It matches the 3D-printed Feetech STS3215 dynamics, handles delicate contact grasping without glitching, and connects directly to the real robot deployment script.
-- **Use Isaac Lab as a visual benchmark**: Use the included [`models/isaaclab/so101_scene_cfg.py`](file:///home/ai/jamshi/vision_rl/models/isaaclab/so101_scene_cfg.py) when you want to benchmark visual domain randomization and RTX raytracing.
+- `IsaacVisionRl-PickLift-SO101`
+- `IsaacVisionRl-Pickplace-SO101`
 
----
+## SO-101 lift training in the existing Conda environment
 
-## 2. RealSense D415 Camera Placement & Calibration
+Use the [evidence-gated training pipeline](docs/training_pipeline.md) for new runs.
+The latest close-when-centred controller and saved rollout evidence are described in
+[camera grasp assistance](docs/camera_grasp_assist.md).
+For the current contact-based reward correction and ±1 cm cube randomization,
+follow [contact and randomized training](docs/contact_randomized_training.md).
+The current simulation-only camera workflow is described in
+[global camera training](docs/global_camera_training.md). The actor gets cube
+geometry from rendered RGB-D, rather than the simulator's cube pose. Start fresh:
+older state-assisted checkpoints are incompatible with these observations.
+Start with `python scripts/train_pipeline.py --stage preflight`; placement is blocked
+until randomized lift evaluation passes.
 
-Calibrated directly against real workspace hardware ([`env final.png`](file:///home/ai/jamshi/vision_rl/env%20final.png)):
-
-```
-                  [REALSENSE D415 RGB CAMERA]
-                  Pos: (X=0.12m, Y=-0.38m, Z=0.82m)
-                             \  Pitch: ~42.5° downward
-                              \  Distance: ~0.58m
-                               \
-   [SO-101 Robot]               v
-  (-0.13, -0.02, Yaw 30°)  [Yellow Cube (5cm)]     [Cardboard Box (8x20x15cm)]
-          ┌─┐                 (0.16, -0.01)             (0.22, 0.25, Yaw -5°)
-          │ │                      ■                            [   ]
-   ═══════╧═╧════════════════════════════════════════════════════════════════
-   DEEP DARK GREEN TABLETOP (Z = 0.40m, 100% Camera FOV Coverage)
-```
-
-- **Mounting Position**: `X = 0.12 m, Y = -0.38 m, Z = 0.82 m` (workspace tripod).
-- **Look-at Target**: Manipulation center `[X = 0.22 m, Y = 0.10 m, Z = 0.40 m]`.
-- **Sensor Specification**: Intel RealSense D415 ($1366 \times 768$ resolution, $42.5^\circ$ vertical FOV, $69.4^\circ$ horizontal FOV).
-- **Field of View Alignment**: Tabletop completely fills the camera view (100% dark green cutting mat background), eliminating room wall/floor edges just like the physical hardware setup.
-
----
-
-## 3. Physical Models & Collision Specifications
-
-Every object has dedicated **URDF** and **MuJoCo MJCF** models with calibrated collisions:
-
-| Object | Model Files | Dimensions & Mass | Physics & Collision Configuration |
-|---|---|---|---|
-| **Dark Green Table** | [`table.urdf`](file:///home/ai/jamshi/vision_rl/models/urdf/table.urdf)<br>[`table.xml`](file:///home/ai/jamshi/vision_rl/models/mujoco/table.xml) | Surface: $1.20\text{m} \times 1.00\text{m} \times 0.03\text{m}$, Height $0.40\text{m}$, Mass: $15\text{ kg}$ | Deep dark green (`rgba="0.08 0.22 0.12 1.0"`). 5 collision geoms (tabletop slab + 4 matte black cylindrical legs). |
-| **Yellow Cube** | [`cube.urdf`](file:///home/ai/jamshi/vision_rl/models/urdf/cube.urdf)<br>[`cube.xml`](file:///home/ai/jamshi/vision_rl/models/mujoco/cube.xml) | Exact $5\text{cm} \times 5\text{cm} \times 5\text{cm}$ ($0.05\text{m}^3$), Mass: $65\text{ g}$ | High friction (`1.4, 0.01, 0.0005`), soft contact constraint (`solref="0.004 1.0"`), non-penetrating collision box. |
-| **Cardboard Box** | [`box.urdf`](file:///home/ai/jamshi/vision_rl/models/urdf/box.urdf)<br>[`box.xml`](file:///home/ai/jamshi/vision_rl/models/mujoco/box.xml) | Height: $8\text{cm}$, Length: $20\text{cm}$, Width: $15\text{cm}$, Mass: $80\text{ g}$ | Kraft cardboard brown (`rgba="0.74 0.54 0.35 1.0"`). 5 independent collision walls (floor plate + Front, Back, Left, Right). |
-| **RealSense D415** | [`realsense_d415.urdf`](file:///home/ai/jamshi/vision_rl/models/urdf/realsense_d415.urdf) | $99\text{mm} \times 20\text{mm} \times 23\text{mm}$, Mass: $72\text{ g}$ | Official Intel specs with RGB optical frame and mounting screw joints. |
-| **SO-101 Robot Arm** | [`so101.xml`](file:///home/ai/jamshi/vision_rl/models/mujoco/so101.xml) | 5-DOF arm + parallel jaw gripper | High-friction silicone contact pads (`static_pad`, `moving_pad`) on finger tips ($7.39\text{cm}$ open clearance for $5\text{cm}$ cubes). |
-
----
-
-## 4. Verification & Testing Suite
-
-An automated 4-part physics and collision test suite verifies physical realism:
+The workcell uses `env_final_sim.png` as its appearance reference: a mottled green
+tabletop, black SO-101, yellow cube, brown box and three overhead area lights with ambient fill.
+The box has a physical floor and walls in both lift and placement stages; it is
+positioned behind the initial cube workspace during lift training. The robot resets to a folded home pose with open jaws and the cube visible.
+Home angles in radians: shoulder pan -0.5, shoulder lift -1.05, elbow 1.35,
+wrist flex 1.10, wrist roll 0.0, and gripper 1.20.
+To capture the nominal lift scene without a GUI:
 
 ```bash
-/home/ai/miniconda3/envs/vision_rl/bin/python tests/verify_physics_and_collisions.py
+python scripts/capture_snapshot.py --task lift --headless --output outputs/lift_scene.png
 ```
 
-### Verified Benchmark Results:
-1. **Collision Geometry Audit**: All 14 physical colliders active and non-penetrating across all bodies.
-2. **Cube Settle & Contact Stability**: 5cm cube settles onto table from 10cm free-fall with $< 0.084\text{ mm}$ error and 0 residual velocity.
-3. **Box Containment**: 5cm cube drops into 15x20cm box, is contained by all 4 walls, and rests stably on the bottom.
-4. **Physical Grasp & Lift**: High-friction silicone gripper tips establish 4 solid contact points and lift the 65g cube $+5.3\text{cm}$ vertically against gravity with **zero slip**.
+This preview uses a larger image for inspection; policy RGB stays at 128 x 128.
+The task camera and GUI use the original tabletop-only framing, with the green
+surface filling the background and no room background or table edges in view.
+GUI resets select `/World/envs/env_0/Camera`, the actual task sensor, rather than
+an approximate perspective view. The physical camera housing is hidden to keep
+it from obstructing the optical view. Policy RGB resolution stays at 128 x 128.
+Scene appearance, camera and ready-pose changes require a fresh training run.
 
----
+See [the complete agent and training guide](docs/agent_training.md) for the MDP,
+actor/critic, dense rewards, entropy exploration, TD/GAE, metrics and evaluation.
 
-## 5. Project Directory Structure
+The corrected action mapping spans the arm's soft joint limits with filtered position targets.
+The gripper action maps `-1` to closed while both `0` and `+1` target fully open, so the
+zero-mean initial policy does not close before reaching the cube. Premature closure is penalized
+until the cube is centered between the fingers. The first lift milestone requires the cube
+center above 0.47 m, near a closed gripper, moving slowly, for at least 0.5 seconds with cube-specific contact on both gripper bodies.
+Inspect playback as well as the contact and held-lift metrics.
 
-```
-vision_rl/
-├── configs/
-│   ├── camera_config.yaml          # RealSense D415 calibrated 3D extrinsics & FOV
-│   ├── environment_config.yaml     # Physics parameters, dimensions, masses & colors
-│   └── robot_config.yaml           # SO-101 Feetech STS3215 joint limits and dynamics
-├── urdf/                           # Dedicated URDF Models for all objects
-│   ├── table.urdf                  # Deep dark green tabletop with 4 black legs
-│   ├── cube.urdf                   # Exact 5cm yellow cube (65g)
-│   ├── box.urdf                    # 8cm x 20cm x 15cm cardboard box with 5 collision walls
-│   ├── realsense_d415.urdf         # Official Intel RealSense D415 camera
-│   ├── so101.urdf                  # SO-101 robot arm with silicone gripper pads
-│   └── scene.urdf                  # Unified assembled workcell URDF scene
-├── models/
-│   ├── mujoco/                     # MuJoCo MJCF Scene & Models
-│   │   ├── scene.xml               # Master assembled scene with room lighting & D415 camera
-│   │   ├── table.xml               # Deep dark green tabletop (100% camera FOV coverage)
-│   │   ├── cube.xml                # 5cm yellow cube
-│   │   ├── box.xml                 # 8cm x 20cm x 15cm cardboard box
-│   │   └── so101.xml               # Calibrated SO-101 robot with silicone gripper pads
-│   └── isaaclab/
-│       └── so101_scene_cfg.py      # Isaac Lab InteractiveSceneCfg definition
-├── envs/
-│   └── pick_place_env.py           # Gymnasium environment (state & RGB observation modes)
-├── vision/
-│   ├── realsense_rgb.py            # RealSense D415 RGB camera capture & renderer
-│   ├── depth_camera.py             # Depth sensor simulator with active-stereo noise
-│   └── pointcloud_utils.py         # 2D-to-3D pointcloud projection utilities
-├── controllers/
-│   ├── ik_solver.py                # Inverse Kinematics solver for SO-101
-│   └── scripted_pick_place.py      # Finite State Machine baseline pick-and-place
-├── tests/
-│   ├── verify_physics_and_collisions.py # Comprehensive 4-part physics test suite
-│   ├── test_camera_stream.py       # Captures RealSense D415 RGB frame
-│   ├── test_grasp_physics.py       # Grasping & lift test
-│   └── test_scene_viewer.py        # Interactive 3D MuJoCo GUI viewer
-├── ENV1.png                        # Real-world reference photo 1
-└── env final.png                   # Real-world calibrated reference photo 2
-```
+Approach training guides the tool directly toward the cube, without an overhead
+waypoint or staged descent. Only new closest-distance progress earns reach feedback;
+stationary proximity does not earn a separate reward. Premature closure and cube dragging remain penalized, and the gripper
+starts open. Start fresh after changing this approach objective.
 
----
+The first milestone is a camera-driven lift policy: the global RGB-D camera estimates
+cube position, upright orientation and visibility. The actor receives these estimates
+and robot proprioception. Simulator cube state is used only by training rewards,
+the privileged critic and independent success scoring. Missing detections have an
+explicit visibility flag; there is no simulator-position fallback.
 
-## 6. Quick Start Commands
+Start a **fresh run** after this change. Old checkpoints use different observations,
+action mapping and noise parameters. The agent rejects incompatible checkpoints.
+Keep them for comparison; new checkpoints can be resumed or transferred between stages.
 
 ```bash
-# Activate conda environment
-conda activate vision_rl
+conda activate env_isaaclab
+cd /home/ai/jamshi/isaac_vision_rl
 
-# 1. Run Comprehensive Physics & Collision Verification Suite
-python tests/verify_physics_and_collisions.py
+# Short startup and training check without a window
+python scripts/train.py --task lift --headless --envs 4 --iterations 2 --device cuda:0
 
-# 2. Capture RealSense D415 RGB Frame (saved to tests/realsense_d415_snapshot.png)
-python tests/test_camera_stream.py
+# Fresh training run without a window, with TensorBoard
+python scripts/train.py --task lift --headless --envs 64 --iterations 2000 --device cuda:0 --dashboard
 
-# 3. Test Physical Grasp & Lift
-python tests/test_grasp_physics.py
-
-# 4. Launch Interactive 3D Viewer
-python tests/test_scene_viewer.py
+# Alternative: train with the simulator window (start with fewer environments)
+python scripts/train.py --task lift --viz kit --envs 4 --iterations 2000 --device cuda:0
 ```
+
+Logs and checkpoints are saved to `logs/rsl_rl/so101_picklift_vision/<timestamp>/`.
+At `http://localhost:6006`, inspect `Episode_Reward/grasp_cube`,
+`Episode_Reward/lift_cube`, and `Episode_Termination/lift_success` alongside total reward.
+The installed termination manager reports mean activation across environments; use this
+as a training diagnostic and measure episode success separately in playback. A larger
+total reward alone does not establish successful lifting.
+
+After training, replace the path below with a checkpoint from the **new** run:
+
+```bash
+python scripts/play.py --task lift --checkpoint logs/rsl_rl/so101_picklift_vision/NEW_RUN_TIMESTAMP/model_1999.pt --num_envs 1
+```
+
+Confirm that the fingers lift and hold the cube before proceeding to placement or real-robot work.
+
+Quantitative evaluation counts complete episodes and saves success, reward, peak lift
+and tabletop sliding measurements. Replace `NEW_RUN_TIMESTAMP` with the new run:
+
+```bash
+python scripts/eval_pipeline.py --task lift --checkpoint logs/rsl_rl/so101_picklift_vision/NEW_RUN_TIMESTAMP/model_1999.pt --episodes 50 --headless
+```
+
+## Installation
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then create the project environment. The default
+environment uses the Newton backend and does not install Isaac Sim:
+
+```bash
+uv sync
+```
+
+This project was generated from an Isaac Lab source checkout. Its `pyproject.toml` uses editable relative paths to that
+checkout, so regenerate the project or update `[tool.uv.sources]` if either directory moves.
+
+Optional backends are available through extras. Pass the extra to each `uv run` command that needs it:
+
+```bash
+# Standalone OV PhysX
+uv run --extra ovphysx isaaclab random_agent --task <TASK_NAME> physics=ovphysx
+
+# Isaac Sim with PhysX and RTX rendering
+uv run --extra isaacsim isaaclab random_agent --task <TASK_NAME> physics=isaacsim_physx
+```
+
+The `ov` extra installs both the `ovphysx` and `ovrtx` runtimes. You can also select `ovrtx` independently when using
+Newton physics with the OVRTX renderer. Commit `pyproject.toml` and `uv.lock` so collaborators use the same environment.
+
+## Run the generated tasks
+
+Replace the placeholders below with a task listed above and a selected RL library.
+
+```bash
+# List this project's environments and their available presets
+uv run python scripts/list_envs.py --show_presets
+
+# Exercise an environment without a trained policy
+uv run isaaclab zero_agent --task <TASK_NAME> --num_envs 16
+uv run isaaclab random_agent --task <TASK_NAME> --num_envs 16
+
+# Train and play
+uv run isaaclab train --rl_library <RL_LIBRARY> --task <TASK_NAME>
+uv run isaaclab play --rl_library <RL_LIBRARY> --task <TASK_NAME> --checkpoint latest
+
+# Distributed training
+uv run isaaclab train_multigpu --rl_library <RL_LIBRARY> --task <TASK_NAME> --num_gpus 2
+
+# Benchmark startup, runtime, training, or play
+uv run isaaclab benchmark runtime --task <TASK_NAME> --num_envs 16 --num_steps 1000
+uv run isaaclab benchmark training --rl_library <RL_LIBRARY> --task <TASK_NAME> --max_iterations 10
+```
+
+Use `physics=<PRESET>` to select one of the presets shown by `list_envs.py`.
+
+## Project structure
+
+Task families live in `src/isaac_vision_rl/tasks`. Within a manager-based family, task-wide MDP terms live in `mdp`, while
+robot-specific scenes, registrations, and agent configurations live in `config/so101`. Add another robot by
+creating a sibling of `config/so101`; add another task by creating a sibling task-family directory.
+
+## Development
+
+Run the generated registration test and code-quality checks through the project environment:
+
+```bash
+uv run pytest
+uv run pre-commit run --all-files
+```
+
+The test helpers under `source/isaaclab_tasks/test` in the Isaac Lab repository are not part of the installed
+`isaaclab_tasks` package. Keep test fixtures in this project and use public Isaac Lab APIs. If you copy
+`env_test_utils.py`, it becomes vendored code whose upstream changes you must track.
+
+To configure VS Code or Cursor, run the `setup_python_env` task or invoke its command directly:
+
+```bash
+uv run isaaclab --editor
+```
+
+The setup command selects the active interpreter and generates a git-ignored `pyrightconfig.json`. The generated
+configuration inherits the project's checked-in Pyright settings and adds the Isaac Sim extensions, project `src` root,
+and any Isaac Lab packages discovered in the active Python environment. This supports both Pylance in VS Code and
+basedpyright in Cursor.
+
+In VS Code, use Pylance and select the interpreter that ran the setup command. In Cursor, install the
+[basedpyright extension](https://marketplace.visualstudio.com/items?itemName=detachhead.basedpyright) instead of
+Pylance, select the same interpreter, and reload the window. Both language servers read `pyrightconfig.json`.
+
+When using the `isaacsim` extra, include it while generating the editor configuration so the command can discover the
+Isaac Sim installation:
+
+```bash
+uv run --extra isaacsim isaaclab --editor
+```
+
+For an Isaac Sim binaries installation that is not available in the project environment, provide its path explicitly:
+
+```bash
+# Linux
+uv run isaaclab --editor --isaac_path <isaac-sim-path>
+
+# Windows
+uv run isaaclab --editor --isaac_path <isaac-sim-path>
+```
+
+## Troubleshooting
+
+If Pylance or basedpyright cannot resolve modules, confirm that the selected interpreter matches the one used to run the
+setup command, then reload the editor window. To add a missing extension or reduce indexing memory, edit the `extraPaths`
+array in the root `pyrightconfig.json`; remove simulator extension directories that the project does not use.

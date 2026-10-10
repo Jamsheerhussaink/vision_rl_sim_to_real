@@ -14,7 +14,7 @@ def Scope "Materials"
 {
     def Material "tn__3d_printed_"
     {
-        color3f inputs:diffuseColor = (1, 0.63828325, 0.013411746)
+        color3f inputs:diffuseColor = (0.010022826, 0.010022826, 0.010022826)
         float inputs:metallic = 0
         float inputs:opacity = 1
         float inputs:roughness = 0.5

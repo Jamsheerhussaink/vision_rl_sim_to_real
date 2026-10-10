@@ -44,7 +44,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -80,7 +81,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -116,7 +118,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -152,7 +155,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -188,7 +192,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -224,7 +229,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -260,7 +266,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -296,7 +303,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -332,7 +340,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -368,7 +377,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -404,7 +414,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -440,7 +451,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 
@@ -476,7 +488,8 @@ def Scope "Instances"
         )
         {
             token physics:approximation = "convexHull"
-            token purpose = "guide"
+            token purpose = "default"
+            token visibility = "invisible"
         }
     }
 }

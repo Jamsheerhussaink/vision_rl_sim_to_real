@@ -1,0 +1,17 @@
+#usda 1.0
+(
+    defaultPrim = "cardboard_box"
+)
+
+def Xform "cardboard_box" (
+    prepend references = @box.usd@</cardboard_box>
+)
+{
+    over "Physics"
+    {
+        over "root_joint"
+        {
+            bool physics:jointEnabled = false
+        }
+    }
+}

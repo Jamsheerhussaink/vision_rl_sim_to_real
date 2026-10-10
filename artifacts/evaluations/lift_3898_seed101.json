@@ -1,0 +1,518 @@
+{
+  "task": "lift",
+  "curriculum": "lift",
+  "policy": "vision",
+  "cube_jitter_m": 0.01,
+  "checkpoint": "artifacts/models/so101_lift_vision_3898/model_3898.pt",
+  "sample_actions": false,
+  "seed": 101,
+  "episodes": 50,
+  "success_rate": 0.84,
+  "mean_reward": 234.98598941030738,
+  "mean_steps": 77.46,
+  "mean_peak_lift_cm": 9.907655584812165,
+  "mean_table_slide_cm": 1.853922411346324,
+  "episode_results": [
+    {
+      "success": true,
+      "reward": 301.015337022749,
+      "steps": 80,
+      "peak_lift_cm": 13.818169832229616,
+      "table_slide_cm": 2.20541304725268,
+      "initial_tool_distance_cm": 15.07924199104309,
+      "closest_tool_distance_cm": 0.3787569934502244,
+      "camera_visible_fraction": 0.5375
+    },
+    {
+      "success": true,
+      "reward": 290.30285238823853,
+      "steps": 59,
+      "peak_lift_cm": 8.501721620559694,
+      "table_slide_cm": 1.597934827096159,
+      "initial_tool_distance_cm": 15.035015344619751,
+      "closest_tool_distance_cm": 1.725686714053154,
+      "camera_visible_fraction": 0.7288135593220338
+    },
+    {
+      "success": true,
+      "reward": 302.1180154106114,
+      "steps": 59,
+      "peak_lift_cm": 8.661193847656252,
+      "table_slide_cm": 1.0375796545287752,
+      "initial_tool_distance_cm": 15.727399289608002,
+      "closest_tool_distance_cm": 1.2655345723032951,
+      "camera_visible_fraction": 0.4576271186440678
+    },
+    {
+      "success": true,
+      "reward": 287.84902977757156,
+      "steps": 67,
+      "peak_lift_cm": 12.706292867660524,
+      "table_slide_cm": 2.9159356517764135,
+      "initial_tool_distance_cm": 15.575066208839417,
+      "closest_tool_distance_cm": 1.2302613817155361,
+      "camera_visible_fraction": 0.6716417910447762
+    },
+    {
+      "success": true,
+      "reward": 253.514618268935,
+      "steps": 60,
+      "peak_lift_cm": 10.470170974731447,
+      "table_slide_cm": 1.24014185864314,
+      "initial_tool_distance_cm": 15.108662843704224,
+      "closest_tool_distance_cm": 1.6982914879918098,
+      "camera_visible_fraction": 0.7333333333333333
+    },
+    {
+      "success": true,
+      "reward": 276.86520170012955,
+      "steps": 61,
+      "peak_lift_cm": 11.35529398918152,
+      "table_slide_cm": 0.7875327429272883,
+      "initial_tool_distance_cm": 14.81780856847763,
+      "closest_tool_distance_cm": 1.9567616283893585,
+      "camera_visible_fraction": 0.7377049180327869
+    },
+    {
+      "success": true,
+      "reward": 276.8559822504176,
+      "steps": 64,
+      "peak_lift_cm": 7.581706047058106,
+      "table_slide_cm": 1.2972623718087828,
+      "initial_tool_distance_cm": 15.932811796665192,
+      "closest_tool_distance_cm": 1.3196229934692383,
+      "camera_visible_fraction": 0.8125
+    },
+    {
+      "success": true,
+      "reward": 294.38628469849937,
+      "steps": 62,
+      "peak_lift_cm": 12.139685153961183,
+      "table_slide_cm": 1.0234140711963047,
+      "initial_tool_distance_cm": 15.180934965610504,
+      "closest_tool_distance_cm": 1.1735481210052967,
+      "camera_visible_fraction": 0.9354838709677419
+    },
+    {
+      "success": true,
+      "reward": 253.70533647795673,
+      "steps": 62,
+      "peak_lift_cm": 17.917670011520386,
+      "table_slide_cm": 2.9084220421450535,
+      "initial_tool_distance_cm": 15.820324420928955,
+      "closest_tool_distance_cm": 2.505054324865341,
+      "camera_visible_fraction": 0.7258064516129032
+    },
+    {
+      "success": true,
+      "reward": 303.6964476737194,
+      "steps": 60,
+      "peak_lift_cm": 12.228400707244875,
+      "table_slide_cm": 0.6697114779738556,
+      "initial_tool_distance_cm": 15.380620956420898,
+      "closest_tool_distance_cm": 1.2373032048344612,
+      "camera_visible_fraction": 0.7
+    },
+    {
+      "success": true,
+      "reward": 285.70452807401307,
+      "steps": 70,
+      "peak_lift_cm": 15.910191535949709,
+      "table_slide_cm": 1.861042381657363,
+      "initial_tool_distance_cm": 13.931846618652344,
+      "closest_tool_distance_cm": 1.7132552340626717,
+      "camera_visible_fraction": 0.7571428571428571
+    },
+    {
+      "success": true,
+      "reward": 253.36668785649817,
+      "steps": 62,
+      "peak_lift_cm": 6.136600375175477,
+      "table_slide_cm": 2.5481354923989397,
+      "initial_tool_distance_cm": 15.390108525753021,
+      "closest_tool_distance_cm": 1.7941281199455261,
+      "camera_visible_fraction": 0.8870967741935484
+    },
+    {
+      "success": false,
+      "reward": -0.5321126187918708,
+      "steps": 150,
+      "peak_lift_cm": 0.0,
+      "table_slide_cm": 0.00011780942457129129,
+      "initial_tool_distance_cm": 14.565640687942505,
+      "closest_tool_distance_cm": 2.667752094566822,
+      "camera_visible_fraction": 0.9933333333333333
+    },
+    {
+      "success": true,
+      "reward": 286.0612171496032,
+      "steps": 60,
+      "peak_lift_cm": 8.961905241012575,
+      "table_slide_cm": 1.2465253161183298,
+      "initial_tool_distance_cm": 15.938867628574371,
+      "closest_tool_distance_cm": 1.4203758910298347,
+      "camera_visible_fraction": 0.85
+    },
+    {
+      "success": true,
+      "reward": 318.00115526793525,
+      "steps": 61,
+      "peak_lift_cm": 10.482705831527712,
+      "table_slide_cm": 1.8243014825511494,
+      "initial_tool_distance_cm": 14.945617318153381,
+      "closest_tool_distance_cm": 0.44985897839069366,
+      "camera_visible_fraction": 0.819672131147541
+    },
+    {
+      "success": false,
+      "reward": -0.803202683920972,
+      "steps": 150,
+      "peak_lift_cm": 0.7795077562332164,
+      "table_slide_cm": 1.9888176915444866,
+      "initial_tool_distance_cm": 15.078812837600708,
+      "closest_tool_distance_cm": 4.943268001079559,
+      "camera_visible_fraction": 0.22
+    },
+    {
+      "success": true,
+      "reward": 279.8067792673828,
+      "steps": 61,
+      "peak_lift_cm": 14.168907403945925,
+      "table_slide_cm": 1.0411399555159129,
+      "initial_tool_distance_cm": 15.00900536775589,
+      "closest_tool_distance_cm": 1.3935384340584278,
+      "camera_visible_fraction": 0.7540983606557377
+    },
+    {
+      "success": true,
+      "reward": 265.6309087435948,
+      "steps": 65,
+      "peak_lift_cm": 13.882763385772707,
+      "table_slide_cm": 2.317341721194577,
+      "initial_tool_distance_cm": 15.367619693279266,
+      "closest_tool_distance_cm": 1.2788733467459679,
+      "camera_visible_fraction": 0.7230769230769231
+    },
+    {
+      "success": true,
+      "reward": 276.78449574147817,
+      "steps": 97,
+      "peak_lift_cm": 11.085791587829592,
+      "table_slide_cm": 5.918071402813352,
+      "initial_tool_distance_cm": 14.346587657928467,
+      "closest_tool_distance_cm": 1.5523027628660202,
+      "camera_visible_fraction": 0.5360824742268041
+    },
+    {
+      "success": false,
+      "reward": -209.10501452942844,
+      "steps": 150,
+      "peak_lift_cm": 0.08723855018615834,
+      "table_slide_cm": 7.086304133000754,
+      "initial_tool_distance_cm": 14.04220461845398,
+      "closest_tool_distance_cm": 0.9746060706675053,
+      "camera_visible_fraction": 0.9
+    },
+    {
+      "success": true,
+      "reward": 291.2039354988956,
+      "steps": 65,
+      "peak_lift_cm": 11.156190633773805,
+      "table_slide_cm": 2.0830756582187693,
+      "initial_tool_distance_cm": 15.451593697071075,
+      "closest_tool_distance_cm": 1.115212682634592,
+      "camera_visible_fraction": 0.6461538461538462
+    },
+    {
+      "success": false,
+      "reward": -224.7077057902934,
+      "steps": 150,
+      "peak_lift_cm": 0.16909956932067982,
+      "table_slide_cm": 8.508155260566008,
+      "initial_tool_distance_cm": 14.329464733600616,
+      "closest_tool_distance_cm": 5.343722179532051,
+      "camera_visible_fraction": 0.82
+    },
+    {
+      "success": true,
+      "reward": 290.78308699815534,
+      "steps": 64,
+      "peak_lift_cm": 12.868405580520632,
+      "table_slide_cm": 1.8411514220827652,
+      "initial_tool_distance_cm": 14.214898645877838,
+      "closest_tool_distance_cm": 0.8974800817668438,
+      "camera_visible_fraction": 0.765625
+    },
+    {
+      "success": true,
+      "reward": 308.42659275303595,
+      "steps": 60,
+      "peak_lift_cm": 7.654924392700196,
+      "table_slide_cm": 2.327815172455905,
+      "initial_tool_distance_cm": 15.269067883491516,
+      "closest_tool_distance_cm": 1.2546568177640438,
+      "camera_visible_fraction": 0.75
+    },
+    {
+      "success": true,
+      "reward": 321.8847041061381,
+      "steps": 59,
+      "peak_lift_cm": 10.753215551376345,
+      "table_slide_cm": 0.1406032002173152,
+      "initial_tool_distance_cm": 15.408724546432495,
+      "closest_tool_distance_cm": 0.4545144736766815,
+      "camera_visible_fraction": 0.7966101694915254
+    },
+    {
+      "success": true,
+      "reward": 307.3040158415679,
+      "steps": 63,
+      "peak_lift_cm": 16.085989475250244,
+      "table_slide_cm": 1.3635804183670608,
+      "initial_tool_distance_cm": 14.72197026014328,
+      "closest_tool_distance_cm": 1.3408699072897434,
+      "camera_visible_fraction": 0.746031746031746
+    },
+    {
+      "success": true,
+      "reward": 298.8592740353197,
+      "steps": 62,
+      "peak_lift_cm": 12.784398794174196,
+      "table_slide_cm": 1.4150064701634157,
+      "initial_tool_distance_cm": 15.00147432088852,
+      "closest_tool_distance_cm": 0.6487674079835415,
+      "camera_visible_fraction": 0.7258064516129032
+    },
+    {
+      "success": true,
+      "reward": 281.71482473926153,
+      "steps": 61,
+      "peak_lift_cm": 13.101280927658083,
+      "table_slide_cm": 1.3524783899826698,
+      "initial_tool_distance_cm": 15.792913734912872,
+      "closest_tool_distance_cm": 2.0095251500606537,
+      "camera_visible_fraction": 0.7213114754098361
+    },
+    {
+      "success": true,
+      "reward": 320.99141435849015,
+      "steps": 63,
+      "peak_lift_cm": 12.222255468368532,
+      "table_slide_cm": 2.2093564802948773,
+      "initial_tool_distance_cm": 15.5222088098526,
+      "closest_tool_distance_cm": 0.6280813366174698,
+      "camera_visible_fraction": 0.7936507936507936
+    },
+    {
+      "success": true,
+      "reward": 318.6866173435701,
+      "steps": 62,
+      "peak_lift_cm": 8.042849302291872,
+      "table_slide_cm": 3.063689327421093,
+      "initial_tool_distance_cm": 14.72950130701065,
+      "closest_tool_distance_cm": 0.8185651153326035,
+      "camera_visible_fraction": 0.6935483870967742
+    },
+    {
+      "success": true,
+      "reward": 302.60833608394023,
+      "steps": 62,
+      "peak_lift_cm": 13.471634387969972,
+      "table_slide_cm": 1.1917913624474252,
+      "initial_tool_distance_cm": 16.001343727111816,
+      "closest_tool_distance_cm": 1.1519783176481724,
+      "camera_visible_fraction": 0.7580645161290323
+    },
+    {
+      "success": true,
+      "reward": 305.5511880996637,
+      "steps": 63,
+      "peak_lift_cm": 11.138082742691042,
+      "table_slide_cm": 1.1720181601260204,
+      "initial_tool_distance_cm": 14.489322900772095,
+      "closest_tool_distance_cm": 0.8095920085906982,
+      "camera_visible_fraction": 0.7777777777777778
+    },
+    {
+      "success": true,
+      "reward": 278.941226808005,
+      "steps": 60,
+      "peak_lift_cm": 10.971946716308596,
+      "table_slide_cm": 1.4683127824274056,
+      "initial_tool_distance_cm": 15.69032073020935,
+      "closest_tool_distance_cm": 0.33927548211067915,
+      "camera_visible_fraction": 0.7666666666666667
+    },
+    {
+      "success": true,
+      "reward": 323.08680879848544,
+      "steps": 72,
+      "peak_lift_cm": 13.46514940261841,
+      "table_slide_cm": 2.8659664201660107,
+      "initial_tool_distance_cm": 14.007055759429932,
+      "closest_tool_distance_cm": 0.40275128558278084,
+      "camera_visible_fraction": 0.7083333333333334
+    },
+    {
+      "success": true,
+      "reward": 304.35748779494315,
+      "steps": 60,
+      "peak_lift_cm": 10.514248609542848,
+      "table_slide_cm": 0.25862656485697855,
+      "initial_tool_distance_cm": 15.609508752822876,
+      "closest_tool_distance_cm": 1.503695547580719,
+      "camera_visible_fraction": 0.7333333333333333
+    },
+    {
+      "success": true,
+      "reward": 259.96610175527167,
+      "steps": 60,
+      "peak_lift_cm": 11.779398918151857,
+      "table_slide_cm": 0.9864211236417564,
+      "initial_tool_distance_cm": 14.38930630683899,
+      "closest_tool_distance_cm": 1.0869937017560005,
+      "camera_visible_fraction": 0.7833333333333333
+    },
+    {
+      "success": false,
+      "reward": -95.85964228119701,
+      "steps": 150,
+      "peak_lift_cm": 4.361368417739869,
+      "table_slide_cm": 0.8721629268229947,
+      "initial_tool_distance_cm": 15.496142208576202,
+      "closest_tool_distance_cm": 1.9173767417669296,
+      "camera_visible_fraction": 0.9933333333333333
+    },
+    {
+      "success": true,
+      "reward": 320.5231150496984,
+      "steps": 64,
+      "peak_lift_cm": 14.89114284515381,
+      "table_slide_cm": 0.8732236933530313,
+      "initial_tool_distance_cm": 14.680302143096924,
+      "closest_tool_distance_cm": 0.7212537340819836,
+      "camera_visible_fraction": 0.734375
+    },
+    {
+      "success": true,
+      "reward": 288.50168389081955,
+      "steps": 60,
+      "peak_lift_cm": 11.704565286636354,
+      "table_slide_cm": 1.9738084883856644,
+      "initial_tool_distance_cm": 14.256797730922699,
+      "closest_tool_distance_cm": 1.2589226476848125,
+      "camera_visible_fraction": 0.7333333333333333
+    },
+    {
+      "success": true,
+      "reward": 304.5421628439799,
+      "steps": 60,
+      "peak_lift_cm": 12.595332860946657,
+      "table_slide_cm": 1.6948227159395923,
+      "initial_tool_distance_cm": 14.697863161563873,
+      "closest_tool_distance_cm": 1.13928047940135,
+      "camera_visible_fraction": 0.4666666666666667
+    },
+    {
+      "success": false,
+      "reward": -0.038998855219688267,
+      "steps": 150,
+      "peak_lift_cm": 0.0,
+      "table_slide_cm": 9.729730323648766e-05,
+      "initial_tool_distance_cm": 15.500755608081818,
+      "closest_tool_distance_cm": 0.9367963299155235,
+      "camera_visible_fraction": 0.14
+    },
+    {
+      "success": false,
+      "reward": -0.06976455493713729,
+      "steps": 150,
+      "peak_lift_cm": 0.0,
+      "table_slide_cm": 0.00018192183581788868,
+      "initial_tool_distance_cm": 15.726250410079956,
+      "closest_tool_distance_cm": 2.652588300406933,
+      "camera_visible_fraction": 0.9866666666666667
+    },
+    {
+      "success": true,
+      "reward": 287.38531860348303,
+      "steps": 69,
+      "peak_lift_cm": 13.810743093490602,
+      "table_slide_cm": 1.6732412740551261,
+      "initial_tool_distance_cm": 14.64880257844925,
+      "closest_tool_distance_cm": 1.4168656431138515,
+      "camera_visible_fraction": 0.7681159420289855
+    },
+    {
+      "success": true,
+      "reward": 270.58674972876906,
+      "steps": 61,
+      "peak_lift_cm": 10.576988458633425,
+      "table_slide_cm": 1.1442921696063202,
+      "initial_tool_distance_cm": 16.017986834049225,
+      "closest_tool_distance_cm": 1.4437432400882244,
+      "camera_visible_fraction": 0.6065573770491803
+    },
+    {
+      "success": true,
+      "reward": 306.7349040262634,
+      "steps": 66,
+      "peak_lift_cm": 10.87103605270386,
+      "table_slide_cm": 2.224738241083024,
+      "initial_tool_distance_cm": 14.502422511577606,
+      "closest_tool_distance_cm": 0.8727219887077808,
+      "camera_visible_fraction": 0.7272727272727273
+    },
+    {
+      "success": true,
+      "reward": 276.0180689680856,
+      "steps": 61,
+      "peak_lift_cm": 9.376902580261232,
+      "table_slide_cm": 1.8433222738389432,
+      "initial_tool_distance_cm": 14.992883801460266,
+      "closest_tool_distance_cm": 2.1582935005426407,
+      "camera_visible_fraction": 0.7377049180327869
+    },
+    {
+      "success": true,
+      "reward": 329.3149565855274,
+      "steps": 62,
+      "peak_lift_cm": 10.88224768638611,
+      "table_slide_cm": 2.023887770870525,
+      "initial_tool_distance_cm": 13.999629020690918,
+      "closest_tool_distance_cm": 0.47921971417963505,
+      "camera_visible_fraction": 0.7741935483870968
+    },
+    {
+      "success": true,
+      "reward": 297.2835038448684,
+      "steps": 62,
+      "peak_lift_cm": 9.423710107803347,
+      "table_slide_cm": 3.7171107502592005,
+      "initial_tool_distance_cm": 15.658572316169739,
+      "closest_tool_distance_cm": 1.2720350176095963,
+      "camera_visible_fraction": 0.7580645161290323
+    },
+    {
+      "success": true,
+      "reward": 279.56211076839827,
+      "steps": 62,
+      "peak_lift_cm": 13.833386898040773,
+      "table_slide_cm": 0.8770373325824199,
+      "initial_tool_distance_cm": 15.658394992351532,
+      "closest_tool_distance_cm": 1.9375791773200035,
+      "camera_visible_fraction": 0.7096774193548387
+    },
+    {
+      "success": false,
+      "reward": -0.06715526481275447,
+      "steps": 150,
+      "peak_lift_cm": 0.0003677606582652704,
+      "table_slide_cm": 0.015000366376938246,
+      "initial_tool_distance_cm": 15.76499491930008,
+      "closest_tool_distance_cm": 1.5244369395077229,
+      "camera_visible_fraction": 0.16
+    }
+  ],
+  "success_definition": "Two-sided cube contact and geometric sustained lift for 0.5 seconds"
+}

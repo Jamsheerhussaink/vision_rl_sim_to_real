@@ -1,0 +1,12 @@
+# Assets and the retained checkpoint are ordinary Git files below 100 MiB.
+# This snapshot does not require Git LFS filters to clone or load assets.
+*.usd -text
+*.usdc -text
+*.usdz -text
+*.pt -text
+*.jit -text
+*.hdf5 -text
+# Exported USD layers may contain a harmless final blank line.
+*.usda whitespace=-blank-at-eof
+*.bat text eol=crlf
+*.sh text eol=lf
