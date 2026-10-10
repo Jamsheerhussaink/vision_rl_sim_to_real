@@ -15,6 +15,7 @@ wandb/
 # Conversation history is local tooling output, not project source.
 .waylog/
 
-.vscode/settings.json
-.vscode/launch.json
+.vscode/
 pyrightconfig.json
+imgui.ini
+*.bak
