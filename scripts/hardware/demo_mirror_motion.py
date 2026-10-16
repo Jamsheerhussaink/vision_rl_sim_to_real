@@ -1,0 +1,1 @@
+/home/ai/jamshi/isaac_vision_rl/scripts/demo_mirror_motion.py

@@ -122,6 +122,7 @@ typeCheckingMode = "basic"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = [".", "src"]
 addopts = "-ra"
 markers = [
     "unit: test exercises isolated logic and does not launch the simulator",

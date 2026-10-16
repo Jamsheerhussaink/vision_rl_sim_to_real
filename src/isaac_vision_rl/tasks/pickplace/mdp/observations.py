@@ -1,65 +1,14 @@
 """Deployment-available policy inputs and environment-local critic state."""
 
 import torch
+import os
 
 
 def global_camera_rgb(env):
-    """Keep full sensor resolution for geometry, downsample only the CNN input."""
+    """Aspect-preserving RGB actor image, with no depth/geometry estimator."""
+    from isaac_vision_rl.utils.rgb_image import actor_rgb
     image = env.scene["camera"].data.output["rgb"]
-    image = image.torch if hasattr(image, "torch") else image
-    rgb = image[..., :3].permute(0, 3, 1, 2).float() / 255.0
-    return torch.nn.functional.interpolate(rgb, size=(128, 128), mode="bilinear", align_corners=False)
-
-
-def camera_cube_observation(env):
-    """Global RGB-D estimate relative to TCP in robot-base axes, plus visibility.
-
-    Output: dx, dy, dz, sin(4*yaw), cos(4*yaw), confidence, valid.
-    A missing/occluded cube produces zeros and valid=0, never simulator pose.
-    Robot proprioception and calibrated camera extrinsics are permitted inputs.
-    """
-    import numpy as np
-    from scipy.spatial.transform import Rotation
-
-    from isaac_vision_rl.perception.cube import YellowCubeEstimator
-
-    def tensor(value):
-        return value.torch if hasattr(value, "torch") else value
-
-    counter = getattr(env, "common_step_counter", -1)
-    episodes = env.episode_length_buf
-    cache = getattr(env, "_camera_cube_cache", None)
-    if cache is not None and cache[0] == counter and torch.equal(cache[1], episodes):
-        return cache[2]
-    camera, robot = env.scene["camera"], env.scene["robot"]
-    camera.update(env.step_dt, force_recompute=True)
-    rgb = tensor(camera.data.output["rgb"])[..., :3].detach().cpu().numpy().astype(np.uint8)
-    depth = tensor(camera.data.output["distance_to_image_plane"]).detach().cpu().numpy()
-    K = tensor(camera.data.intrinsic_matrices).detach().cpu().numpy()
-    camera_pos = tensor(camera.data.pos_w).detach().cpu().numpy()
-    camera_rot = Rotation.from_quat(tensor(camera.data.quat_w_ros).detach().cpu().numpy()).as_matrix()
-    base_pos = tensor(robot.data.root_pos_w).detach().cpu().numpy()
-    base_rot = Rotation.from_quat(tensor(robot.data.root_quat_w).detach().cpu().numpy()).as_matrix()
-    body = robot.find_bodies("gripper_frame_link")[0][0]
-    tcp = tensor(robot.data.body_pos_w)[:, body].detach().cpu().numpy()
-    values = np.zeros((env.num_envs, 7), dtype=np.float32)
-    for i in range(env.num_envs):
-        transform = np.eye(4)
-        transform[:3, :3] = base_rot[i].T @ camera_rot[i]
-        transform[:3, 3] = base_rot[i].T @ (camera_pos[i] - base_pos[i])
-        estimate = YellowCubeEstimator(transform).estimate_depth(rgb[i], depth[i].squeeze(), K[i])
-        if estimate.valid and estimate.center_base_m is not None and estimate.yaw_mod_quarter_turn_rad is not None:
-            tcp_base = base_rot[i].T @ (tcp[i] - base_pos[i])
-            values[i, :3] = np.asarray(estimate.center_base_m) - tcp_base
-            yaw = float(estimate.yaw_mod_quarter_turn_rad)
-            values[i, 3:] = [np.sin(4 * yaw), np.cos(4 * yaw), estimate.confidence, 1.0]
-    result = torch.tensor(values, device=env.device)
-    if hasattr(env, "extras"):
-        log = env.extras.setdefault("log", {})
-        log["Perception/cube_visible_fraction"] = result[:, 6].mean()
-        log["Perception/cube_confidence"] = result[:, 5].mean()
-    env._camera_cube_cache = (counter, episodes.clone(), result)
-    return result
+    return actor_rgb(image.torch if hasattr(image, "torch") else image)
 
 
 def time_remaining(env):
@@ -73,21 +22,8 @@ def filtered_joint_targets(env):
     )
 
 
-def grasp_assist_state(env):
-    term = env.action_manager.get_term("gripper_action")
-    return torch.stack((term.grasp_latched.float(), (term.closure_hold_steps.float() / 15).clamp(0, 1)), dim=-1)
 
 
-def cube_ee_relative(env):
-    """Privileged lift-baseline cue: cube position relative to the tool center.
-
-    This is intentionally used only for the first state-assisted lift curriculum.
-    A vision-only deployment policy should replace it with an estimator from RGB.
-    """
-    cube = env.scene["cube"]
-    robot = env.scene["robot"]
-    ee_idx = robot.find_bodies("gripper_frame_link")[0][0]
-    return cube.data.root_pos_w.torch - robot.data.body_pos_w.torch[:, ee_idx]
 
 
 def critic_task_state(env):

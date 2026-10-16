@@ -1,6 +1,7 @@
 """Capture the actual task camera in the nominal ready pose."""
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -11,13 +12,17 @@ sys.path.insert(0, str(ROOT / "src"))
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task", choices=["lift", "place"], default="lift")
-    parser.add_argument("--output", default="outputs/lift_scene.png")
-    parser.add_argument("--width", type=int, default=1200)
-    parser.add_argument("--height", type=int, default=768)
+    parser.add_argument("--output", default="outputs/training/scene_preview.png")
+    parser.add_argument("--width", type=int, default=424)
+    parser.add_argument("--height", type=int, default=240)
+    parser.add_argument("--policy", choices=["rgb"], default="rgb")
+    parser.add_argument("--curriculum", choices=["fixed", "lift", "place"], default="fixed")
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--viz", choices=["kit"], help="Also verify the GUI uses the task camera")
     args = parser.parse_args()
+    os.environ["SO101_POLICY"] = args.policy
+    os.environ["SO101_CURRICULUM"] = args.curriculum
     if args.headless and args.viz:
         parser.error("Choose --headless or --viz kit")
     import gymnasium as gym

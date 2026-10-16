@@ -10,33 +10,8 @@ STAGES = ("grasp", "fixed", "lift", "place")
 SEEDS = (101, 202, 303)
 
 
-def camera_fingerprint():
-    paths = (
-        "src/isaac_vision_rl/tasks/pickplace/config/so101/env_cfg.py",
-        "src/isaac_vision_rl/perception/cube.py",
-        "src/isaac_vision_rl/tasks/pickplace/mdp/observations.py",
-        "src/isaac_vision_rl/tasks/pickplace/mdp/rewards.py",
-        "src/isaac_vision_rl/utils/grasp_geometry.py",
-        "src/isaac_vision_rl/utils/grasp_assist.py",
-        "src/isaac_vision_rl/tasks/pickplace/mdp/actions.py",
-        "scripts/camera_pick_lift.py",
-        "scripts/verify_camera_perception.py",
-        "usd/robot_grasp_calibrated.usda",
-    )
-    return {path: sha256(ROOT / path) for path in paths}
 
 
-def require_camera_preflight():
-    """Require scored camera geometry and a physical camera-guided reference lift."""
-    for name in ("sim_validation.json", "camera_lift.json"):
-        path = ROOT / "outputs/perception" / name
-        if not path.exists():
-            raise ValueError("Camera evidence is missing; rerun --stage preflight before training.")
-        report = json.loads(path.read_text())
-        if not report.get("passed") or report.get("camera_fingerprint") != camera_fingerprint():
-            raise ValueError("Camera evidence is failed or stale; rerun --stage preflight before training.")
-        if name == "camera_lift.json" and not report.get("grasp_assist_used"):
-            raise ValueError("Camera grasp assistance must pass preflight before training.")
 
 
 def sha256(path):
@@ -48,26 +23,25 @@ def fingerprint():
         "src/isaac_vision_rl/tasks/pickplace/config/so101/env_cfg.py",
         "src/isaac_vision_rl/tasks/pickplace/config/so101/agents/rsl_rl_ppo_cfg.py",
         "src/isaac_vision_rl/tasks/pickplace/mdp/rewards.py",
+        "src/isaac_vision_rl/tasks/pickplace/mdp/terminations.py",
         "src/isaac_vision_rl/tasks/pickplace/mdp/observations.py",
-        "src/isaac_vision_rl/perception/cube.py",
         "src/isaac_vision_rl/tasks/pickplace/mdp/actions.py",
         "src/isaac_vision_rl/tasks/pickplace/mdp/actions_cfg.py",
         "src/isaac_vision_rl/tasks/pickplace/mdp/health.py",
         "src/isaac_vision_rl/utils/rl_agent.py",
         "src/isaac_vision_rl/utils/pipeline.py",
         "src/isaac_vision_rl/utils/grasp_geometry.py",
-        "src/isaac_vision_rl/utils/grasp_assist.py",
         "scripts/eval_pipeline.py",
-        "scripts/build_robot_asset.py",
-        "scripts/check_workcell.py",
-        "scripts/check_resets.py",
+        "scripts/assets/build_robot_asset.py",
+        "scripts/checks/check_workcell.py",
+        "scripts/checks/check_resets.py",
         "usd/box_reference.usda",
         "usd/box.usd",
         "usd/table_reference.usda",
         "usd/table.usd",
         "usd/robot.usd",
     ]
-    calibrated = ROOT / "usd/robot_grasp_calibrated.usda"
+    calibrated = ROOT / "usd/robot_grasp_surface_v3.usda"
     if calibrated.exists():
         paths.append(str(calibrated.relative_to(ROOT)))
     return {p: sha256(ROOT / p) for p in paths}
@@ -116,6 +90,89 @@ def read_physical_report():
 def configure_curriculum(cfg, stage):
     if stage not in STAGES:
         raise ValueError(f"Unknown curriculum: {stage}")
+    if os.environ.get("SO101_POLICY", "rgb") != "rgb":
+        raise ValueError("Only RGB policies are supported")
+    # No depth sensor, geometry cue, capture latch, or privileged release.
+    fps = int(os.environ.get("SO101_RGB_FPS", "30"))
+    if fps not in (25, 30, 60):
+        raise ValueError("SO101_RGB_FPS must be 25 (legacy), 30 or 60")
+    cfg.decimation = 4
+    cfg.sim.dt = 1.0 / (4 * fps)
+    cfg.sim.render_interval = 4
+    cfg.scene.camera.update_period = 0.0  # Render fresh at every control tick.
+    # Preserve the filter's approximate physical-time response.
+    cfg.actions.arm_action.alpha = 1.0 - 0.8 ** (25.0 / fps)
+    cfg.scene.camera.data_types = ["rgb"]
+    cfg.rewards.reach_progress.params["time_normalized"] = True
+    # Dense bounded shaping bridges approach -> alignment -> supported lift.
+    # Actor inputs and strict termination gates remain unchanged.
+    from isaaclab.managers import RewardTermCfg
+    from isaac_vision_rl.tasks.pickplace.mdp.rewards import dense_rgb_approach
+    cfg.rewards.dense_reach = RewardTermCfg(func=dense_rgb_approach, weight=2.0, params={"component": "reach"})
+    cfg.rewards.dense_alignment = RewardTermCfg(func=dense_rgb_approach, weight=3.0, params={"component": "align"})
+    cfg.rewards.approach_open = RewardTermCfg(func=dense_rgb_approach, weight=0.5, params={"component": "open"})
+    cfg.rewards.stable_support = RewardTermCfg(func=dense_rgb_approach, weight=10.0, params={"component": "support"})
+    cfg.rewards.displacement_penalty.weight = float(os.environ.get("SO101_DISPLACEMENT_PENALTY", "-12.0"))
+    cfg.rewards.action_rate.weight = float(os.environ.get("SO101_ACTION_RATE_PENALTY", "-0.06"))
+
+    cam_w = int(os.environ.get("SO101_CAMERA_WIDTH", "1280"))
+    cam_h = int(os.environ.get("SO101_CAMERA_HEIGHT", "720"))
+    cfg.scene.camera.width = cam_w
+    cfg.scene.camera.height = cam_h
+    # Keep the original close viewpoint, with a small upward framing shift.
+    # Explicit OpenGL axes: -Z forward, +Y up.
+    cfg.scene.camera.offset.pos = (-0.05, -0.22, 0.77)
+    cfg.scene.camera.offset.convention = "opengl"
+    cfg.scene.camera.offset.rot = (0.3131639, 0.0, 0.0, 0.9496994)
+    cfg.scene.camera.spawn.horizontal_aperture = 24.88
+    cfg.scene.camera.spawn.focal_length = 12.44  # Nominal 90-degree horizontal FOV.
+    # 30 cm horizontal camera/base distance, on the image's left side.
+    # Base offset from camera: (-0.20, sqrt(0.30**2 - 0.20**2)).
+    cfg.scene.robot.init_state.pos = (-0.25, 0.015, 0.405)
+    cfg.scene.robot.init_state.rot = (0.0, 0.0, 0.0, 1.0)
+    # Move the objects with the base, preserving the arm-relative layout.
+    # Align cube and box to match real workspace photo pixel measurements.
+    cfg.scene.cube.init_state.pos = (-0.002, -0.052, 0.426)
+    cfg.scene.box.init_state.pos = (0.055, 0.120, 0.401)
+    # Actual photo-reference home, captured from all six real encoders.
+    from isaac_vision_rl.utils.home_pose import home_joint_positions
+    cfg.scene.robot.init_state.joint_pos.update(home_joint_positions())
+    cfg.scene.robot.init_state.joint_pos["gripper"] = 1.20
+    # Axis-align the base; compensate shoulder pan to retain arm heading.
+    from isaac_vision_rl.utils.cube_material import spawn_grain_material, spawn_cardboard_material
+    cfg.scene.cube.spawn.visual_material.func = spawn_grain_material
+    cfg.scene.box.spawn.visual_material.func = spawn_cardboard_material
+    cfg.scene.cube.spawn.visual_material.diffuse_color_constant = (0.85, 0.70, 0.35)
+    cfg.scene.box.spawn.visual_material.diffuse_color_constant = (0.75, 0.55, 0.40)
+    cfg.scene.cube.spawn.visual_material.reflection_roughness_constant = 0.55
+    cfg.scene.box.spawn.visual_material.reflection_roughness_constant = 0.85
+    cfg.scene.table.spawn.usd_path = str(ROOT / "usd/table_real_rgb.usda")
+    cfg.scene.table.spawn.scale = (3.5, 3.5, 1.0)
+    cfg.scene.table.init_state.pos = (0.0, 0.35, 0.0)
+    # Soft, natural ambient illumination matching the real physical room.
+    cfg.scene.dome_light.spawn.intensity = 1200.0
+    cfg.scene.dome_light.spawn.color = (0.95, 0.98, 1.0)
+    cfg.scene.overhead_front.spawn.intensity = 1500.0
+    cfg.scene.overhead_front.spawn.radius = 0.80
+    cfg.scene.overhead_front.init_state.pos = (0.02, 0.51, 1.45)
+    cfg.scene.overhead_front.init_state.rot = (0.0, 0.0, 0.0, 1.0)
+    cfg.scene.overhead_front.spawn.color = (0.98, 0.98, 1.0)
+    cfg.scene.overhead_left.spawn.radius = 0.80
+    cfg.scene.overhead_left.init_state.pos = (-0.40, 0.65, 1.35)
+    cfg.scene.overhead_left.init_state.rot = (0.0, 0.0, 0.0, 1.0)
+    cfg.scene.overhead_left.spawn.intensity = 3500.0
+    cfg.scene.overhead_left.spawn.color = (0.98, 0.99, 1.0)
+    cfg.scene.overhead_table.spawn.intensity = 3000.0
+    cfg.scene.overhead_table.spawn.radius = 0.90
+    cfg.scene.overhead_table.init_state.pos = (0.15, 0.85, 1.45)
+    cfg.scene.camera.background_color = (0.04, 0.07, 0.05)
+    cfg.scene.camera.background_color = (0.08, 0.12, 0.09)
+    cfg.sim.default_visualizer_cfg.eye = cfg.scene.camera.offset.pos
+    cfg.sim.default_visualizer_cfg.lookat = (-0.08, 0.10, 0.33)
+    cfg.scene.camera.spawn.vertical_aperture = cfg.scene.camera.spawn.horizontal_aperture * cam_h / cam_w
+    # Symmetric mapping: -1 closed, 0 half open, +1 fully open.
+    cfg.actions.gripper_action.scale = 0.6
+    cfg.actions.gripper_action.offset = 0.6
     if stage == "grasp":
         report = read_physical_report()
         cfg.scene.robot.init_state.joint_pos.update(report["above_joint_pos"])
@@ -138,7 +195,7 @@ def configure_curriculum(cfg, stage):
         cfg.events.reset_cube_pose.params["pose_range"] = {
             "x": (-jitter, jitter),
             "y": (-jitter, jitter),
-            "yaw": (-0.52, 0.52),
+            "yaw": (-0.7854, 0.7854),
         }
     box_jitter = float(os.environ.get("SO101_BOX_JITTER", "0"))
     if getattr(cfg.events, "reset_box_pose", None) is not None and box_jitter > 0:
@@ -165,8 +222,8 @@ def write_gate(stage, checkpoint, reports, episodes=50):
         raise ValueError("Evaluation checkpoints do not match the candidate.")
     if any(r.get("curriculum") != stage or r.get("task") != ("place" if stage == "place" else "lift") for r in reports):
         raise ValueError("Evaluation curriculum or task does not match the gate.")
-    policy = reports[0].get("policy", "vision") if reports else "vision"
-    if any(r.get("policy", "vision") != policy for r in reports):
+    policy = reports[0].get("policy", "rgb") if reports else "rgb"
+    if any(r.get("policy", "rgb") != policy for r in reports):
         raise ValueError("Mixed policy variants cannot certify one checkpoint")
     gate = {
         "policy": policy,
@@ -193,7 +250,7 @@ def require_gate(stage, policy=None):
     if not path.exists():
         raise ValueError(f"{stage} mastery evidence is missing. Train and evaluate that stage first.")
     gate = json.loads(path.read_text())
-    if policy is not None and gate.get("policy", "vision") != policy:
+    if policy is not None and gate.get("policy", "rgb") != policy:
         raise ValueError(f"{stage} gate belongs to another policy; use matching --policy and checkpoint")
     checkpoint = Path(gate["checkpoint"])
     if not gate["passed"] or not evaluations_pass(gate["evaluations"], gate["episodes_per_seed"]):

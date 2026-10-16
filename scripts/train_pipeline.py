@@ -22,7 +22,6 @@ from isaac_vision_rl.utils.pipeline import (  # noqa: E402
     STAGES,
     fingerprint,
     read_physical_report,
-    require_camera_preflight,
     require_gate,
     write_gate,
 )
@@ -54,7 +53,7 @@ def run(command, log_name):
 
 def evaluate(stage, checkpoint, args):
     reports = []
-    label = stage if args.policy == "vision" else f"{stage}_state"
+    label = f"{stage}_rgb"
     for seed in SEEDS:
         target = OUTPUT / f"{label}_eval_{seed}.json"
         run(
@@ -99,7 +98,6 @@ def evaluate(stage, checkpoint, args):
 
 def train(stage, args):
     read_physical_report()
-    require_camera_preflight()
     previous = STAGES[STAGES.index(stage) - 1] if stage != "grasp" else None
     inherited = require_gate(previous, args.policy) if previous else None
     checkpoint = args.checkpoint or inherited
@@ -130,7 +128,7 @@ def train(stage, args):
     if args.dashboard:
         command += ["--dashboard"]
     command += ["--policy", args.policy, "--cube-jitter", str(args.cube_jitter)]
-    label = stage if args.policy == "vision" else f"{stage}_state"
+    label = f"{stage}_rgb"
     run(command, f"{label}_training.log")
     if fingerprint() != training_fingerprint:
         raise RuntimeError(
@@ -154,7 +152,7 @@ def main():
     )
     p.add_argument("--evaluate-stage", choices=STAGES, default="lift")
     p.add_argument("--checkpoint", help="Explicit candidate to evaluate or resume; previous-stage gates still apply")
-    p.add_argument("--policy", choices=["vision", "state"], default="vision")
+    p.add_argument("--policy", choices=["rgb"], default="rgb")
     p.add_argument("--envs", type=int, default=64)
     p.add_argument("--lift-iterations", type=int, default=2000)
     p.add_argument("--place-iterations", type=int, default=2000)
@@ -166,8 +164,9 @@ def main():
     p.add_argument("--headless", action="store_true")
     p.add_argument("--dashboard", action="store_true")
     p.add_argument("--cube-jitter", type=float, default=0.0, help="Cube XY reset jitter in metres, 0 to 0.04")
+    p.add_argument("--box-jitter", type=float, default=0.0)
     args = p.parse_args()
-    if not 0 <= args.cube_jitter <= 0.04:
+    if not 0 <= args.cube_jitter <= 0.04 or not 0 <= args.box_jitter <= 0.04:
         p.error("--cube-jitter must be between 0 and 0.04 metres")
     if args.episodes < 50 or args.envs < 1 or min(args.lift_iterations, args.place_iterations) < 1:
         p.error("Use at least 50 evaluation episodes per seed, positive envs and positive iteration counts.")
@@ -191,47 +190,22 @@ def main():
         if args.stage in ("preflight", "all"):
             run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"], "unit_checks.log")
             run(
-                [sys.executable, "-u", str(ROOT / "scripts/check_workcell.py"), "--device", args.device],
+                [sys.executable, "-u", str(ROOT / "scripts/checks/check_workcell.py"), "--device", args.device],
                 "workcell_physics.log",
             )
             if not json.loads((OUTPUT / "workcell_physics.json").read_text()).get("passed"):
                 raise RuntimeError("Table/box collision preflight failed. Training remains blocked.")
             run(
-                [sys.executable, "-u", str(ROOT / "scripts/check_resets.py"), "--device", args.device],
+                [sys.executable, "-u", str(ROOT / "scripts/checks/check_resets.py"), "--device", args.device],
                 "reset_check.log",
             )
             if not json.loads((OUTPUT / "reset_check.json").read_text()).get("passed"):
                 raise RuntimeError("Cube pose/velocity reset preflight failed. Training remains blocked.")
             run(
-                [sys.executable, "-u", str(ROOT / "scripts/verify_grasp.py"), "--device", args.device],
+                [sys.executable, "-u", str(ROOT / "scripts/checks/verify_grasp.py"), "--device", args.device],
                 "physical_grasp.log",
             )
             read_physical_report()
-            run(
-                [
-                    sys.executable,
-                    "-u",
-                    str(ROOT / "scripts/verify_camera_perception.py"),
-                    "--headless",
-                    "--device",
-                    args.device,
-                ],
-                "camera_perception.log",
-            )
-            run(
-                [
-                    sys.executable,
-                    "-u",
-                    str(ROOT / "scripts/camera_pick_lift.py"),
-                    "--headless",
-                    "--grasp-assist",
-                    "--record-video",
-                    "--device",
-                    args.device,
-                ],
-                "camera_reference_lift.log",
-            )
-            require_camera_preflight()
             print("Physical preflight passed. Ready for the grasp curriculum.", flush=True)
             if args.stage == "preflight":
                 return 0

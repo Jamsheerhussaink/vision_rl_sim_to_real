@@ -3,24 +3,6 @@
 import torch
 
 
-class CapturedJointHold:
-    """Retain a measured joint angle during capture, with independent episode resets."""
-
-    def __init__(self, count, device):
-        self.active = torch.zeros(count, dtype=torch.bool, device=device)
-        self.reference = torch.zeros(count, device=device)
-
-    def reset(self, env_ids=None):
-        ids = slice(None) if env_ids is None else env_ids
-        self.active[ids] = False
-        self.reference[ids] = 0
-
-    def apply(self, desired, measured, captured, lower, upper):
-        first = captured & ~self.active
-        self.reference[first] = measured[first]
-        self.reference[:] = torch.maximum(torch.minimum(self.reference, upper), lower)
-        self.active[:] = captured
-        return torch.where(captured, self.reference, desired)
 
 
 def bounded_reference_step(position, target, velocity, speed_limit, acceleration, dt):

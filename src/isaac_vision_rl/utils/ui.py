@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Ultra-clean, single-line dynamic progress bar for headless training."""
+"""Live terminal training dashboard, with plain progress lines for log files."""
 
 from __future__ import annotations
 
@@ -16,13 +16,20 @@ import statistics
 import sys
 
 import torch
+from rich.console import Console, Group
+from rich.live import Live
+from rich.panel import Panel
+from rich.progress_bar import ProgressBar
+from rich.table import Table
+from rich.text import Text
 
 
 class SingleLineTrainingBar:
-    """Dynamic single-line progress bar that updates in place without scrolling."""
+    """Streaming progress bar logger that continuously outputs clean progress lines with newlines."""
 
-    def __init__(self, task_name: str = "IsaacVisionRl-Pickplace-SO101"):
+    def __init__(self, task_name: str = "IsaacVisionRl-PickLift-SO101", print_new_line: bool = True):
         self.task_name = task_name
+        self.print_new_line = print_new_line
         self.is_tty = sys.stdout.isatty()
         self.start_datetime = datetime.datetime.now()
         atexit.register(self.close)
@@ -41,69 +48,129 @@ class SingleLineTrainingBar:
         num_envs: int = 16,
         log_dir: str = "",
     ) -> None:
-        """Render single-line progress update."""
-        term_width = shutil.get_terminal_size(fallback=(100, 24)).columns
-        it = it + 1  # RSL-RL reports zero-based iteration indices.
+        """Render streaming progress update line with newline."""
+        term_width = shutil.get_terminal_size(fallback=(120, 24)).columns
+        it = it + 1  # 1-indexed for display
         pct = (it / total_it) * 100.0 if total_it > 0 else 0.0
 
         mean_rew = rewards.get("Mean Total", 0.0)
         reach = rewards.get("Reach Cube", 0.0)
         lift = rewards.get("Lift Cube", 0.0)
-        place = rewards.get("Place Cube", 0.0)
+        grasp = rewards.get("Grasp Cube", 0.0)
         v_loss = losses.get("Value Loss", 0.0)
-        exploration = f" | Std:{losses.get('Action Std', 0.0):.2f} | S:{terms.get('Success', 0.0):.2f}"
+        act_std = losses.get("Action Std", 0.0)
+        succ = terms.get("Success", 0.0) * 100.0
 
-        # Core statistics prefix & suffix
-        prefix = f"[{it:4d}/{total_it}] "
-        suffix = (
-            f" {pct:5.1f}% | {int(sps):,} sps | Rew:{mean_rew:+.2f} "
-            f"(R:{reach:+.2f} L:{lift:+.2f} P:{place:+.2f}) | Loss:{v_loss:.2e}{exploration} | ETA:{eta_s}"
+        # Basic monochrome progress bar
+        bar_width = max(min(term_width - 120, 30), 12)
+        filled = int(bar_width * it / total_it) if total_it > 0 else 0
+        bar_str = "=" * filled + (">" if filled < bar_width else "")
+        bar_str = bar_str.ljust(bar_width, "-")
+
+        prefix = f"[{it:4d}/{total_it}]"
+
+        # Pure monochrome line with standard formatting
+        line = (
+            f"{prefix} [{bar_str}] {pct:5.1f}% | "
+            f"{int(sps):4d} sps | "
+            f"Rew: {mean_rew:+.2f} (R:{reach:+.2f} L:{lift:+.2f} G:{grasp:+.2f}) | "
+            f"Loss: {v_loss:.2e} | "
+            f"Std: {act_std:.2f} Succ: {succ:4.1f}% | "
+            f"ETA: {eta_s}\n"
         )
 
-        # Calculate progress bar width based on terminal size
-        used_len = len(prefix) + len(suffix) + 2
-        bar_width = max(term_width - used_len - 2, 8)
-        filled = int(bar_width * it / total_it) if total_it > 0 else 0
-        bar_str = "━" * filled + ("╸" if filled < bar_width else "")
-        bar_str = bar_str.ljust(bar_width, "─")
-
-        if self.is_tty:
-            # Color-coded single line with \r and clear-to-end-of-line \033[K
-            rew_color = 32 if mean_rew >= 0 else 31
-            line = (
-                f"\r\033[1;32m{prefix}\033[0m"
-                f"\033[36m[{bar_str}]\033[0m"
-                f"\033[1;37m {pct:5.1f}%\033[0m | "
-                f"\033[1;33m{int(sps):,} sps\033[0m | "
-                f"\033[1mRew:\033[0m \033[1;{rew_color}m{mean_rew:+.2f}\033[0m "
-                f"\033[90m(R:{reach:+.2f} L:{lift:+.2f} P:{place:+.2f})\033[0m | "
-                f"\033[33mLoss:{v_loss:.2e}{exploration}\033[0m | "
-                f"\033[35mETA:{eta_s}\033[0m\033[K"
-            )
-            sys.stdout.write(line)
-            sys.stdout.flush()
-        else:
-            # When writing to a log file or redirected pipe
-            line = (
-                f"[{it:4d}/{total_it}] [{bar_str}] {pct:5.1f}% | "
-                f"{int(sps):,} sps | "
-                f"Rew: {mean_rew:+.2f} (R:{reach:+.2f} L:{lift:+.2f} P:{place:+.2f}) | "
-                f"Loss: {v_loss:.2e}{exploration} | "
-                f"ETA: {eta_s}\n"
-            )
-            sys.stdout.write(line)
-            sys.stdout.flush()
+        sys.stdout.write(line)
+        sys.stdout.flush()
 
     def close(self) -> None:
-        """Safely print final newline."""
         try:
-            sys.stdout.write("\n")
             sys.stdout.flush()
         except Exception:
             pass
 
 
-# Global single-line bar instance
+class TrainingDashboard(SingleLineTrainingBar):
+    """Render separate progress, reward, learning and timing rows in a terminal."""
+
+    def __init__(self):
+        self._live = None
+        super().__init__()
+
+    def update(
+        self, it, total_it, sps, elapsed_s, eta_s, rewards, losses, terms,
+        device="cuda:0", num_envs=16, log_dir="",
+    ):
+        if not self.is_tty:
+            return super().update(
+                it, total_it, sps, elapsed_s, eta_s, rewards, losses, terms,
+                device, num_envs, log_dir,
+            )
+        completed = it + 1
+        pct = 100 * completed / max(total_it, 1)
+        progress = Text(
+            f"Update {completed:,} / {total_it:,}  ({pct:.1f}%)   "
+            f"{num_envs} environments   {device}", style="bold cyan",
+        )
+        table = Table.grid(padding=(0, 2), expand=True)
+        table.add_column(style="bold", ratio=1)
+        table.add_column(ratio=4)
+        table.add_row(
+            "Rewards",
+            f"Episode {rewards.get('Mean Total', 0):+.3f}   "
+            f"Reach {rewards.get('Reach Cube', 0):+.4f}   "
+            f"Grasp {rewards.get('Grasp Cube', 0):+.4f}   "
+            f"Lift {rewards.get('Lift Cube', 0):+.4f}",
+        )
+        table.add_row(
+            "Penalties",
+            f"Drag {rewards.get('Drag', 0):+.4f}   "
+            f"Displacement {rewards.get('Displacement', 0):+.4f}   "
+            f"Action change {rewards.get('Action Rate', 0):+.4f}",
+        )
+        table.add_row(
+            "Learning",
+            f"Value loss {losses.get('Value Loss', 0):.3e}   "
+            f"Policy loss {losses.get('Surrogate', 0):.3e}   "
+            f"Learning rate {losses.get('LR', 0):.2e}",
+        )
+        table.add_row(
+            "Exploration",
+            f"Action std {losses.get('Action Std', 0):.3f}   "
+            f"Entropy {losses.get('Entropy', 0):.3f}   "
+            f"Entropy coefficient {losses.get('Entropy Coefficient', 0):.4f}",
+        )
+        table.add_row(
+            "Training signal",
+            f"Lift-success termination metric {terms.get('Success', 0):.4f}   "
+            f"Mean episode length {terms.get('Mean Ep Len', 'n/a')}",
+        )
+        table.add_row(
+            "Timing",
+            f"{sps:,.0f} samples/s   Elapsed {elapsed_s}   Remaining {eta_s}",
+        )
+        progress_row = Table.grid(expand=True)
+        progress_row.add_row(ProgressBar(total=max(total_it, 1), completed=completed))
+        content = Group(
+            progress, progress_row,
+            table, Text(f"Checkpoints: {log_dir}", style="dim"),
+            Text("Training metrics are not an independent success evaluation.", style="dim"),
+        )
+        panel = Panel(content, title="SO-101 PPO Training", border_style="cyan")
+        if self._live is None:
+            self._live = Live(panel, console=Console(), auto_refresh=False)
+            self._live.start(refresh=True)
+        else:
+            self._live.update(panel, refresh=True)
+
+    def close(self):
+        if self._live is not None:
+            self._live.stop()
+            self._live = None
+        else:
+            super().close()
+
+
+# Global dashboard instance
 _GLOBAL_BAR: SingleLineTrainingBar | None = None
 
 
@@ -115,7 +182,7 @@ def get_training_bar() -> SingleLineTrainingBar:
 
 
 def setup_clean_terminal_ui() -> None:
-    """Setup ultra-clean, single-line terminal progress bar by hooking RSL-RL logger."""
+    """Install the training dashboard while preserving TensorBoard metrics."""
     os.environ["CARB_APP_LOG_LEVEL"] = "warn"
     os.environ["OMNI_LOG_LEVEL"] = "error"
 
@@ -200,8 +267,16 @@ def setup_clean_terminal_ui() -> None:
                         + parsed_extras.get("Episode_Reward/reach_progress", 0.0)
                     ),
                     "Lift Cube": parsed_extras.get("Episode_Reward/lift_cube", 0.0),
+                    "Grasp Cube": (
+                        parsed_extras.get("Episode_Reward/grasp_cube", 0.0)
+                        + parsed_extras.get("Episode_Reward/pinch_force", 0.0)
+                    ),
+                    "Drag": parsed_extras.get("Episode_Reward/drag_penalty", 0.0),
+                    "Displacement": parsed_extras.get("Episode_Reward/displacement_penalty", 0.0),
                     "Place Cube": parsed_extras.get("Episode_Reward/place_cube", 0.0),
                     "Action Rate": parsed_extras.get("Episode_Reward/action_rate", 0.0),
+                    "Camera Boundary": parsed_extras.get("Episode_Reward/camera_boundary", 0.0),
+                    "Premature Close": parsed_extras.get("Episode_Reward/premature_close", 0.0),
                     "Mean Total": mean_ep_rew,
                 }
 
@@ -209,14 +284,20 @@ def setup_clean_terminal_ui() -> None:
                     "Value Loss": loss_dict.get("value", 0.0),
                     "Surrogate": loss_dict.get("surrogate", 0.0),
                     "Entropy": loss_dict.get("entropy", 0.0),
+                    "Entropy Coefficient": loss_dict.get("entropy_coefficient", 0.0),
                     "Action Std": action_std.mean().item(),
                     "LR": learning_rate,
                 }
 
                 terms_display = {
                     "Mean Ep Len": f"{mean_ep_len:.1f} steps",
-                    "Success": parsed_extras.get(
-                        "Episode_Termination/lift_success", parsed_extras.get("Episode_Termination/placed", 0.0)
+                    "Success": (
+                        parsed_extras.get("Episode_Termination/lift_success", 0.0)
+                        + parsed_extras.get("Episode_Termination/placed", 0.0)
+                    ),
+                    "Out of View": (
+                        parsed_extras.get("Episode_Termination/gripper_out_of_view", 0.0)
+                        + parsed_extras.get("Episode_Termination/cube_out_of_view", 0.0)
                     ),
                 }
 

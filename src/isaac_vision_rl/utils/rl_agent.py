@@ -32,12 +32,6 @@ class InitialPoseCNN(CNNModel):
         _initialize_grasp_actor(self)
 
 
-class InitialPoseMLP(MLPModel):
-    """State-only comparison using the same initial mean and action mapping."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        _initialize_grasp_actor(self)
 
 
 class ExplorationGaussian(GaussianDistribution):
@@ -128,21 +122,48 @@ class ExplorationPPO(PPO):
 
     def save(self):
         saved = super().save()
-        saved["so101_policy_variant"] = "state" if isinstance(self._raw_actor, InitialPoseMLP) else "vision"
-        saved["so101_agent_schema"] = "camera_grasp_assist_v7"
-        saved["so101_gripper_controller"] = "camera_capture_latch"
-        saved["so101_cube_observation"] = "global_rgbd_estimator"
+        saved["so101_policy_variant"] = os.environ.get("SO101_POLICY", "rgb")
+        saved["so101_agent_schema"] = "rgb_policy_gripper_v1"
+        saved["so101_gripper_controller"] = "policy_joint_target"
+        saved["so101_cube_observation"] = "none"
+        saved["so101_control_hz"] = int(os.environ.get("SO101_RGB_FPS", "30"))
+        cam_w = os.environ.get("SO101_CAMERA_WIDTH", "1280")
+        cam_h = os.environ.get("SO101_CAMERA_HEIGHT", "720")
+        if saved["so101_policy_variant"] == "rgb":
+            saved["so101_rgb_profile"] = f"{cam_w}x{cam_h}_letterbox128_v1"
         saved["exploration_entropy_coef"] = self.entropy_coef
         return saved
 
     def load(self, loaded_dict, load_cfg=None, strict=True):
-        if loaded_dict.get("so101_agent_schema") != "camera_grasp_assist_v7":
+        if True:
+            allowed_profiles = (
+                "424x240_letterbox128_v1",
+                "1280x720_letterbox128_v1",
+                f"{os.environ.get('SO101_CAMERA_WIDTH', '1280')}x{os.environ.get('SO101_CAMERA_HEIGHT', '720')}_letterbox128_v1",
+            )
+            if loaded_dict.get("so101_rgb_profile") not in allowed_profiles:
+                raise ValueError("Checkpoint image preprocessing differs; preserve it and start fresh for the new RGB profile.")
+            saved_hz = loaded_dict.get("so101_control_hz", 25)
+            target_hz = int(os.environ.get("SO101_RGB_FPS", "30"))
+            if saved_hz != target_hz:
+                if os.environ.get("SO101_ALLOW_FPS_MISMATCH", "0") == "1":
+                    import logging
+                    logging.getLogger(__name__).warning(
+                        f"Adapting checkpoint trained at {saved_hz} Hz to target control frequency of {target_hz} Hz."
+                    )
+                else:
+                    raise ValueError(
+                        f"Checkpoint was trained at {saved_hz} Hz. Set SO101_RGB_FPS={saved_hz} to reproduce it, "
+                        "pass --adapt-checkpoint to fine-tune at the new frequency, or start fresh without --checkpoint."
+                    )
+        expected_schema = "rgb_policy_gripper_v1"
+        if loaded_dict.get("so101_agent_schema") != expected_schema:
             raise ValueError(
-                "This checkpoint predates the camera grasp assist and its observed controller state; "
+                "This checkpoint uses an unsupported policy schema; "
                 "start a fresh run."
             )
-        expected = "state" if isinstance(self._raw_actor, InitialPoseMLP) else "vision"
-        if loaded_dict.get("so101_policy_variant", "vision") != expected:
+        expected = os.environ.get("SO101_POLICY", "rgb")
+        if loaded_dict.get("so101_policy_variant") != expected:
             raise ValueError(
                 f"Checkpoint policy does not match --policy {expected}; use a matching checkpoint or start fresh."
             )

@@ -5,12 +5,7 @@
 
 import gymnasium as gym
 
-from isaac_vision_rl.utils.ui import setup_clean_terminal_ui
-
 from . import agents
-
-# Activate simplified, organized terminal training dashboard
-setup_clean_terminal_ui()
 
 ##
 # Register Gym environments.
@@ -24,7 +19,6 @@ gym.register(
     kwargs={
         "env_cfg_entry_point": f"{__name__}.env_cfg:PickplaceEnvCfg",
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:PPORunnerCfg",
-        "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
     },
 )
 
@@ -35,6 +29,5 @@ gym.register(
     kwargs={
         "env_cfg_entry_point": f"{__name__}.env_cfg:PickLiftEnvCfg",
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:PPORunnerCfg",
-        "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
     },
 )

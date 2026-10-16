@@ -40,7 +40,7 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     max_iterations = 2000
     save_interval = 50
     clip_actions = 1.0
-    experiment_name = "so101_pickplace_vision"
+    experiment_name = "so101_pickplace_rgb"
 
     # Actor sees camera-derived cube geometry, proprioception and optional RGB.
     # Simulator object state is restricted to the training critic and rewards.
@@ -85,18 +85,14 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     )
 
     def __post_init__(self):
-        variant = os.environ.get("SO101_POLICY", "vision")
-        if variant not in ("vision", "state"):
+        variant = os.environ.get("SO101_POLICY", "rgb")
+        if variant != "rgb":
             raise ValueError(f"Unknown SO101_POLICY: {variant}")
-        if variant == "state" and self.actor.class_name != "isaac_vision_rl.utils.rl_agent:InitialPoseMLP":
-            self.obs_groups = {"actor": ["policy"], "critic": ["critic"]}
-            self.actor = RslRlMLPModelCfg(
-                class_name="isaac_vision_rl.utils.rl_agent:InitialPoseMLP",
-                obs_normalization=True,
-                hidden_dims=[256, 128, 64],
-                activation="elu",
-                distribution_cfg=ExplorationDistributionCfg(),
-            )
+        if variant == "rgb":
+            fps = int(os.environ.get("SO101_RGB_FPS", "60"))
+            self.num_steps_per_env = round(32 * fps / 25)
+            self.algorithm.gamma = 0.99 ** (25.0 / fps)
+            self.algorithm.lam = 0.95 ** (25.0 / fps)
         if os.environ.get("SO101_CURRICULUM") == "grasp":
             # Local practice around the verified grasp pose; large whole-arm
             # perturbations otherwise disrupt closure before a stable lift.

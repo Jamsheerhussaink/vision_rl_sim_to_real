@@ -2,6 +2,7 @@
 """Evaluate complete deterministic episodes and write measured results to JSON."""
 
 import argparse
+import hashlib
 import importlib.metadata
 import json
 import math
@@ -44,30 +45,26 @@ def main():
     parser.add_argument("--device", default="cuda:0")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--headless", action="store_true")
-    mode.add_argument("--viz", choices=["kit"])
+    mode.add_argument("--viz", choices=["kit", "newton"])
     parser.add_argument("--output", default="outputs/evaluation.json")
+    parser.add_argument("--trace-only", action="store_true", help="Save per-step diagnostics without recording video")
     parser.add_argument("--record-video", action="store_true", help="Save global camera MP4 and per-step gripper trace")
+    parser.add_argument("--contact-overlay", action="store_true", help="Overlay collision pad boxes on video only; does not change policy inputs or physics")
     parser.add_argument(
         "--sample-actions", action="store_true", help="Evaluate exploratory actions rather than actor mean"
     )
     parser.add_argument("--curriculum", choices=["grasp", "fixed", "lift", "place"], default=None)
     parser.add_argument(
         "--policy",
-        choices=["vision", "state"],
-        default="vision",
-        help="Actor input: camera geometry plus proprioception; vision also adds RGB",
+        choices=["rgb"],
+        default="rgb",
+        help="RGB images and joint/controller readings",
     )
     parser.add_argument("--cube-jitter", type=float, default=0.0, help="Cube XY reset jitter in metres, 0 to 0.04")
     parser.add_argument("--box-jitter", type=float, default=0.0, help="Box XY reset jitter in metres, 0 to 0.04")
-    parser.add_argument("--smooth-control", action="store_true", help="Evaluate the experimental smooth lift controller")
-    parser.add_argument("--wrist-only-control", action="store_true", help="Evaluate baseline approach and closure with wrist roll held after capture")
     args = parser.parse_args()
-    if args.wrist_only_control and (args.smooth_control or args.task != "lift"):
-        parser.error("--wrist-only-control requires lift and cannot be combined with --smooth-control")
-    os.environ["SO101_WRIST_ONLY_CONTROL"] = "1" if args.wrist_only_control else "0"
-    if args.smooth_control and args.task != "lift":
-        parser.error("--smooth-control currently supports lift only")
-    os.environ["SO101_SMOOTH_CONTROL"] = "1" if args.smooth_control else "0"
+    if args.contact_overlay and not args.record_video:
+        parser.error("--contact-overlay requires --record-video")
     if not 0 <= args.cube_jitter <= 0.04:
         parser.error("--cube-jitter must be between 0 and 0.04 metres")
     if not 0 <= args.box_jitter <= 0.04:
@@ -88,6 +85,7 @@ def main():
 
     from isaaclab.app import launch_simulation
     from isaaclab.utils.dict import class_to_dict
+    from isaaclab.utils.math import matrix_from_quat
 
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg
 
@@ -96,8 +94,16 @@ def main():
 
     cfg = PickLiftEnvCfg() if args.task == "lift" else PickplaceEnvCfg()
     cfg.scene.num_envs = 1
+    if args.contact_overlay:
+        cfg.scene.fixed_finger_contact.track_contact_points = True
+        cfg.scene.moving_finger_contact.track_contact_points = True
+        cfg.scene.fixed_finger_contact.max_contact_data_count_per_prim = 64
+        cfg.scene.moving_finger_contact.max_contact_data_count_per_prim = 64
     cfg.seed = args.seed
     cfg.sim.device = args.device
+    if args.viz == "newton":
+        cfg.sim.default_visualizer_cfg.streaming_view = True
+        cfg.sim.default_visualizer_cfg.streaming_envs = [0]
     cfg.compute_final_obs = True
     agent = handle_deprecated_rsl_rl_cfg(PPORunnerCfg(), importlib.metadata.version("rsl-rl-lib"))
     agent.device = args.device
@@ -134,6 +140,10 @@ def main():
             task_index = manager.active_terms["critic"].index("task_state")
             task_start = sum(math.prod(dim) for dim in manager.group_obs_term_dim["critic"][:task_index])
             robot = base.scene["robot"]
+            overlay = None
+            if args.contact_overlay:
+                from isaac_vision_rl.utils.contact_overlay import ContactOverlay
+                overlay = ContactOverlay(cfg.scene.robot.spawn.usd_path, robot)
             tool_id = robot.find_bodies("gripper_frame_link")[0][0]
             wrist_id = robot.find_joints("wrist_roll")[0][0]
             previous = obs["critic"][0, task_start : task_start + 3].clone()
@@ -142,18 +152,16 @@ def main():
             with torch.inference_mode():
                 while len(results) < args.episodes:
                     action = runner.alg.actor(obs, stochastic_output=True) if args.sample_actions else policy(obs)
-                    if video is not None:
+                    if video is not None or args.trace_only:
                         image = base.scene["camera"].data.output["rgb"]
                         image = image.torch if hasattr(image, "torch") else image
-                        rgb = image[0, :, :, :3].cpu().numpy().astype(np.uint8)
+                        rgb = image[0, :, :, :3].cpu().numpy().astype(np.uint8) if video is not None else None
                         robot = base.scene["robot"]
                         joint = robot.find_joints("gripper")[0][0]
                         actual = float(robot.data.joint_pos.torch[0, joint])
-                        cue = cast(Any, base)._camera_cube_cache[2][0].cpu().tolist()
                         raw = float(action[0, -1])
                         gripper_term = base.action_manager.get_term("gripper_action")
                         target = float(gripper_term.processed_actions[0, 0])
-                        gates = getattr(gripper_term, "capture_diagnostics", {})
                         forces = {}
                         for name in ("fixed_finger_contact", "moving_finger_contact"):
                             matrix = base.scene[name].data.normal_force_matrix_w
@@ -184,8 +192,6 @@ def main():
                                 "gripper_action": raw,
                                 "gripper_target_rad": target,
                                 "gripper_actual_rad": actual,
-                                "camera_cube_features": cue,
-                                "capture_diagnostics": {key: value[0].cpu().tolist() for key, value in gates.items()},
                                 "wrist_roll_rad": float(robot.data.joint_pos.torch[0, wrist_id]),
                                 "wrist_roll_velocity_rad_s": float(robot.data.joint_vel.torch[0, wrist_id]),
                                 "tool_quaternion_xyzw": robot.data.body_quat_w.torch[0, tool_id].cpu().tolist(),
@@ -201,28 +207,24 @@ def main():
                                 "cube_speed_m_s": cube_speed,
                                 "lift_hold_conditions": hold_conditions,
                                 "lift_held_steps": held_steps,
+                                "robot_base_quaternion_xyzw": robot.data.root_quat_w.torch[0].cpu().tolist(),
+                                "trace_phase": "before_action_application",
                             }
                         )
-                        frame = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-                        cv2.putText(
-                            frame,
-                            f"ep {len(results) + 1} step {steps} target {target:.2f} actual {actual:.2f}",
-                            (8, 20),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.42,
-                            (255, 255, 255),
-                            1,
-                        )
-                        cv2.putText(
-                            frame,
-                            f"camera valid {int(cue[6])} offset {cue[0]:+.3f} {cue[1]:+.3f} {cue[2]:+.3f} m",
-                            (8, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.42,
-                            (255, 255, 255),
-                            1,
-                        )
-                        video.write(frame)
+                        if video is not None:
+                            frame = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+                            cv2.putText(
+                                frame,
+                                f"ep {len(results) + 1} step {steps} target {target:.2f} actual {actual:.2f}",
+                                (8, 20),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.42,
+                                (255, 255, 255),
+                                1,
+                            )
+                            if overlay is not None:
+                                trace[-1]["collision_pads"] = overlay.draw(frame, robot, base.scene["camera"], forces, base.scene)
+                            video.write(frame)
                     obs, reward, done, extras = env.step(action)
                     terminal = bool(done[0].item())
                     # Same-step autoreset: use terminal state, not the next episode's cube.
@@ -230,7 +232,6 @@ def main():
                     current = measured["critic"][0, task_start : task_start + 3]
                     tcp = measured["critic"][0, task_start + 6 : task_start + 9]
                     closest_distance = min(closest_distance, float(torch.norm(current - tcp)))
-                    visible_steps += float(measured["policy"][0, -2])
                     peak = max(peak, float(current[2]) - 0.425)
                     if float(previous[2]) < 0.435 and float(current[2]) < 0.435:
                         drag += float(torch.norm(current[:2] - previous[:2]))
@@ -250,10 +251,10 @@ def main():
                                 "table_slide_cm": 100 * drag,
                                 "initial_tool_distance_cm": 100 * initial_distance,
                                 "closest_tool_distance_cm": 100 * closest_distance,
-                                "camera_visible_fraction": visible_steps / steps,
+                                "camera_visible_fraction": None,
                             }
                         )
-                        if video is not None:
+                        if video is not None or args.trace_only:
                             episode_trace = trace[-steps:]
                             closed = [v for v in episode_trace if v["gripper_target_rad"] < 1.19]
                             supported = [
@@ -282,12 +283,15 @@ def main():
                     else:
                         previous = current.clone()
             summary = {
+                "robot_asset": cfg.scene.robot.spawn.usd_path,
+                "robot_asset_sha256": hashlib.sha256(Path(cfg.scene.robot.spawn.usd_path).read_bytes()).hexdigest(),
                 "task": args.task,
                 "curriculum": os.environ["SO101_CURRICULUM"],
                 "policy": args.policy,
-                "smooth_control": args.smooth_control,
-                "wrist_only_control": args.wrist_only_control,
+                "smooth_control": False,
+                "wrist_only_control": False,
                 "cube_jitter_m": args.cube_jitter,
+                "num_rerenders_on_reset": cfg.num_rerenders_on_reset,
                 "checkpoint": str(checkpoint),
                 "sample_actions": args.sample_actions,
                 "seed": args.seed,
@@ -307,6 +311,7 @@ def main():
         finally:
             if video is not None:
                 video.release()
+            if video is not None or args.trace_only:
                 output.with_suffix(".trace.json").write_text(json.dumps(trace, indent=2) + "\n")
             env.close()
 

@@ -1,0 +1,105 @@
+"""Read-only checkpoint loading and simulator-free SO-101 actor/controller state."""
+from pathlib import Path
+
+import numpy as np
+import torch
+import yaml
+from tensordict import TensorDict
+
+from isaac_vision_rl.utils.calibration import JOINT_ORDER
+from isaac_vision_rl.utils.rgb_image import actor_rgb
+
+
+class RealPolicy:
+    def __init__(self, checkpoint, device="cpu"):
+        from pxr import Usd, UsdPhysics
+        from rsl_rl.models import CNNModel
+        checkpoint = Path(checkpoint).resolve()
+        saved = torch.load(checkpoint, map_location=device, weights_only=False)
+        if saved.get("so101_rgb_profile") not in ("424x240_letterbox128_v1", "1280x720_letterbox128_v1"):
+            raise ValueError("Unsupported RGB profile")
+        if saved.get("so101_agent_schema") != "rgb_policy_gripper_v1" or saved.get("so101_policy_variant") != "rgb":
+            raise ValueError("Unsupported policy schema")
+        self.hz = int(saved["so101_control_hz"])
+        if self.hz not in (30, 60):
+            raise ValueError("This real-camera adapter currently requires a 30 Hz or 60 Hz checkpoint")
+        # BaseLoader does not construct arbitrary Python objects from saved YAML.
+        env = yaml.load((checkpoint.parent / "params/env.yaml").read_text(), Loader=yaml.BaseLoader)
+        agent = yaml.load((checkpoint.parent / "params/agent.yaml").read_text(), Loader=yaml.BaseLoader)
+        self.home = np.array([float(env["scene"]["robot"]["init_state"]["joint_pos"][j]) for j in JOINT_ORDER])
+        self.duration = float(env["episode_length_s"])
+        self.device = device
+        arm = env["actions"]["arm_action"]
+        if float(arm["max_target_acceleration"]) != 0 or float(arm["wrist_roll_speed"]) != 0:
+            raise ValueError("Adapter supports the saved velocity-bounded EMA controller only")
+        if arm["rescale_to_limits"] != "true" or float(arm["scale"]) != 1:
+            raise ValueError("Unsupported arm action mapping")
+        self.alpha, self.speed = float(arm["alpha"]), float(arm["max_target_speed"])
+        jaw = env["actions"]["gripper_action"]
+        self.grip_scale, self.grip_offset = float(jaw["scale"]), float(jaw["offset"])
+        stage = Usd.Stage.Open(env["scene"]["robot"]["spawn"]["usd_path"])
+        limits = {}
+        for prim in stage.Traverse():
+            if prim.IsA(UsdPhysics.RevoluteJoint) and prim.GetName() in JOINT_ORDER:
+                joint = UsdPhysics.RevoluteJoint(prim)
+                limits[prim.GetName()] = np.deg2rad([joint.GetLowerLimitAttr().Get(), joint.GetUpperLimitAttr().Get()])
+        factor = float(env["scene"]["robot"].get("soft_joint_pos_limit_factor", 1))
+        raw_limits = np.array([limits[j] for j in JOINT_ORDER[:5]])
+        centre = raw_limits.mean(axis=1)
+        half = (raw_limits[:, 1] - raw_limits[:, 0]) * factor / 2
+        self.lower, self.upper = centre - half, centre + half
+        obs = TensorDict({"policy": torch.zeros(1, 25, device=device),
+                          "image": torch.zeros(1, 3, 128, 128, device=device)}, batch_size=[1])
+        cfg = agent["actor"]
+        cnn = cfg["cnn_cfg"]
+        cnn_cfg = {k: [int(x) for x in cnn[k]] for k in ("output_channels", "kernel_size", "stride")}
+        cnn_cfg["activation"] = cnn["activation"]
+        distribution = {"class_name": "isaac_vision_rl.utils.rl_agent:ExplorationGaussian",
+                        "init_std": .4, "std_type": "log", "min_std": .1, "max_std": .8}
+        self.actor = CNNModel(obs, {"actor": ["policy", "image"]}, "actor", 6,
+                              hidden_dims=[int(v) for v in cfg["hidden_dims"]], activation=cfg["activation"],
+                              obs_normalization=True, distribution_cfg=distribution, cnn_cfg=cnn_cfg).to(device)
+        self.actor.load_state_dict(saved["actor_state_dict"], strict=True)
+        self.actor.eval()
+        self.reset(self.home)
+
+    def reset(self, measured):
+        self.last_action = np.zeros(6)
+        self.filtered = np.array([*measured[:5], 1.2], dtype=float)
+        self.steps = 0
+
+    def set_executed_target(self, target):
+        """Store the calibration-limited target sent to the motor worker.
+
+        The next actor observation includes this controller memory.  Without
+        this update it could describe an unreachable policy proposal while the
+        hardware was commanded to a different, clipped pose.
+        """
+        target = np.asarray(target, dtype=float)
+        if target.shape != (6,) or not np.isfinite(target).all():
+            raise ValueError("Expected six finite executed joint targets")
+        self.filtered = target.copy()
+
+    def observation(self, rgb, q, velocity):
+        state = np.concatenate([np.asarray(q) - self.home, velocity, self.last_action,
+                                self.filtered, [max(0, 1 - self.steps / (self.duration * self.hz))]])
+        if state.shape != (25,) or not np.isfinite(state).all():
+            raise ValueError("Invalid real-robot observation")
+        return TensorDict({"policy": torch.tensor(state, dtype=torch.float32, device=self.device)[None],
+                           "image": actor_rgb(torch.as_tensor(rgb.copy(), device=self.device)[None])}, batch_size=[1])
+
+    def step(self, rgb, q, velocity):
+        obs = self.observation(rgb, q, velocity)
+        with torch.inference_mode():
+            raw = self.actor(obs)[0].cpu().numpy()
+        if not np.isfinite(raw).all():
+            raise ValueError("Policy produced nonfinite actions")
+        action = np.clip(raw, -1, 1)
+        desired = self.lower + (action[:5] + 1) * .5 * (self.upper - self.lower)
+        ema = np.clip(self.alpha * desired + (1 - self.alpha) * self.filtered[:5], self.lower, self.upper)
+        arm = self.filtered[:5] + np.clip(ema - self.filtered[:5], -self.speed / self.hz, self.speed / self.hz)
+        jaw = np.clip(self.grip_scale * action[5] + self.grip_offset, 0, 1.2)
+        self.filtered = np.array([*arm, jaw])
+        self.last_action = action.copy()
+        self.steps += 1
+        return raw, self.filtered.copy(), obs["policy"][0].cpu().numpy()

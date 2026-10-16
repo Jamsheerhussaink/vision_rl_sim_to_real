@@ -86,31 +86,6 @@ class AgentTests(unittest.TestCase):
         alg.update()
         self.assertGreater(alg.entropy_coef, previous_coefficient)
 
-    def test_state_policy_updates_and_rejects_vision_checkpoint(self):
-        with patch.dict(os.environ, {"SO101_POLICY": "state", "SO101_CURRICULUM": "lift"}):
-            cfg = handle_deprecated_rsl_rl_cfg(PPORunnerCfg(), importlib.metadata.version("rsl-rl-lib"))
-            self.assertEqual(cfg.obs_groups["actor"], ["policy"])
-            cfg.num_steps_per_env = 4
-            cfg.algorithm.num_learning_epochs = 1
-            cfg.algorithm.num_mini_batches = 2
-            config = cfg.to_dict()
-            config["multi_gpu"] = None
-            obs = TensorDict({"policy": torch.randn(4, 28), "critic": torch.randn(4, 51)}, batch_size=[4])
-            env = NS(num_envs=4, num_actions=6)
-            alg = ExplorationPPO.construct_algorithm(obs, env, copy.deepcopy(config), "cpu")
-            for _ in range(4):
-                self.assertEqual(alg.act(obs).shape, (4, 6))
-                alg.process_env_step(obs, torch.ones(4), torch.zeros(4, dtype=torch.long), {})
-            alg.compute_returns(obs)
-            self.assertTrue(all(math.isfinite(float(v)) for v in alg.update().values()))
-            saved = copy.deepcopy(alg.save())
-            self.assertEqual(saved["so101_policy_variant"], "state")
-            other = ExplorationPPO.construct_algorithm(obs, env, copy.deepcopy(config), "cpu")
-            other.load(saved)
-            torch.testing.assert_close(alg.actor(obs), other.actor(obs))
-            saved["so101_policy_variant"] = "vision"
-            with self.assertRaisesRegex(ValueError, "does not match"):
-                other.load(saved)
 
     def test_td_gae_terminal_and_bootstrap_returns(self):
         alg = ExplorationPPO.__new__(ExplorationPPO)

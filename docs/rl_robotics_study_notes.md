@@ -2726,8 +2726,8 @@ All relative paths below are in `/home/ai/jamshi/isaac_vision_rl`.
 | How are commands smoothed and bounded? | `src/isaac_vision_rl/tasks/pickplace/mdp/actions.py` and `actions_cfg.py` |
 | How do curricula and evidence gates work? | `src/isaac_vision_rl/utils/pipeline.py`, `scripts/train_pipeline.py` |
 | How are complete episodes measured? | `scripts/eval_pipeline.py` |
-| How are grasp geometry and resets verified? | `scripts/verify_grasp.py`, `scripts/check_resets.py`, `utils/grasp_geometry.py` |
-| How is invalid physics diagnosed? | `scripts/check_stability.py`, `mdp/health.py` |
+| How are grasp geometry and resets verified? | `scripts/checks/verify_grasp.py`, `scripts/checks/check_resets.py`, `utils/grasp_geometry.py` |
+| How is invalid physics diagnosed? | `scripts/checks/check_stability.py`, `mdp/health.py` |
 | Where do camera estimates come from? | `src/isaac_vision_rl/perception/cube.py`, `scripts/verify_camera_perception.py` |
 | What operational limitations are documented? | `docs/agent_training.md`, `docs/training_pipeline.md` |
 

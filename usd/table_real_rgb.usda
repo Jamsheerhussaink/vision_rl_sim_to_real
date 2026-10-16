@@ -1,0 +1,55 @@
+#usda 1.0
+(
+    defaultPrim = "green_table"
+)
+
+def Xform "green_table" (
+    prepend references = @table.usd@</green_table>
+)
+{
+    over "Materials"
+    {
+        def Material "reference_green"
+        {
+            token outputs:mdl:surface.connect = </green_table/Materials/reference_green/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @OmniPBR.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "OmniPBR"
+                float inputs:albedo_brightness = 0.32
+                color3f inputs:diffuse_color_constant = (0.06, 0.22, 0.12)
+                asset inputs:diffuse_texture = @table_green_texture.png@
+                bool inputs:project_uvw = 1
+                float inputs:reflection_roughness_constant = 0.52
+                token outputs:out
+            }
+        }
+    }
+
+    over "Geometry"
+    {
+        over "table_base_link"
+        {
+            over "table_top_link"
+            {
+                over "box" (
+                    prepend apiSchemas = ["MaterialBindingAPI"]
+                )
+                {
+                    rel material:binding = </green_table/Materials/reference_green>
+                }
+            }
+        }
+    }
+
+    over "Physics"
+    {
+        over "table_top_joint"
+        {
+            bool physics:jointEnabled = 0
+        }
+    }
+}
+

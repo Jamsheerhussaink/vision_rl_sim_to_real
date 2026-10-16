@@ -25,20 +25,21 @@
         "drive_mode": 0,
         "homing_offset": -1567,
         "range_min": 33,
-        "range_max": 2332
+        "range_max": 3000
     },
     "wrist_roll": {
         "id": 5,
         "drive_mode": 0,
         "homing_offset": -1583,
-        "range_min": 0,
-        "range_max": 4095
+        "range_min": 10,
+        "range_max": 4050,
+        "zero_ticks": 3096
     },
     "gripper": {
         "id": 6,
         "drive_mode": 0,
         "homing_offset": 1463,
         "range_min": 2029,
-        "range_max": 3545
+        "range_max": 2910
     }
 }

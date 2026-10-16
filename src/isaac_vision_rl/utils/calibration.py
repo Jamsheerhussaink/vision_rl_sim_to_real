@@ -1,10 +1,14 @@
 """Hardware Calibration Bridge for SO-101 Robotic Arm (Feetech STS3215 Servos).
+
 Loads real hardware calibration from my_awesome_follower_arm.json and provides
-bidirectional conversion between radians and raw servo ticks (0..4095).
+bidirectional conversion between radians (Isaac Sim) and raw servo ticks (0..4095).
 """
+
+from __future__ import annotations
 
 import json
 import os
+from typing import Sequence
 
 import numpy as np
 
@@ -24,6 +28,9 @@ JOINT_ORDER = [
     "wrist_roll",
     "gripper",
 ]
+
+# Isaac Sim nominal gripper max open angle (radians)
+SIM_GRIPPER_MAX_RAD = 1.2
 
 
 class FollowerArmCalibration:
@@ -47,7 +54,7 @@ class FollowerArmCalibration:
         with open(self.calib_path) as f:
             self.data = json.load(f)
 
-        ids, offsets, mins, maxs, modes = [], [], [], [], []
+        ids, offsets, mins, maxs, modes, zeros = [], [], [], [], [], []
         for joint in JOINT_ORDER:
             info = self.data.get(joint, {})
             ids.append(info.get("id", 1))
@@ -55,43 +62,78 @@ class FollowerArmCalibration:
             mins.append(info.get("range_min", 0))
             maxs.append(info.get("range_max", 4095))
             modes.append(info.get("drive_mode", 0))
+            zeros.append(info.get("zero_ticks", 2048.0))
 
         self.servo_ids = ids
         self.homing_offsets = np.array(offsets, dtype=np.float64)
         self.range_mins = np.array(mins, dtype=np.float64)
         self.range_maxs = np.array(maxs, dtype=np.float64)
         self.drive_modes = np.array(modes, dtype=np.float64)
+        self.zero_ticks = np.array(zeros, dtype=np.float64)
 
-    def rad_to_ticks(self, q_rad: np.ndarray) -> np.ndarray:
-        """Convert radians to ticks using each joint's calibrated safe range.
+    def rad_to_ticks(self, q_rad: Sequence[float] | np.ndarray) -> np.ndarray:
+        """Convert radians to ticks using each joint's calibrated safe range and zero center.
 
-        The JSON file stores servo range limits, while its signed homing offsets are
-        controller calibration metadata rather than a universal zero-angle encoder
-        value.  The midpoint of each validated range is therefore used as the
-        simulation zero and commands are clipped to the real joint limits.
+        For 5 arm joints: converts relative to calibrated zero_ticks (default 2048 ticks).
+        For gripper (index 5): maps 0.0 rad (closed) -> range_mins[5] (~2029 ticks)
+        and 1.2 rad (open) -> range_maxs[5] (~2910 ticks) matching real SO-101 hardware.
+        All values are strictly clipped to [range_min, range_max].
         """
         q_rad = np.asarray(q_rad, dtype=np.float64)
         direction = np.where(self.drive_modes == 0, 1.0, -1.0)
-        zero_ticks = (self.range_mins + self.range_maxs) / 2.0
-        ticks = zero_ticks + direction * (q_rad * TICKS_PER_RAD)
+        ticks = self.zero_ticks + direction * (q_rad * TICKS_PER_RAD)
+
+        # Gripper dedicated linear mapping:
+        # On SO-101 physical hardware, range_mins[5] (~2029) is CLOSED and range_maxs[5] (~2910) is OPEN.
+        # In Isaac Sim: 0.0 rad is CLOSED, 1.2 rad (SIM_GRIPPER_MAX_RAD) is OPEN.
+        if len(q_rad) >= 6:
+            grip_rad = np.clip(q_rad[5], 0.0, SIM_GRIPPER_MAX_RAD)
+            grip_frac = grip_rad / SIM_GRIPPER_MAX_RAD
+            ticks[5] = self.range_mins[5] + grip_frac * (self.range_maxs[5] - self.range_mins[5])
+
         return np.clip(np.round(ticks), self.range_mins, self.range_maxs).astype(int)
 
-    def ticks_to_rad(self, ticks: np.ndarray) -> np.ndarray:
+    def ticks_to_rad(self, ticks: Sequence[int] | np.ndarray) -> np.ndarray:
         """Converts raw encoder ticks to joint angles (rad)."""
         ticks = np.asarray(ticks, dtype=np.float64)
         direction = np.where(self.drive_modes == 0, 1.0, -1.0)
-        zero_ticks = (self.range_mins + self.range_maxs) / 2.0
-        q_rad = (ticks - zero_ticks) / (direction * TICKS_PER_RAD)
+        q_rad = (ticks - self.zero_ticks) / (direction * TICKS_PER_RAD)
+
+        # Gripper inverse mapping: range_mins[5] (closed) -> 0.0 rad, range_maxs[5] (open) -> 1.2 rad
+        if len(ticks) >= 6:
+            grip_span = max(1.0, self.range_maxs[5] - self.range_mins[5])
+            grip_frac = (ticks[5] - self.range_mins[5]) / grip_span
+            q_rad[5] = np.clip(grip_frac * SIM_GRIPPER_MAX_RAD, 0.0, SIM_GRIPPER_MAX_RAD)
+
         return q_rad.astype(np.float64)
+
+    def dict_to_ticks(self, joint_dict: dict[str, float]) -> dict[str, int]:
+        """Convert a dictionary of {joint_name: angle_rad} to {joint_name: ticks}."""
+        angles = [joint_dict.get(name, 0.0) for name in JOINT_ORDER]
+        ticks = self.rad_to_ticks(angles)
+        return {name: int(t) for name, t in zip(JOINT_ORDER, ticks)}
+
+    def ticks_to_dict(self, ticks: Sequence[int]) -> dict[str, float]:
+        """Convert a sequence of raw ticks to {joint_name: angle_rad}."""
+        angles = self.ticks_to_rad(ticks)
+        return {name: float(a) for name, a in zip(JOINT_ORDER, angles)}
 
     def get_joint_limits_rad(self) -> tuple[np.ndarray, np.ndarray]:
         """Returns (lower_limits_rad, upper_limits_rad) derived from real calibration."""
         direction = np.where(self.drive_modes == 0, 1.0, -1.0)
-        zero_ticks = (self.range_mins + self.range_maxs) / 2.0
-        lim_a = (self.range_mins - zero_ticks) / (direction * TICKS_PER_RAD)
-        lim_b = (self.range_maxs - zero_ticks) / (direction * TICKS_PER_RAD)
+        lim_a = (self.range_mins - self.zero_ticks) / (direction * TICKS_PER_RAD)
+        lim_b = (self.range_maxs - self.zero_ticks) / (direction * TICKS_PER_RAD)
         lower = np.minimum(lim_a, lim_b)
         upper = np.maximum(lim_a, lim_b)
+
+
+        # Explicitly enforce safe physical wrist_roll bounds [-2.70, +1.48] rad
+        lower[4] = -2.70
+        upper[4] = 1.48
+
+        # Set gripper bounds
+        lower[5] = 0.0
+        upper[5] = SIM_GRIPPER_MAX_RAD
         return lower, upper
 
     def summary(self) -> str:

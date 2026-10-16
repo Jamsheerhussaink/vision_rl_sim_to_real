@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import torch
 
 from isaaclab.managers import ManagerTermBase, SceneEntityCfg
-from isaaclab.utils.math import matrix_from_quat, wrap_to_pi
+from isaaclab.utils.math import matrix_from_quat, quat_apply_inverse, wrap_to_pi
 
 if TYPE_CHECKING:
     from isaaclab.assets import Articulation, RigidObject
@@ -44,6 +44,30 @@ def object_ee_distance(
     return torch.exp(-distance / 0.05)
 
 
+def continuous_reach_cube(
+    env: ManagerBasedRLEnv,
+    ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+    ee_body_name: str = "gripper_frame_link",
+) -> torch.Tensor:
+    """Continuous guidance gradient pulling end-effector directly toward cube from across the workspace."""
+    robot: Articulation = env.scene[ee_cfg.name]
+    cube: RigidObject = env.scene[object_cfg.name]
+
+    body_idx = robot.find_bodies(ee_body_name)[0][0]
+    ee_pos = robot.data.body_pos_w.torch[:, body_idx]
+    cube_pos = cube.data.root_pos_w.torch
+
+    distance = torch.norm(cube_pos - ee_pos, dim=-1)
+    on_table = (cube_pos[:, 2] < 0.44).float()
+
+    # Wide continuous linear approach starting 35 cm away + exponential snap (< 8 cm)
+    linear_approach = 2.0 * torch.clamp(1.0 - (distance / 0.35), min=0.0)
+    close_snap = 3.0 * torch.exp(-distance / 0.08)
+
+    return on_table * (linear_approach + close_snap)
+
+
 class ReachCubeProgress(ManagerTermBase):
     """Reward each new closest approach directly toward the cube.
 
@@ -65,6 +89,7 @@ class ReachCubeProgress(ManagerTermBase):
         ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
         object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
         ee_body_name: str = "gripper_frame_link",
+        time_normalized: bool = False,
     ) -> torch.Tensor:
         robot = env.scene[ee_cfg.name]
         cube = env.scene[object_cfg.name]
@@ -73,19 +98,40 @@ class ReachCubeProgress(ManagerTermBase):
         previous = torch.where(torch.isfinite(self._best_distance), self._best_distance, distance)
         progress = torch.clamp(previous - distance, min=0.0) / 0.05
         self._best_distance[:] = torch.minimum(previous, distance)
-        return progress
+        # RewardManager multiplies by step_dt. RGB uses an event-like distance
+        # improvement so changing control frequency does not shrink its credit.
+        return progress / env.step_dt if time_normalized else progress
 
 
 def bilateral_cube_contact(env, min_force=0.02):
-    """Require cube-specific contact on both gripper bodies, not contact with the table."""
+    """Require opposing cube contact inside both CAD fingertip regions."""
     contacts = []
-    for name in ("fixed_finger_contact", "moving_finger_contact"):
+    vectors = []
+    robot = env.scene["robot"]
+    for name, body_name, lower, upper in (
+        ("fixed_finger_contact", "gripper_link", (-0.028, -0.010, -0.106), (-0.005, 0.010, -0.064)),
+        ("moving_finger_contact", "moving_jaw_so101_v1_link", (-0.0133, -0.083, -0.0061), (0.011, -0.040, 0.0439)),
+    ):
         forces = env.scene[name].data.normal_force_matrix_w
         if forces is None:
             raise RuntimeError("Filtered finger-to-cube contact reporting is required")
         forces = forces.torch if hasattr(forces, "torch") else forces
-        contacts.append(torch.linalg.vector_norm(forces, dim=-1).reshape(env.num_envs, -1).amax(dim=1) > min_force)
-    bilateral = contacts[0] & contacts[1]
+        points = env.scene[name].data.contact_pos_w
+        if points is None:
+            raise RuntimeError("Fingertip contact positions are required")
+        points = points.torch if hasattr(points, "torch") else points
+        points = points.reshape(env.num_envs, -1, 3)
+        body_id = robot.find_bodies(body_name)[0][0]
+        position = robot.data.body_pos_w.torch[:, body_id]
+        rotation = matrix_from_quat(robot.data.body_quat_w.torch[:, body_id])
+        local = torch.bmm(points - position[:, None], rotation)
+        inside = ((local >= torch.tensor(lower, device=local.device))
+                  & (local <= torch.tensor(upper, device=local.device))).all(dim=-1)
+        vector = forces.reshape(env.num_envs, -1, 3).sum(dim=1)
+        contacts.append(inside.any(dim=1) & (torch.linalg.vector_norm(vector, dim=-1) > min_force))
+        vectors.append(vector)
+    opposition = torch.nn.functional.cosine_similarity(vectors[0], vectors[1], dim=-1) < -0.2
+    bilateral = contacts[0] & contacts[1] & opposition
     if hasattr(env, "extras"):
         env.extras.setdefault("log", {})["Grasp/bilateral_contact_fraction"] = bilateral.float().mean()
     return bilateral
@@ -228,20 +274,49 @@ def premature_gripper_closure_penalty(
     object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
     ee_body_name: str = "gripper_frame_link",
 ) -> torch.Tensor:
-    """Penalize closing until the cube is centered in the grasp cavity."""
+    """Penalize closing gripper while tool center point is > 1 cm above cube center."""
     robot: Articulation = env.scene[ee_cfg.name]
     cube: RigidObject = env.scene[object_cfg.name]
     body_idx = robot.find_bodies(ee_body_name)[0][0]
     gripper_idx = robot.find_joints("gripper")[0][0]
 
-    offset = cube.data.root_pos_w.torch - robot.data.body_pos_w.torch[:, body_idx]
-    xy_dist = torch.norm(offset[:, :2], dim=-1)
-    z_dist = torch.abs(offset[:, 2])
-    grasp_ready = (xy_dist < 0.030) & (z_dist < 0.040)
+    ee_pos = robot.data.body_pos_w.torch[:, body_idx]
+    cube_pos = cube.data.root_pos_w.torch
+    xy_dist = torch.norm(cube_pos[:, :2] - ee_pos[:, :2], dim=-1)
+    z_above = ee_pos[:, 2] - cube_pos[:, 2]
+
+    # Penalize closing if tool center point is > 1 cm above cube center or laterally misaligned (> 3 cm)
+    too_high = (z_above > 0.010) | (xy_dist > 0.030)
 
     gripper_pos = robot.data.joint_pos.torch[:, gripper_idx]
     closure = torch.clamp((1.15 - gripper_pos) / 0.75, min=0.0, max=1.0)
-    return (~grasp_ready).float() * closure
+    return too_high.float() * closure
+
+
+def pinch_force_bonus(
+    env: ManagerBasedRLEnv,
+    max_force: float = 2.0,
+) -> torch.Tensor:
+    """Reward maximum pinch force when cube is enclosed between pads with bilateral contact."""
+    robot: Articulation = env.scene["robot"]
+    gripper_idx = robot.find_joints("gripper")[0][0]
+    gripper_pos = robot.data.joint_pos.torch[:, gripper_idx]
+
+    bilateral = bilateral_cube_contact(env)
+
+    forces_fixed = env.scene["fixed_finger_contact"].data.normal_force_matrix_w
+    forces_moving = env.scene["moving_finger_contact"].data.normal_force_matrix_w
+    f0 = forces_fixed.torch if hasattr(forces_fixed, "torch") else forces_fixed
+    f1 = forces_moving.torch if hasattr(forces_moving, "torch") else forces_moving
+
+    v0 = torch.linalg.vector_norm(f0.reshape(env.num_envs, -1, 3).sum(dim=1), dim=-1)
+    v1 = torch.linalg.vector_norm(f1.reshape(env.num_envs, -1, 3).sum(dim=1), dim=-1)
+    pinch = torch.minimum(v0, v1)
+
+    force_ratio = torch.clamp(pinch / max_force, min=0.0, max=1.0)
+    firm_closure = torch.clamp((1.15 - gripper_pos) / 0.20, min=0.0, max=1.0)
+
+    return bilateral.float() * (0.5 * force_ratio + 0.5 * firm_closure)
 
 
 def grasp_cube(
@@ -467,9 +542,13 @@ def object_goal_distance(
     cube_pos = cube.data.root_pos_w.torch
     ee_cube_dist = torch.norm(cube_pos - ee_pos, dim=-1)
 
-    # Must be held inside gripper (< 5.2cm) and lifted > 0.46m
+    # Must be held inside gripper (< 5.2cm, jaw < 1.10 rad, bilateral contact) and lifted
     gripper_idx = robot.find_joints("gripper")[0][0]
-    is_held = ((ee_cube_dist < 0.052) & (robot.data.joint_pos.torch[:, gripper_idx] < 0.50)).float()
+    is_held = (
+        bilateral_cube_contact(env)
+        & (ee_cube_dist < 0.052)
+        & (robot.data.joint_pos.torch[:, gripper_idx] < 1.10)
+    ).float()
     is_lifted = (cube_pos[:, 2] > minimal_height).float()
 
     xy_dist = torch.norm(box.data.root_pos_w.torch[:, :2] - cube_pos[:, :2], dim=-1)
@@ -562,3 +641,70 @@ def release_cube_in_box(
     near_ee = (torch.norm(cube_pos - ee_pos, dim=-1) < 0.08).float()
     # An open gripper far from the cube must not earn a release reward.
     return above_floor * close_xy * over_box * near_ee * lowering * (0.25 + released)
+
+
+def dense_rgb_approach(env, component: str = "reach"):
+    """Bounded, continuous RGB-training feedback; simulator geometry is reward-only.
+
+    Broad distance feedback leads into precise alignment with open jaws. Contact
+    support remains cube-specific on both fingers, and elevation credit requires
+    that support. These terms never define episode success.
+    """
+    robot, cube = env.scene["robot"], env.scene["cube"]
+    body = robot.find_bodies("gripper_frame_link")[0][0]
+    jaw = robot.find_joints("gripper")[0][0]
+    offset = cube.data.root_pos_w.torch - robot.data.body_pos_w.torch[:, body]
+    distance = torch.linalg.vector_norm(offset, dim=-1)
+    xy = torch.linalg.vector_norm(offset[:, :2], dim=-1)
+    z = offset[:, 2].abs()
+    opening = ((robot.data.joint_pos.torch[:, jaw] - 0.75) / 0.45).clamp(0, 1)
+    alignment = torch.exp(-torch.square(xy / 0.035) - torch.square(z / 0.045))
+    if component == "reach":
+        return 1.0 - torch.tanh(distance / 0.10)
+    if component == "align":
+        return alignment * _tool_downward_alignment(robot, body, env)
+    if component == "open":
+        # Fade opening credit as the cube enters the grasp cavity.
+        return (1.0 - alignment) * opening * torch.exp(-distance / 0.15)
+    if component == "support":
+        speed = torch.linalg.vector_norm(cube.data.root_lin_vel_w.torch, dim=-1)
+        supported = bilateral_cube_contact(env).float() * alignment
+        elevation = ((cube.data.root_pos_w.torch[:, 2] - 0.425) / 0.045).clamp(0, 1)
+        return supported * (0.25 + 0.75 * elevation) * torch.exp(-torch.square(speed / 0.15))
+    raise ValueError(f"Unknown dense reward component: {component}")
+
+
+def gripper_camera_boundary_penalty(
+    env: ManagerBasedRLEnv,
+    safe_margin: float = 0.08,
+    body_name: str = "gripper_frame_link",
+) -> torch.Tensor:
+    """Smooth penalty repelling the gripper from the camera frame edges."""
+    robot: Articulation = env.scene["robot"]
+    body_id = robot.find_bodies(body_name)[0][0]
+    ee_pos = robot.data.body_pos_w.torch[:, body_id]
+
+    from .terminations import get_camera_projection_params
+
+    cam_pos, cam_quat, K, img_w, img_h = get_camera_projection_params(env)
+
+    delta_w = ee_pos - cam_pos
+    v_cam = quat_apply_inverse(cam_quat, delta_w)
+    x_cam, y_cam, z_cam = v_cam[:, 0], v_cam[:, 1], v_cam[:, 2]
+
+    fx, fy = K[:, 0, 0], K[:, 1, 1]
+    cx, cy = K[:, 0, 2], K[:, 1, 2]
+
+    z_safe = torch.where(z_cam > 0.01, z_cam, torch.ones_like(z_cam))
+    u_norm = (fx * (x_cam / z_safe) + cx) / img_w
+    v_norm = (fy * (y_cam / z_safe) + cy) / img_h
+
+    d_left = torch.clamp(safe_margin - u_norm, min=0.0)
+    d_right = torch.clamp(u_norm - (1.0 - safe_margin), min=0.0)
+    d_top = torch.clamp(safe_margin - v_norm, min=0.0)
+    d_bottom = torch.clamp(v_norm - (1.0 - safe_margin), min=0.0)
+
+    d_near = torch.clamp(0.12 - z_cam, min=0.0)
+    d_far = torch.clamp(z_cam - 1.20, min=0.0)
+
+    return (d_left + d_right + d_top + d_bottom) / safe_margin + d_near + d_far

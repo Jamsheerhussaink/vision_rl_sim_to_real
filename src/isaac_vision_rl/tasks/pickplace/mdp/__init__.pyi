@@ -6,13 +6,10 @@
 __all__ = [
     "assert_finite_physics",
     "SlewLimitedArmActionCfg",
-    "CameraGripperActionCfg",
-    "grasp_assist_state",
+    "PolicyGripperActionCfg",
     "select_task_camera_view",
     "time_remaining",
     "filtered_joint_targets",
-    "cube_ee_relative",
-    "camera_cube_observation",
     "global_camera_rgb",
     "critic_task_state",
     "PlaceSuccess",
@@ -21,6 +18,7 @@ __all__ = [
     "GraspCubeProgress",
     "LiftCubeProgress",
     "bilateral_cube_contact",
+    "continuous_reach_cube",
     "joint_pos_target_l2",
     "object_ee_distance",
     "ee_approach_from_above",
@@ -36,22 +34,27 @@ __all__ = [
     "object_goal_distance",
     "cube_in_box",
     "release_cube_in_box",
+    "pinch_force_bonus",
+    "gripper_camera_boundary_penalty",
+    "gripper_outside_camera_view",
+    "object_outside_camera_view",
 ]
 
 # Forward stable MDP terms lazily, then override with environment-specific terms below.
 from isaaclab.envs.mdp import *  # noqa: F401, F403
 
-from .actions_cfg import CameraGripperActionCfg, SlewLimitedArmActionCfg
+from .actions_cfg import PolicyGripperActionCfg, SlewLimitedArmActionCfg
 from .events import select_task_camera_view
 from .health import assert_finite_physics
 from .observations import (
-    camera_cube_observation,
     critic_task_state,
-    cube_ee_relative,
     filtered_joint_targets,
     global_camera_rgb,
-    grasp_assist_state,
     time_remaining,
+)
+from .terminations import (
+    gripper_outside_camera_view,
+    object_outside_camera_view,
 )
 from .rewards import (
     CubeTableDisplacementPenalty,
@@ -61,17 +64,21 @@ from .rewards import (
     PlaceSuccess,
     ReachCubeProgress,
     bilateral_cube_contact,
+    continuous_reach_cube,
     cube_box_ground_proximity_penalty,
     cube_in_box,
     cube_table_drag_penalty,
+    dense_rgb_approach,
     ee_approach_from_above,
     grasp_cube,
+    gripper_camera_boundary_penalty,
     gripper_table_collision_penalty,
     joint_pos_target_l2,
     lift_cube_upward,
     object_ee_distance,
     object_goal_distance,
     open_gripper_approach,
+    pinch_force_bonus,
     premature_gripper_closure_penalty,
     release_cube_in_box,
     safe_joint_vel_penalty,

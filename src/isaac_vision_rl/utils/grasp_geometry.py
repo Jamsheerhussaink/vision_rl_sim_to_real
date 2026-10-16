@@ -69,7 +69,9 @@ class GraspGeometry:
         def residual(q):
             pose = self.forward(q)
             error = pose[:3, 3] - position
-            return np.r_[error, 0.08 * (pose[:3, 2] - [0, 0, -1])] if downward else error
+            downward_align = 0.08 * (pose[:3, 2] - [0, 0, -1])
+            roll_penalty = 0.1 * q[4]
+            return np.r_[error, downward_align, roll_penalty] if downward else error
 
         rng = np.random.default_rng(42)
         starts = [np.zeros(5)] if initial is None else [np.asarray(initial)]

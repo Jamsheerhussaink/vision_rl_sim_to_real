@@ -27,7 +27,7 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 
-def find_latest_checkpoint(task_hint: str | None = None, policy_hint: str = "vision") -> tuple[str, str]:
+def find_latest_checkpoint(task_hint: str | None = None, policy_hint: str = "rgb") -> tuple[str, str]:
     """Find the most recent checkpoint and return (checkpoint_path, task_id)."""
     search_dirs = []
     if task_hint == "lift":
@@ -47,7 +47,7 @@ def find_latest_checkpoint(task_hint: str | None = None, policy_hint: str = "vis
 
     if not all_checkpoints:
         raise FileNotFoundError(
-            "No trained checkpoints found in logs/rsl_rl/so101_picklift_vision or so101_pickplace_vision."
+            "No trained checkpoints found in logs/rsl_rl/RGB training folders."
         )
 
     all_checkpoints.sort(key=lambda x: os.path.getmtime(x[0]))
@@ -67,9 +67,9 @@ def main():
     parser.add_argument("--curriculum", choices=["grasp", "fixed", "lift", "place"], default=None)
     parser.add_argument(
         "--policy",
-        choices=["vision", "state"],
-        default="vision",
-        help="Actor input: camera geometry plus proprioception; vision also adds RGB",
+        choices=["rgb"],
+        default="rgb",
+        help="RGB images and joint/controller readings",
     )
     parser.add_argument(
         "--viz",
@@ -80,15 +80,7 @@ def main():
     )
     parser.add_argument("--cube-jitter", type=float, default=0.0, help="Cube XY reset jitter in metres, 0 to 0.04")
     parser.add_argument("--box-jitter", type=float, default=0.0, help="Box XY reset jitter in metres, 0 to 0.04")
-    parser.add_argument("--smooth-control", action="store_true", help="Use the experimental smooth lift controller")
-    parser.add_argument("--wrist-only-control", action="store_true", help="Hold measured wrist roll after capture, retaining baseline approach and closure")
     args = parser.parse_args()
-    if args.wrist_only_control and (args.smooth_control or args.task != "lift"):
-        parser.error("--wrist-only-control requires --task lift and cannot be combined with --smooth-control")
-    os.environ["SO101_WRIST_ONLY_CONTROL"] = "1" if args.wrist_only_control else "0"
-    if args.smooth_control and args.task != "lift":
-        parser.error("--smooth-control requires --task lift")
-    os.environ["SO101_SMOOTH_CONTROL"] = "1" if args.smooth_control else "0"
     if not 0 <= args.cube_jitter <= 0.04:
         parser.error("--cube-jitter must be between 0 and 0.04 metres")
     if not 0 <= args.box_jitter <= 0.04:
