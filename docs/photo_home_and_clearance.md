@@ -1,5 +1,9 @@
 # Measured photo home and table clearance — 2026-10-15
 
+Cleanup note (2026-10-17): historical videos, per-frame traces, and diagnostic
+images referenced below were removed. Retained JSON summaries remain evidence;
+new runs can create fresh recordings. See [the cleanup guide](project_cleanup.md).
+
 The user confirmed the real arm was in the attached reference-photo pose. Three read-only encoder samples were identical. No motor target or torque register was written.
 
 Joint order: shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll, gripper.

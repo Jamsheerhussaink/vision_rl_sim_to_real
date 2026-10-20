@@ -87,6 +87,13 @@ class AgentTests(unittest.TestCase):
         self.assertGreater(alg.entropy_coef, previous_coefficient)
 
 
+    def test_four_stage_reward_modes_update_and_round_trip_checkpoints(self):
+        from unittest.mock import patch
+        for mode in ('bounded','overlap'):
+            with patch.dict('os.environ',{'SO101_REWARD_PROFILE':'four-stage',
+                                         'SO101_GRASP_REWARD_MODE':mode,'SO101_TRAINING_GOAL':'lift'}):
+                self.test_actual_cnn_ppo_update_and_checkpoint()
+
     def test_td_gae_terminal_and_bootstrap_returns(self):
         alg = ExplorationPPO.__new__(ExplorationPPO)
         alg.gamma, alg.lam = 0.99, 0.95

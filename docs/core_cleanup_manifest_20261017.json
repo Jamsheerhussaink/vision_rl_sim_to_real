@@ -1,0 +1,3388 @@
+{
+  "date": "2026-10-17",
+  "files_to_remove": [
+    {
+      "path": ".pytest_cache/.gitignore",
+      "bytes": 37,
+      "sha256": "3ed731b65d06150c138e2dadb0be0697550888a6b47eb8c45ecc9adba8b8e9bd",
+      "reason": "Regenerable tool cache"
+    },
+    {
+      "path": ".pytest_cache/CACHEDIR.TAG",
+      "bytes": 191,
+      "sha256": "37dc88ef9a0abeddbe81053a6dd8fdfb13afb613045ea1eb4a5c815a74a3bde4",
+      "reason": "Regenerable tool cache"
+    },
+    {
+      "path": ".pytest_cache/README.md",
+      "bytes": 302,
+      "sha256": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad",
+      "reason": "Regenerable tool cache"
+    },
+    {
+      "path": ".pytest_cache/v/cache/lastfailed",
+      "bytes": 87,
+      "sha256": "8a08d2b92b0bb78492e9cb617232aec633f9a7f506ddd6dec14783adf77df8c2",
+      "reason": "Regenerable tool cache"
+    },
+    {
+      "path": ".pytest_cache/v/cache/nodeids",
+      "bytes": 10268,
+      "sha256": "d2dc836f8c70f2c2b3b2eb3d1e68715c094cdd71a317da4cd7a856783ca831e7",
+      "reason": "Regenerable tool cache"
+    },
+    {
+      "path": ".pytest_cache/v/cache/stepwise",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "reason": "Regenerable tool cache"
+    },
+    {
+      "path": "archive/README.md",
+      "bytes": 1452,
+      "sha256": "c3e91fd3813db5ed0e8f57315da992cc0e25cd2a38c866cc32c6cce6d5a4f833",
+      "reason": "Retired script archive from earlier cleanup"
+    },
+    {
+      "path": "archive/scripts_20261015.tar.gz",
+      "bytes": 20753,
+      "sha256": "90daea53b52829030feb2b9f209cf50860565eeac658d7a1ba18d48bb917a824",
+      "reason": "Retired script archive from earlier cleanup"
+    },
+    {
+      "path": "archive/scripts_20261015_manifest.json",
+      "bytes": 4642,
+      "sha256": "d4e419ea6cc24f6c8e591209508bf6bdf2d2c90042f136782bea37b7183bfea7",
+      "reason": "Retired script archive from earlier cleanup"
+    },
+    {
+      "path": "assets/base_clamp_crop.jpg",
+      "bytes": 56870,
+      "sha256": "a457f1cbf0db773e3f930596153f3ace7778b3863d4932221a776a36179d3b29",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/base_motor_holder_so101_v1.part",
+      "bytes": 443,
+      "sha256": "3fc04275864139676a50041a322caf8807a063c0d6e73e7f74aa136eb8368df9",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/base_motor_holder_so101_v1.stl",
+      "bytes": 1877084,
+      "sha256": "8cd2f241037ea377af1191fffe0dd9d9006beea6dcc48543660ed41647072424",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/base_so101_v2.part",
+      "bytes": 430,
+      "sha256": "6c611cca00540c8f1aef67b1caba15e6674d5a1380eb51aa9c9216c6bfda37ac",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/base_so101_v2.stl",
+      "bytes": 471584,
+      "sha256": "bb12b7026575e1f70ccc7240051f9d943553bf34e5128537de6cd86fae33924d",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/cube_in_env_crop.jpg",
+      "bytes": 18927,
+      "sha256": "e82db6388f67937db13bbb0a683642d7dd09519f2d5afd2839ce56d90c96a2b0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/motor_holder_so101_base_v1.part",
+      "bytes": 443,
+      "sha256": "1b4035c9fec35cd43ef5ecf74ad84827c45eed184b2194fe0a0f70ec42e464d7",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/motor_holder_so101_base_v1.stl",
+      "bytes": 1129384,
+      "sha256": "31242ae6fb59d8b15c66617b88ad8e9bded62d57c35d11c0c43a70d2f4caa95b",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/motor_holder_so101_wrist_v1.part",
+      "bytes": 444,
+      "sha256": "4ee9c4242bb7dec967ae1555e934995b5fe2fb9373af6db4741301b73082d4d6",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/motor_holder_so101_wrist_v1.stl",
+      "bytes": 1052184,
+      "sha256": "887f92e6013cb64ea3a1ab8675e92da1e0beacfd5e001f972523540545e08011",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/moving_jaw_so101_v1.part",
+      "bytes": 436,
+      "sha256": "97f6cefdce9495f86924ffb57f00f2cad8f8d5381e14f1932d6a51d00df1081e",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/moving_jaw_so101_v1.stl",
+      "bytes": 1413584,
+      "sha256": "785a9dded2f474bc1d869e0d3dae398a3dcd9c0c345640040472210d2861fa9d",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/real_objects/WhatsApp Image 2026-09-29 at 12.34.34 PM (1).jpeg",
+      "bytes": 82040,
+      "sha256": "af24212598583aad84018b70dd963c489c54d0627441056a7f4851b44c879118",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/real_objects/WhatsApp Image 2026-09-29 at 12.34.34 PM (2).jpeg",
+      "bytes": 182490,
+      "sha256": "f5f5329c2534cda6e6bd855d1051d68af416b7b9b5b4ef0e10dbccd10477f9f2",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/real_objects/WhatsApp Image 2026-09-29 at 12.34.34 PM.jpeg",
+      "bytes": 74477,
+      "sha256": "ef496d5d4557df8bff089d2975b27ee2f445d80da01fad7b48cd4e3715db62a9",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/rotation_pitch_so101_v1.part",
+      "bytes": 440,
+      "sha256": "0b7b24211a542555168d0a415ff4f05e6a4a9803045e8e31ffe1984fc3135e91",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/rotation_pitch_so101_v1.stl",
+      "bytes": 883684,
+      "sha256": "9be900cc2a2bf718102841ef82ef8d2873842427648092c8ed2ca1e2ef4ffa34",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/sts3215_03a_no_horn_v1.part",
+      "bytes": 439,
+      "sha256": "fdb32d86e6127a8f7642dd82dac283a0e7d2b45d5df537d003daa642c15e0ffa",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/sts3215_03a_no_horn_v1.stl",
+      "bytes": 865884,
+      "sha256": "75ef3781b752e4065891aea855e34dc161a38a549549cd0970cedd07eae6f887",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/sts3215_03a_v1.part",
+      "bytes": 431,
+      "sha256": "82eed501939906901c5bab37f01ba428bcab39856d244f9bd6fe07f441ceb0e0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/sts3215_03a_v1.stl",
+      "bytes": 954084,
+      "sha256": "a37c871fb502483ab96c256baf457d36f2e97afc9205313d9c5ab275ef941cd0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/under_arm_so101_v1.part",
+      "bytes": 435,
+      "sha256": "352adb8567f41a1fa517d0f0e8960749691a1d7079af73f15f1072c838c69709",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/under_arm_so101_v1.stl",
+      "bytes": 1975884,
+      "sha256": "d01d1f2de365651dcad9d6669e94ff87ff7652b5bb2d10752a66a456a86dbc71",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/upper_arm_so101_v1.part",
+      "bytes": 435,
+      "sha256": "63541673e4b9662974a8b148ea077a9067898a316d8c29aade06b20e22b05cb1",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/upper_arm_so101_v1.stl",
+      "bytes": 1303484,
+      "sha256": "475056e03a17e71919b82fd88ab9a0b898ab50164f2a7943652a6b2941bb2d4f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/waveshare_mounting_plate_so101_v2.part",
+      "bytes": 450,
+      "sha256": "4a616d2126b70d46a939460ead1bbaf235aa1775672b35dd3e210811e6aa7dfb",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/waveshare_mounting_plate_so101_v2.stl",
+      "bytes": 62784,
+      "sha256": "e197e24005a07d01bbc06a8c42311664eaeda415bf859f68fa247884d0f1a6e9",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/wrist_camera_mount_so101_v1.stl",
+      "bytes": 173884,
+      "sha256": "e17a626158951ac8cdf8d960962c1a3c8bf23b64635a02f88b62016fe895cef8",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/wrist_camera_so101_v1.stl",
+      "bytes": 128934,
+      "sha256": "1147857bb136876c81f98d18b533342bae2383f0e23bec216064c9f093bd3577",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/wrist_roll_follower_so101_v1.part",
+      "bytes": 445,
+      "sha256": "93d674dfca5e566d1b033676f1fc50b4f0cc22e564a82ad7895f3dfd66b68848",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/wrist_roll_follower_so101_v1.stl",
+      "bytes": 1439884,
+      "sha256": "4b17b410a12d64ec39554abc3e8054d8a97384b2dc4a8d95a5ecb2a93670f5f4",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/wrist_roll_pitch_so101_v2.part",
+      "bytes": 442,
+      "sha256": "e9ba6151922dfc8312a54c73ae19224c0b16b863595e0eba86081eaf676ed376",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "assets/wrist_roll_pitch_so101_v2.stl",
+      "bytes": 2699784,
+      "sha256": "6c7ec5525b4d8b9e397a30ab4bb0037156a5d5f38a4adf2c7d943d6c56eda5ae",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "docs/cloud_handoff.md",
+      "bytes": 3898,
+      "sha256": "9b4febba65bda4d162dc35eed33b264dc9f9bd6674de4052e5026f71efe48c0a",
+      "reason": "Superseded scripted comparison/parking/streaming tool or old handover"
+    },
+    {
+      "path": "docs/pan_tracking_fix_2026-10-13.md",
+      "bytes": 3108,
+      "sha256": "5b4ac269e77a71bf2315b1b0020eefb3e52994b709c31383e6aa0a860e7589ae",
+      "reason": "Superseded scripted comparison/parking/streaming tool or old handover"
+    },
+    {
+      "path": "docs/training_handover_2026-10-13.md",
+      "bytes": 26705,
+      "sha256": "f9963b429317af09bb28d536c69e2d323adfce5580e4d32d803629a3b55366ae",
+      "reason": "Superseded scripted comparison/parking/streaming tool or old handover"
+    },
+    {
+      "path": "outputs/appearance_backup_20261016/pipeline.py",
+      "bytes": 12833,
+      "sha256": "114ac07ceb4b96f25d06353d70365d0a899ed2fb481561ca1977061d62489c64",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/appearance_backup_20261016/table_real_rgb.usda",
+      "bytes": 1456,
+      "sha256": "d5fba78d3bab81f16bceb25df40332e2660a8b2a65286d29e521c042f7983787",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/audits/actor_view_enlarged.png",
+      "bytes": 23345,
+      "sha256": "c2e8d88a00d14bbfdfb52bd658a0c9f63e7429d2fbd7eab7598f458d9478d816",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/camera_placement_guide.png",
+      "bytes": 1116474,
+      "sha256": "e82106428cb2d7b368cea8f1d1fab1da7e378cf628ee78b6f576a85d27cf30d2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/cleanup_manifest.json",
+      "bytes": 25189,
+      "sha256": "8c0519d619ded6c6ce7fa5b761db5c17716882c2304f44c7b34bf0db20696d38",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/comp_lift_243.jpg",
+      "bytes": 574474,
+      "sha256": "8c01d250dfed207b82183e239948d951b95a65ff53252a9052cd2bd251849cc1",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/comp_lift_275.jpg",
+      "bytes": 589369,
+      "sha256": "32ac8a54237551dcb0286a0e0b23512ff17b6d418bfbdf1da9d5ea3f1f4ddace",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/comp_lift_309.jpg",
+      "bytes": 580366,
+      "sha256": "f6d87ee19650eabc712ef3bc5fa74e4ae1e52b3f9515309e8ab7c1ab3ce047b4",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_frame_150.jpg",
+      "bytes": 212805,
+      "sha256": "65c7c05720181a2bb9f92c14cefc32ae5dbd9b03ed8386ed83022d5718f350ac",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_frame_220.jpg",
+      "bytes": 204056,
+      "sha256": "1e43e2d7abd0d5bfff1d3eecfedf28abf2380d3f40e8c3e4289c7c47cfda904f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_frame_270.jpg",
+      "bytes": 196544,
+      "sha256": "52357a9ae8ac13fe28d968254ba9376fe463b7658be1adc8becb981467892e13",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_frame_320.jpg",
+      "bytes": 208434,
+      "sha256": "a3c20ba9c366cac3703192286c14f401222348eb75021cb7026106f12dcd8682",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_frame_360.jpg",
+      "bytes": 169064,
+      "sha256": "c7f188b29f22b6e9bfc414f9188e3d4091aefa211632ad11726f780e88fb7f7c",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_frame_420.jpg",
+      "bytes": 168912,
+      "sha256": "453ff8c21029fa5661c96cf432f8eb1722fe6027fdcbadeb07dba6c9e89fa71b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_lift_243.jpg",
+      "bytes": 204642,
+      "sha256": "d50afb6ee6e3627adbdc1b2038867fd62e27ca983c6b448ca411eabd508aa9a7",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_lift_275.jpg",
+      "bytes": 209077,
+      "sha256": "ecc128bf5652ecc7b88ac19f5b47769bf1ca7898a016039b38ba6f65bfad6cec",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/real_lift_309.jpg",
+      "bytes": 205217,
+      "sha256": "ea00f026999bf44317d3e9c341098548952ead0814075d2dbf7aa14939a01df7",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_frame_150.jpg",
+      "bytes": 72930,
+      "sha256": "0276adfdc3ab701cdbe502cb0311bbd68dd659ed1dff54e91b56924a489c678b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_frame_220.jpg",
+      "bytes": 69941,
+      "sha256": "2a78daa6ee2e5dd58027d3d5c3d7059006be58296ecf256272fa8e0010f82b03",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_frame_270.jpg",
+      "bytes": 79543,
+      "sha256": "f8c2e660fd3157af25460cc3e17fb24353bdf3aab11bb5f48255d94ce69fc881",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_frame_320.jpg",
+      "bytes": 80525,
+      "sha256": "e86521dc97914d6eade073c3c1cb15041788ef18d6da9530d8a67950fe575873",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_frame_360.jpg",
+      "bytes": 57852,
+      "sha256": "3dfd8929176eeade986acf7147f6a424c1f61958b41835fe8a51de18c0760075",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_frame_420.jpg",
+      "bytes": 54855,
+      "sha256": "cb8bff4a6d03cc8d483e029ed0d357c64c6098cfede141deb0ab6ecfeacc9665",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_lift_243.jpg",
+      "bytes": 65677,
+      "sha256": "09e361dbb7dfed176c4c8a3c5686e84d2629c37f2df2dc1dbef2e6d9d4f63129",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_lift_275.jpg",
+      "bytes": 82387,
+      "sha256": "90cd67f3560fb71d439961a99a2f38ac67a50548336b38b7e698d1173b01a251",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/extracted_frames/sim_lift_309.jpg",
+      "bytes": 82215,
+      "sha256": "212adc42a003217e8b8675f5529c84e26b59fe0e7f9fff82c235e53ab94a2ac4",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/real_footage.mp4",
+      "bytes": 6291500,
+      "sha256": "72ea0c87dd4274595cd32108d3ccd0d87cd646eec66e46c0d7d44659145b7a38",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/comparison/real_vs_sim_latest_1280x720.png",
+      "bytes": 1864470,
+      "sha256": "4375275c74112ad7ff66900b1e2461857115b86008f29e544321cdf76234249f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/real_vs_sim_overlay_1280x720.png",
+      "bytes": 972728,
+      "sha256": "bb0cd8cac6d8ecbd77cc5679e55722a2269fa28ce11106db6400f5eb59fefedb",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/sim_footage.mp4",
+      "bytes": 524332,
+      "sha256": "19eb10bb781d14b6f153d765371fa50c6672a624808392374231509cec0d7721",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/comparison/sim_vs_real_comparison.mp4",
+      "bytes": 24117292,
+      "sha256": "f9867d9d39ae6b3c2ea0f1a405fd1c0576859070cbfc4de9ab931dac550b4c61",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/comparison/similarity_report.json",
+      "bytes": 438,
+      "sha256": "61b036389b600e378f75e2f9555f4df949964b5a821dd97301796e4836481580",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/comparison/static_similarity_report.json",
+      "bytes": 117,
+      "sha256": "5d21f0ae2ef9554aa093727899f42a5092cc582184eaaa6bff8dc20f489caad2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/deep_cleanup_20261015.json",
+      "bytes": 6318,
+      "sha256": "801c41f48a3fea2db708bda8ac5e56ef623e0ed6123f36ba81398c189b653dba",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/eval_model_1900.mp4",
+      "bytes": 32979,
+      "sha256": "8345adae1dba1e56745c841c635129bf4bb98317086207799845358bfb2e7603",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/eval_model_1900.trace.json",
+      "bytes": 14281,
+      "sha256": "53b63bcfad0abf4ffa7a082aadcc60b81ea0fe0e024add2b53e71a7333f56709",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/model1999_latest_video_20261017.log",
+      "bytes": 21537,
+      "sha256": "aa203b1255d4c1dbe31af974c28672efe7c947cc39b8afcda92755fe5850cf07",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/model1999_latest_video_20261017.mp4",
+      "bytes": 5615822,
+      "sha256": "6b581fc520af94074d829354a2e864e031cfdb70690c600c644416d9d176437a",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/model1999_latest_video_20261017.trace.json",
+      "bytes": 1666454,
+      "sha256": "e0624b1e75589c3d93342b9ef004e90e3cf55327a5072fd20828a616f1061255",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/model2050_corrected_grasp_20261017.log",
+      "bytes": 20541,
+      "sha256": "0444250f83cd81f5ed389e2b2734f542948815816138e55b1a114fd6cc713f16",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/model2050_corrected_grasp_20261017.mp4",
+      "bytes": 5630510,
+      "sha256": "7462558397843843d3ffe71ad4528af22ac6e188fc6e24b709523c961829ce80",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/model2050_corrected_grasp_20261017.trace.json",
+      "bytes": 2240576,
+      "sha256": "56408101a9623ed3efd235584b9b25691de87115fdca71766bfa92a5134b5e9e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/photo_home_model1999_seed101_20261015.log",
+      "bytes": 42027,
+      "sha256": "8af8dd374a11eb7d871fa252ddf3c28ae29be290ae637c21dd90e100a3b5b1ef",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/photo_home_model1999_seed101_20261015.mp4",
+      "bytes": 43672377,
+      "sha256": "73badb1c037c5ed24fa9e266551735463cba663297b50cd81c35bc1de4c85602",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/photo_home_model1999_seed101_20261015.trace.json",
+      "bytes": 33410330,
+      "sha256": "b823f2bf363344877ab65281ddd729131b7bd7ab016c80a97a3f98a7d81518d0",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/photo_home_training_report_20261015.md",
+      "bytes": 4632,
+      "sha256": "8c9f8ea1fcf989cd6b7977f167645bfcef7124efb3c8ecb6c9c5e0e34327e522",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1250_surface_v3_10ep_seed202.log",
+      "bytes": 23646,
+      "sha256": "9d19f1c72eb21a173144777c4dcc31e695bcb5cfa7814aa4e90c4aa84056ee76",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1250_surface_v3_10ep_seed202.mp4",
+      "bytes": 4450958,
+      "sha256": "5c0c101a78879997b744c792eea951481edc2dc5203122cbda64d8cc4df6f7dd",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1250_surface_v3_10ep_seed202.trace.json",
+      "bytes": 4289672,
+      "sha256": "62f85c07734cac97b186d2117bf1e221e5f201d0707efe84294e592bb3165cd1",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1250_surface_v3_seed202.log",
+      "bytes": 19475,
+      "sha256": "2cb75d7e2f9676efd2750e05c1491df97a20a0e455b6ce91599eccf7663749ff",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1250_surface_v3_seed202.mp4",
+      "bytes": 443964,
+      "sha256": "624794b18b36db0ddd77f097779e7f2b87c80adbbc21dcf81fadc81b8e443b17",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1250_surface_v3_seed202.trace.json",
+      "bytes": 415070,
+      "sha256": "5ce1ee4a90db1ae83a699a775d58dc9b39754b0c8ca9d3fc26b246f590b7c3c9",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1900_latest_seed101_20261015.log",
+      "bytes": 23983,
+      "sha256": "a8826f174d605d61a06e27e7fa4fac675d8729175d7d7529e2bf7392e93a66bb",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1900_latest_seed101_20261015.mp4",
+      "bytes": 3612878,
+      "sha256": "067339431a73675ba4f4fa15b1dabf45aabac1a148c4846110f10862d1130a4d",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1900_latest_seed101_20261015.trace.json",
+      "bytes": 2498254,
+      "sha256": "1a53a3a5d3fc3f9fdb0d4faa42688e8f3a6e813256be312024395f59ed5c992d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1900_latest_seed101_20261015_episodes/episode_01_success.mp4",
+      "bytes": 248109,
+      "sha256": "39e02a6327474488f36e5cdf5f504acd44a3cc9cde127dc91ef5ee328f2e17f6",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1900_latest_seed101_20261015_episodes/episode_02_success.mp4",
+      "bytes": 256096,
+      "sha256": "bc5daf51f92f09eb912a0e5e87c95081b11432f2c00127cb82b906f69a5a960a",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/evaluations/rgb_model1900_latest_seed101_20261015_episodes/episode_10_failed.mp4",
+      "bytes": 869869,
+      "sha256": "5c1c46938bc78ce1966ed6e69d2a35b0b024f34d8faa62ecb1d3d84e6b22ec73",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/hardware_mapping/bridge_startup_postcheck_20261013_160214.json",
+      "bytes": 1293,
+      "sha256": "aa6ffaa944045a76f34662b062f5d3eaec4c37f68f2d34f401211f74d4a86e73",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/connection_probe_20261013_144129.json",
+      "bytes": 5359,
+      "sha256": "18e6906fb0bdbd92da51a22c97018121f54b636c1808a1c9b4c86d60d6b675a1",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/connection_probe_20261013_144624.json",
+      "bytes": 3909,
+      "sha256": "9d4282650046a8886f905a925346bc3357afe1594825aceab8dbfa5b7badf454",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/connection_probe_20261013_144959.json",
+      "bytes": 3909,
+      "sha256": "fc78e3a3bab97133f313464352699ee3fa582c87ed7db892aa5d79b638b183af",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/connection_probe_20261013_172056.json",
+      "bytes": 5359,
+      "sha256": "78af57ea92e56590517b1a1b41599f259e21fcffa16951f4867e0d1f484cd70c",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/goal_write_torque_behavior_20261013.json",
+      "bytes": 169,
+      "sha256": "fd5c2351bfd5289ec453050acedfdb795388cb17c41e07864e043d129b7e0d8f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/lift_diagnostic_20261013_154852.json",
+      "bytes": 9448,
+      "sha256": "f2cecb932dda5a0bde90a3aeaee36e62314906abb6de63e395bad2b7422d231e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/lift_readonly_20261013_163448.json",
+      "bytes": 14532,
+      "sha256": "0bdad378a3d57bfc75ae6e63dba27833c90b1279d353c1e91bb8fefc04c957f0",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/live_pan_comparison_20261013_163004.json",
+      "bytes": 1619,
+      "sha256": "e104d45ea61878d1036913a7b1b42bf543f3b9e1505782e03e0a355d114f1e30",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_comparison_20261013_145624.json",
+      "bytes": 925,
+      "sha256": "2e5a4ef28194181d16e2c1ba26657e88afb67e72b86532bdada60754313364c2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_real_20261013_145343.json",
+      "bytes": 545,
+      "sha256": "437f208e564d6113d2be4cc5e29a9eab05da45bf55212362da99d1cf54894ce4",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_real_20261013_145624.json",
+      "bytes": 37193,
+      "sha256": "a772161eaa5971b41e2802997aa7c56762e33eea7f3b5ee4b4185cd4f3447c9d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_real_20261013_152301.json",
+      "bytes": 46165,
+      "sha256": "5e72a58866453a627ebe363c738239e0ac27731d278eecc56448f31a4e66f4cf",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_real_20261013_152301_postcheck.json",
+      "bytes": 1623,
+      "sha256": "2b3145558a798296cb1f00f8a2f1adb94d5d8374ce4ca8a4f993616999cb4672",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_real_20261013_153445.json",
+      "bytes": 46212,
+      "sha256": "77f968856dd9d04b6133bfdfb3d1a9ed1057adb4f97e4ea48bb459c22bb66fc9",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_real_20261013_153445_postcheck.json",
+      "bytes": 1299,
+      "sha256": "3d27a13a893681d447f1ca2c2ec800942c3e8a95e0a46c439ec1050912c7561a",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_145412.json",
+      "bytes": 22697,
+      "sha256": "d1b74079b8151c759009e5c83c1dcaec621bb298c81967347658d7ef254314cc",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_152327.json",
+      "bytes": 22697,
+      "sha256": "e8a84e66577e1c82f44aff038eb3f7293d577c5368d83b81d53d34188f317237",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_152627.json",
+      "bytes": 107943,
+      "sha256": "9fa172c4adeddf536604828b0d1f6e65742d9f09350c92479aa474b8c285c229",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_152720.json",
+      "bytes": 109020,
+      "sha256": "24a4612fbcb4158eda9e8754252a06a496de2f6fb27443b6b77537e904e14a08",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_152814.json",
+      "bytes": 109062,
+      "sha256": "49c38c9be9e3d15683d90d4aa34653d82702186841977a7e999a29abe696744b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_152907.json",
+      "bytes": 108175,
+      "sha256": "13cab2b68e16a86386a39933d368935ee1955b4bc3515eeb45b547a56252d6c9",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_153001.json",
+      "bytes": 109433,
+      "sha256": "763bf5819424615c1a34d57e0c483f3778e3fc490814a788645d298324253aac",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_153047.json",
+      "bytes": 109433,
+      "sha256": "ce818a4193556cf0ae3dd49b46102af11bbbe42f7e11acbfb84a4b6fe8e474dd",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_sim_20261013_153504.json",
+      "bytes": 109458,
+      "sha256": "cdb28705b7067f9c055e277998f5306e5f62635b1adb54fc205f49efaebfbf68",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_similarity_20261013_152301.json",
+      "bytes": 763,
+      "sha256": "0a0d4542bb482b998152b6d96195adf06a559e5e3ba4d6ad09933f312cc251e3",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/pan_similarity_recheck_20261013_153445.json",
+      "bytes": 704,
+      "sha256": "1cb88e993e1dc53c62484199aa778e276a08e4b2b7f48312f8a93589e80b9c10",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/power_check_20261013_151827.json",
+      "bytes": 14716,
+      "sha256": "66352b2273bcbea00f38c5d75ee74ffec0efe70734e9f13c8a1c35f56b8a18fb",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_comparison_20261013_153839.json",
+      "bytes": 832,
+      "sha256": "7621e8c44a69e3e5cafad93a7c481a72a3e9579b336209df46c41daff515182f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_diagnosis_20261013_154951.json",
+      "bytes": 1332,
+      "sha256": "96fdda9d4a115e9f421b6609d689bac55621fae45a31ba4df9320a64ebe225fd",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_real_20261013_153839.json",
+      "bytes": 16530,
+      "sha256": "f273ed6e5eeab5c966a44056609f3439e30f4977d99c1bcaa820e1516ad1378e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_real_20261013_153839_postcheck.json",
+      "bytes": 1994,
+      "sha256": "fd610b066615f0aa7328d5ca6facb27fd40ad26d00bdeffdfa9daeb6a58cb141",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_real_20261013_154951.json",
+      "bytes": 64215,
+      "sha256": "ad2bd856a83df999984ae21b4c0c08937439a2f494d8b810505be8008f277dda",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_real_20261013_161159.json",
+      "bytes": 63870,
+      "sha256": "2f0fd9024598859a8f1711971fe87faae9d66ca71680dde109ff5267f03176dd",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_real_20261013_161159_postcheck.json",
+      "bytes": 1293,
+      "sha256": "c3ea463365f0c7ebc47ce19ac61a6aba3ce5b21d1efae760d7769c818b8b2dc8",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_real_20261013_163739.json",
+      "bytes": 40304,
+      "sha256": "5505f328e6d72b0e2f2d2763f164210688f1cda61162b48ce637c56953ce8ded",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_sim_20261013_153936.json",
+      "bytes": 109621,
+      "sha256": "6060ab182e5191c64b13ac651bf9322bd10df9edea2c545c80ca5abbb1f18404",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_sim_20261013_161453.json",
+      "bytes": 110256,
+      "sha256": "73209cb3a939e782f81ac299998afa957f9e1b8a242b21753edde53e628660e4",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_sim_20261013_161542.json",
+      "bytes": 2198457,
+      "sha256": "28a537ccff8736cc44c6e7a64b2d0dd2f5da133fb744e565ed931c73015f541d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_lift_sim_20261013_163734.json",
+      "bytes": 109754,
+      "sha256": "1043947d501df092fa0c23a787e8b13202335d611d717563d22e37b84324fc02",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_pan_comparison.json",
+      "bytes": 1397,
+      "sha256": "918e6ef84d6ad5fbe7fcb021b758219cdd64e95a70dc90c585ea3b095d7e1884",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_pan_real_20261013_163004.json",
+      "bytes": 64549,
+      "sha256": "7acb3545f8431fcfbc02c3559f9f31e55e782cff695ea2bf1a9c9eedb5b8d4df",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/shoulder_pan_sim_20261013_162941.json",
+      "bytes": 109201,
+      "sha256": "1348425f310234346ac8230e54d262237d4b96fd651b0108679dee394433306e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/sim_real_mirror_report_20261015_165412.json",
+      "bytes": 169831,
+      "sha256": "fa479264c8eb7ea53e3b1c82c59c6938582bfa70d28dd8f84f5ea1f75c706b3d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/sim_real_mirror_report_20261015_165446.json",
+      "bytes": 132103,
+      "sha256": "168b2418eba5e88f4d37972d732fb42eae1eb6047d01b4b0d8a48d371bf29ad1",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/sim_real_mirror_report_20261015_170255.json",
+      "bytes": 25106,
+      "sha256": "3c342bacd1ce383b5d17bed558a745074adcaa7550df346a5af6cf7512c3e80f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/sim_real_mirror_report_20261015_170430.json",
+      "bytes": 186117,
+      "sha256": "373132de025a7ba5aa624b084abb5731d91acba9b72d6ab752c3508ec8fc667b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/sim_real_mirror_report_20261015_171424.json",
+      "bytes": 64198,
+      "sha256": "d8d397eb4b87b57a9394fcc0867bbb32bf70de7d27a6e3f94cda4652e656bc6b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/sim_real_status_20261013_173153.json",
+      "bytes": 2030,
+      "sha256": "d0c27ecaf3aeae12132e24e76dc5307a805ed8e8cc9d4bef67fcffc309b48f11",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/supported_lift_20261013_163739_postcheck.json",
+      "bytes": 1623,
+      "sha256": "7cac600f229b30e7420d9b54940ea6cc0474cbf8862f0a85ad105c8f44717253",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/supported_startup_check_20261013_160756.json",
+      "bytes": 2054,
+      "sha256": "ae614428bd1c061da02d6a440423fed585d2d9fe1ec7a184b4176bdf701e90a8",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/hardware_mapping/torque_enable_20261013_151927.json",
+      "bytes": 1076,
+      "sha256": "2f701b708da1477d0d5fceecd7e7a4c94d4af16e1a9461c4fc058b8381875ba3",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792066550023006546.json",
+      "bytes": 671,
+      "sha256": "6985ddf5d8cbb775907632922a5b777fe30abb4bb531cae63142a0facb8dc475",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792066754030484892.json",
+      "bytes": 651,
+      "sha256": "d26682b29a7d671e337545f36a56ef4ddbbd2826b7181c21365dcc54bafd0515",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792066938962137446.json",
+      "bytes": 666,
+      "sha256": "81ae3eb44635eba20b8f13506006237830609ca06ac54dd8c7530f307148c1a2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792067155355665890.json",
+      "bytes": 666,
+      "sha256": "81ae3eb44635eba20b8f13506006237830609ca06ac54dd8c7530f307148c1a2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792067291184773413.json",
+      "bytes": 1506,
+      "sha256": "cbfe1af1e45e3bb219d25512fd2f59b429b235980ca3b51d330f5a83faec2e72",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792068213066023831.json",
+      "bytes": 292464,
+      "sha256": "a10f1cd6e8675e9d748eee1e41f50c6f0f354e4f56d030c8fb38e008248c5b8f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792068680376408549.json",
+      "bytes": 8885,
+      "sha256": "c40de0290f1569c1e657145ac53b7c2c84582ef830811d8dd5bcf1c60a4bb90b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792068798193583675.json",
+      "bytes": 48233,
+      "sha256": "dc98f4e8d52c3114a9f860f9b038ebdb96c71b621fd080f6ea751ad5b034a4c8",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792143455272717796.json",
+      "bytes": 890,
+      "sha256": "c6d995dbc5c587350664f290a0fd67c064b7d940e331d8062a04cc0a4f1dade3",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792143516411926936.json",
+      "bytes": 2557,
+      "sha256": "94a4a00ed93ac2576e9f330e8e3b3e699b66b862fa71816134c97adbdfbfac87",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792143612861857705.json",
+      "bytes": 12490,
+      "sha256": "88fff1762032058245a289160e0630b340336b750f315a61cb9fcd75d84e9076",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792143994795860580.json",
+      "bytes": 843,
+      "sha256": "eeb1de3d2abb44646c1501e212a5938755deea96cfd27c51ac2d1fe056c492d7",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792144059298247109.json",
+      "bytes": 844,
+      "sha256": "6309871f48d640333afbfc57b29befeac4cd39edd11b14ebc866a607b15f5a76",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792144166215415294.json",
+      "bytes": 843,
+      "sha256": "eeb1de3d2abb44646c1501e212a5938755deea96cfd27c51ac2d1fe056c492d7",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792144568547817641.json",
+      "bytes": 822,
+      "sha256": "23d18fec76dceff3ba1be9c30a5c9bccf72219eabbeced6c5549ae3c0b1b2fb5",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792144625140066285.json",
+      "bytes": 2815,
+      "sha256": "520df3eb48b113fa278bc4c7c3584de76241ffe1db18f04f9a03d85bd1873b78",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792146582771951484.json",
+      "bytes": 961,
+      "sha256": "b94290e715f2cfd25021bb3a3e3e7b7a47ddf9b4841a7baa917561e396ec07ac",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792147009184704577.json",
+      "bytes": 35292,
+      "sha256": "a350b21826c0018a9de6768f15827642fd1be80bbe1072fd2561e5d3009a3379",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792147035178934134.json",
+      "bytes": 128738,
+      "sha256": "5c58b67c281872447e37df4aad686ac61b802ccf47e655a2de0d4eb94e706295",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792147283933779792.json",
+      "bytes": 222212,
+      "sha256": "0a7e2f365242edc60e137a74f4cacd9cf62ccf5f7070788dae0b508224b80c2b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792147330030056548.json",
+      "bytes": 1837,
+      "sha256": "fd1105610ad9d98fbc873517afb6300a04c84b38ac8d66979c895a3f947eebb2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792148663171536385.json",
+      "bytes": 2629,
+      "sha256": "a2aa0c4b76cdf8b7010e2baacafc3152465a550608dbb9d0d5655e351abf6676",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792148743959362763.json",
+      "bytes": 413670,
+      "sha256": "94458c7273c2f6938e5480eee334d9e5f34b6cbd6ae75bb3f3e89fabc0e00f21",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792150612733458773.json",
+      "bytes": 1014242,
+      "sha256": "60c7a2cc5acfc191ae457f611bd0efe74d47809b6d038b860e4a7bd7a2357b22",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792150973148699391.json",
+      "bytes": 18410,
+      "sha256": "c0f2b7673d3ad601dff6677e72d869ec749553189386a83c787c3cbb67cd24ea",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/1792151032111696887.json",
+      "bytes": 5101404,
+      "sha256": "f0f9253782372a5104259a7bd85bb990e9dd0015c30f5a1d5623300f102ffa86",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/gripper_home_mock.json",
+      "bytes": 98267,
+      "sha256": "918497dea016631fc49173c543443e989f4a7a809051a6b5d8c9d90ee951568b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/mock_episode.json",
+      "bytes": 74980,
+      "sha256": "a2a79b4d467df0f13dd9168770ee41e97e7499dbf19b7095e3656655f48e4a97",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/mock_smoke.json",
+      "bytes": 14569,
+      "sha256": "19440f4b1287609bbecaf667fd1b0de0c90c064ca564951bacb6646eb2a32876",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke.json",
+      "bytes": 1032,
+      "sha256": "e0377bc5f4107db8728ae06517a7bff9d6d073cccf216a6f2d681beab5980da1",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke2.json",
+      "bytes": 22890,
+      "sha256": "ea55d473059cb8d7df2c0894722f5d830d992ff1450a7d294fd8c4fd01f30b8d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke2_videos/comparison.mp4",
+      "bytes": 485678,
+      "sha256": "b673873e44f3ef2a5be60b8ad3a55987bc6efd7aefc6d812ace0cb8c2eb7eb0b",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke2_videos/frames.jsonl",
+      "bytes": 23785,
+      "sha256": "3d08416f87671858976b77de68ca717ee27fe76b45dfb6e5d6720c442b42384b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke2_videos/real.mp4",
+      "bytes": 1109273,
+      "sha256": "5ed09310d39e372bf1b8dcfc39befb678f074f180f5315b049c4178bec2d4def",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke2_videos/recording.json",
+      "bytes": 414,
+      "sha256": "644ce8c915682205506ef933932ca165a1888c84ccb6b599a21ff847640d5bc2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke2_videos/sim.mp4",
+      "bytes": 140364,
+      "sha256": "a88d470ae5c0132993b7ab8e00364a0e2dac66ee42160868615ea34883550abb",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/mirror/video_recording_smoke_videos/recording.json",
+      "bytes": 356,
+      "sha256": "263446615b885046b0b8a0f330dd70dca5ab6d9c0060ef961312e8939b887c68",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/contact_audit_20261017.log",
+      "bytes": 20134,
+      "sha256": "5af6275242f7a8299e196c5c4249584a33559a06c9d7d3c5864802f0946b08fb",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/contact_audit_20261017.png",
+      "bytes": 184456,
+      "sha256": "935bf85f24fc530e6d36d795ada5b4514fbe2edb29ea6b39c082e58b86af757e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/contact_raw_audit_20261017.log",
+      "bytes": 19887,
+      "sha256": "cecc671a5ab063856af7f88f059e3a745722043e88cfc61bada6b8dc73e1837d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_20261017.log",
+      "bytes": 75791,
+      "sha256": "aaa7125ec326e6fdcde217119ccd455dc6cca73b9e5800cd3619322bade9278f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_20261017_grasp_closed.png",
+      "bytes": 643499,
+      "sha256": "024e1be0b4b3f8724f88b56c5050271264c99def0a5d7249cd2a4be77c3e0a31",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_20261017_grasp_open.png",
+      "bytes": 627841,
+      "sha256": "7679856e44cc801aa97dd04e6115d6df2be58e4779ed152d9f416164bc069517",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_20261017_grasp_raised.png",
+      "bytes": 642525,
+      "sha256": "61a9c3e889b767998367081ee4cb3cafddc7d1549af30be95cbeb156487678f4",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_contact_20261017.log",
+      "bytes": 75769,
+      "sha256": "a3119ebeb6c25a3bb7ffc7d2b17833a69e03589d72d8eb3a6b7d3e00701f16c4",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_contact_20261017_grasp_closed.png",
+      "bytes": 643499,
+      "sha256": "024e1be0b4b3f8724f88b56c5050271264c99def0a5d7249cd2a4be77c3e0a31",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_contact_20261017_grasp_closed_actor.png",
+      "bytes": 12108,
+      "sha256": "1116d6262cffe49ef89355b2b93b6090fe9b5f6ea23570ab83bdde363c0f03ec",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_contact_20261017_grasp_open.png",
+      "bytes": 627841,
+      "sha256": "7679856e44cc801aa97dd04e6115d6df2be58e4779ed152d9f416164bc069517",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_contact_20261017_grasp_open_actor.png",
+      "bytes": 12177,
+      "sha256": "3db683321a75e602ee1e7b5dcb4579fbb43627fc3af271cdb7bce37fd42dbbe1",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_contact_20261017_grasp_raised.png",
+      "bytes": 642525,
+      "sha256": "61a9c3e889b767998367081ee4cb3cafddc7d1549af30be95cbeb156487678f4",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_contact_20261017_grasp_raised_actor.png",
+      "bytes": 11967,
+      "sha256": "2edfe51a99867185506ba1a621f70c5a2f3d030e98d689308efb57d3340009d5",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_fixed_20261017.log",
+      "bytes": 21052,
+      "sha256": "63a30d7e7fca481f641dad62f856141808735687f24b70ca0ff4cb9df0cce0fb",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_fixed_20261017_grasp_closed.png",
+      "bytes": 642944,
+      "sha256": "91c002c1a7129a9ca7a0f94309ed2310d37877f8c5f46f85a2df4e0acc309dad",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_fixed_20261017_grasp_closed_actor.png",
+      "bytes": 12075,
+      "sha256": "c1fd5fac754d1f9fc9db78fa3462a6529424ff4cb99422f2e51dee5e8ad1f91e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_fixed_20261017_grasp_open.png",
+      "bytes": 628317,
+      "sha256": "5c82597ccd55a4042ec5241d0b93b5c89a49bd0d47c714fe4661d2fee4040d50",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_fixed_20261017_grasp_open_actor.png",
+      "bytes": 12178,
+      "sha256": "ec015874681fe47bed5dd61d7cb16a65ded8c6b66f4c852396504fe70ec52482",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_fixed_20261017_grasp_raised.png",
+      "bytes": 643029,
+      "sha256": "b6906680cf1781897b1072081b3cdd5c8606cb53465146298ccad7b30d9fb4b7",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/grasp_audit_fixed_20261017_grasp_raised_actor.png",
+      "bytes": 11967,
+      "sha256": "0b0ab63364fb14378091bcf42cd4169c0e80c5d0b853013b03834950c292b783",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/gripper_contact_check.png",
+      "bytes": 184456,
+      "sha256": "935bf85f24fc530e6d36d795ada5b4514fbe2edb29ea6b39c082e58b86af757e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_grasp_20261017.log",
+      "bytes": 21809,
+      "sha256": "0e7ed03cadd0a7c9a753948d7f501974019e380a683a435a2956ca751bf89b2e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_grasp_20261017_grasp_closed.png",
+      "bytes": 646468,
+      "sha256": "a6be27ccc5d5773f87e392a0a9479d07fb2a15001a757a1970456e02adf61997",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_grasp_20261017_grasp_closed_actor.png",
+      "bytes": 12167,
+      "sha256": "51e81cc92ad3ec15d34afd935f2858ecb44888897cc33c978205f6beb2229631",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_grasp_20261017_grasp_open.png",
+      "bytes": 629826,
+      "sha256": "3aba33f9dd6ee62f0399dad12b3ed39aab5f551bc82df78945968e71dfcc57e9",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_grasp_20261017_grasp_open_actor.png",
+      "bytes": 12261,
+      "sha256": "31d8fbfea1ab8387108ca0ae6b7274f09d9879c3ec5f372fd11d1ca20db9fa5d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_grasp_20261017_grasp_raised.png",
+      "bytes": 641217,
+      "sha256": "d047ed843f59e5afe074373bf99e077d420ea27e9227bcf9025f043060371f98",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_grasp_20261017_grasp_raised_actor.png",
+      "bytes": 11949,
+      "sha256": "174258be797eb3a0fa4720ee0205f6d4b398dcb773f477c22c52010b42334be3",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_safe_workcell_20261017.log",
+      "bytes": 8968,
+      "sha256": "f564ce3d095313a0e77068461790292b06fa8b5e76f32112cffb9666c5735aaa",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_unsafe_control_20261017.log",
+      "bytes": 21939,
+      "sha256": "2c58ed37f1fd90fdbbfd8d0cb1dca006dd4eeb3a55996a3158a9e06a125f79e5",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_unsafe_control_20261017_grasp_closed.png",
+      "bytes": 642944,
+      "sha256": "91c002c1a7129a9ca7a0f94309ed2310d37877f8c5f46f85a2df4e0acc309dad",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_unsafe_control_20261017_grasp_closed_actor.png",
+      "bytes": 12075,
+      "sha256": "c1fd5fac754d1f9fc9db78fa3462a6529424ff4cb99422f2e51dee5e8ad1f91e",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_unsafe_control_20261017_grasp_open.png",
+      "bytes": 628317,
+      "sha256": "5c82597ccd55a4042ec5241d0b93b5c89a49bd0d47c714fe4661d2fee4040d50",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_unsafe_control_20261017_grasp_open_actor.png",
+      "bytes": 12178,
+      "sha256": "ec015874681fe47bed5dd61d7cb16a65ded8c6b66f4c852396504fe70ec52482",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_unsafe_control_20261017_grasp_raised.png",
+      "bytes": 643029,
+      "sha256": "b6906680cf1781897b1072081b3cdd5c8606cb53465146298ccad7b30d9fb4b7",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/table_unsafe_control_20261017_grasp_raised_actor.png",
+      "bytes": 11967,
+      "sha256": "0b0ab63364fb14378091bcf42cd4169c0e80c5d0b853013b03834950c292b783",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/workcell_audit_20261017.log",
+      "bytes": 9094,
+      "sha256": "97d346f5d7f4f19f674bd7f81c66f6fed3e3baca5f658557fbee137b8ded2529",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/pipeline/workcell_audit_fixed_20261017.log",
+      "bytes": 9094,
+      "sha256": "1b27ea23500923d41b031aa31974fbd561e3fda448ff2fa429c45c572edcc3ea",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_box_tex.png",
+      "bytes": 42000,
+      "sha256": "67eb2042947894c2b78771bba7c21df8a46e3f41df04ccc205d751b8c72803a8",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_cube_tex.png",
+      "bytes": 51729,
+      "sha256": "b5c903d90202efea8c49988c2066ea0e41789fe1199d9923b4ceaf5acb437b91",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_photo_latest.jpg",
+      "bytes": 225315,
+      "sha256": "0b1279e73ce1d0c7d6ffed371519618cb0d875961890d308f95637c6f0774e64",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792127582521790001/actions.jsonl",
+      "bytes": 85596,
+      "sha256": "bffed4bef5c604279d7eec77f88e00fd310e618db4e45b74a39ca3ca55436cd6",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792127582521790001/policy_reaction.mp4",
+      "bytes": 653649,
+      "sha256": "d075868bc54c86dc46bdb45739f6324949860792d0cf1ede500fca1067a82d28",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792127582521790001/real.mp4",
+      "bytes": 522291,
+      "sha256": "55fe8c35d2ba64c97a87c8ce8b1a5b01aa950d7599b1f403971013fff63edc36",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792127629087734247/actions.jsonl",
+      "bytes": 128588,
+      "sha256": "ad381cfe13b3c70d75af6518496ae865f1fd7c7409b284993aaaf4c922ac286a",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792127629087734247/policy_reaction.mp4",
+      "bytes": 902354,
+      "sha256": "ebb65c521386267efbe75932de6314543f9af24b48557fd6277164af9d9f5c94",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792127629087734247/real.mp4",
+      "bytes": 722494,
+      "sha256": "84ee2abfdbfbf98ab9bfbaabc2970519f20eee7ea35691c09e0e9a85c1fd7b8e",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792127848968835792/actions.jsonl",
+      "bytes": 34684,
+      "sha256": "0504bc16857b7496cc301237a9da3abec44a90ff812e416439ab2c980a720033",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792127848968835792/policy_reaction.mp4",
+      "bytes": 307193,
+      "sha256": "6d9d05b0f2ed46a56496239e741e3599525c18ea12ff95f2f16d6467ce8184a0",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792127848968835792/real.mp4",
+      "bytes": 234605,
+      "sha256": "6b755e26020bf39ab2840547ef7ea9b322305dfb60eb378143a7f2585a4ab161",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129038430680915/actions.jsonl",
+      "bytes": 182741,
+      "sha256": "1ec5888c4ac48946e8a23b530053e9df07fa583b10ce6616b4a70c7355942e14",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792129038430680915/policy_reaction.mp4",
+      "bytes": 1535328,
+      "sha256": "88697c0af9ca8d72055968cf61fa7edc80d5681c91c9919085f7a99131863166",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129038430680915/real.mp4",
+      "bytes": 1156775,
+      "sha256": "c77fde1e62b405c61f2279dadb2bd3ba78d7d2afdd0d71140f025471c40b27dd",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129071655969249/actions.jsonl",
+      "bytes": 198293,
+      "sha256": "7655fd3179d90b07b15fe2082ca1bb4470bfa59fd57827a2769a6adc8a1f2d9a",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792129071655969249/policy_reaction.mp4",
+      "bytes": 1583654,
+      "sha256": "6c217c80357045433fc728c2df05112bd19fb7f265ab627c55e53a5981b8b2ae",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129071655969249/real.mp4",
+      "bytes": 1289559,
+      "sha256": "3335f7324b33a689b8d8a7ddf16ed82e1a02d078d5049da68b3e82d8010e915d",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129377110176607/actions.jsonl",
+      "bytes": 204727,
+      "sha256": "77999513878a44af45a4bfb721898f769a783449155d96e3937266540b0eef1f",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792129377110176607/policy_reaction.mp4",
+      "bytes": 1410293,
+      "sha256": "b3e66a0d88bb23100eaacdf406f02162eafaf7ff3eae1ccea3656d5f6c5ea970",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129377110176607/real.mp4",
+      "bytes": 1075574,
+      "sha256": "85eea096c9e25f49a5d15dd9c2f5a6441d9760c440961a6b95bfcbff57a5d96f",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129478140068763/actions.jsonl",
+      "bytes": 408923,
+      "sha256": "e64b7d254bc28f847783546702ee88dcacc3d2f2e023c92edac9d58847a36837",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792129478140068763/policy_reaction.mp4",
+      "bytes": 2623363,
+      "sha256": "30aec627316d8819dfa3dc005d037d9112650d46e62d4077a9096f998cd3d1cf",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792129478140068763/real.mp4",
+      "bytes": 2088186,
+      "sha256": "4679e62385536773d3ff6b055fdefb2e18be3e44dd076e026d0acc1c7361517a",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130488320996905/actions.jsonl",
+      "bytes": 204556,
+      "sha256": "7e7c5d0ffe20c7fb53c6bfb1c6fcebac17daa222502d9c1e9fbe70231cf9c36d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792130488320996905/policy_reaction.mp4",
+      "bytes": 1433008,
+      "sha256": "811d37cd781034dd091e61fd3c0c4750c75026aa17b20b40cc58f3b8c1f8e94f",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130488320996905/real.mp4",
+      "bytes": 1130649,
+      "sha256": "99687f2501f648fe4664f8686888a8676bb81f6f0f0407fc3412a407b09ea3e6",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130514725063143/actions.jsonl",
+      "bytes": 222899,
+      "sha256": "91e9728c672c601f44e1c6a1e6305f3581e2e5277eb3f71d49e6f824796ad441",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792130514725063143/policy_reaction.mp4",
+      "bytes": 1960830,
+      "sha256": "1c272406188c48b058f70111c01c5c6bdb5a78c3bf354ae99f9eb63a3df8c6fd",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130514725063143/real.mp4",
+      "bytes": 1551958,
+      "sha256": "8eb971149c6aa2a06a74695210e8131438bd75ef689b4cb549100fd85fc8bab8",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130571568150017/actions.jsonl",
+      "bytes": 139998,
+      "sha256": "e5553db52b3022f1fba27f82538bb5aa3318cbbedfa3d27637f2eb9961882ed3",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792130571568150017/policy_reaction.mp4",
+      "bytes": 1133713,
+      "sha256": "80fec67fc122456c52be802a528902ecbed60f65302f28925f97421a0f8f54d0",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130571568150017/real.mp4",
+      "bytes": 872486,
+      "sha256": "58b61f3fd41ad6fce9d746a3113cebf3ac2ee518d4281605edaff9ad83749385",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130613226729882/actions.jsonl",
+      "bytes": 448060,
+      "sha256": "239329355aedc9923fead4df1342f25a768bdf3c742921977aa31dd1c08b6132",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792130613226729882/policy_reaction.mp4",
+      "bytes": 3526229,
+      "sha256": "5e79deac4e660107c88f1a783a851056ad948efaf37e12c02bcc30ba85c254a3",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130613226729882/real.mp4",
+      "bytes": 2836362,
+      "sha256": "91f4ce574942548043f2949d5df8434e1acf90e3d366b2ca1d7f40e6d290afae",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130753486132760/actions.jsonl",
+      "bytes": 203124,
+      "sha256": "0014582b4abeb061e308c51962fcb4b9a7dae06d1d6c97fc54f776e909c8b8d2",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792130753486132760/policy_reaction.mp4",
+      "bytes": 1301126,
+      "sha256": "9063392feb1f77a3d5c10b31577066135f3f45af88cdb631283965d73e274ab3",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130753486132760/real.mp4",
+      "bytes": 1058354,
+      "sha256": "a60c4f1bf4a873795d932d66f8b55493a66e3ff5335c61deba027d46a8aee742",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130781762167168/actions.jsonl",
+      "bytes": 360793,
+      "sha256": "7b42e268b693a3c6f7ec1287a89b86e97f8ba169bb418c4d79ea8894dd08b0b5",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792130781762167168/policy_reaction.mp4",
+      "bytes": 2754687,
+      "sha256": "fab65e23188cea70558b07f65676ff4324fd338000cb3d8a968e488cb6d3a0fc",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130781762167168/real.mp4",
+      "bytes": 2247456,
+      "sha256": "5954e54e557aeef0161de368ec9f94142f0119aa9014ec1b2172bbc356a15746",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130873233514560/actions.jsonl",
+      "bytes": 444698,
+      "sha256": "c4b29cb07ec74ac91668f2f11bbc3c31c75c8dbcff92d01ddb7ddd79806fb327",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792130873233514560/policy_reaction.mp4",
+      "bytes": 3262162,
+      "sha256": "721c06590278676890843c12cf78ad7599da556bc076fd4338a3c4f67d7ea1a3",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792130873233514560/real.mp4",
+      "bytes": 2597076,
+      "sha256": "6fc8c03c00bd9132dcd3ccd32497d558a387b84678c3184c6bb7965b37a1559b",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131248121914480/actions.jsonl",
+      "bytes": 234836,
+      "sha256": "18a8e9788ff1df54fe1bbe5e328f96577d3327949e62a191adfb54c1dc760acd",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792131248121914480/policy_reaction.mp4",
+      "bytes": 1820054,
+      "sha256": "4fb0bb7a78d7352ccb2da18b3d8cdbb30100ea4136f7c974596cc78b3b25514d",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131248121914480/real.mp4",
+      "bytes": 1363569,
+      "sha256": "a521ef6587c07855e9c72f59dbe1c3e672e1518199bb418be39ffbcf0d126058",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131399243539625/actions.jsonl",
+      "bytes": 442500,
+      "sha256": "e8126f99477f54b6703cb2b792f94b5e6939ef61cdbdbf37f9dae37e8b036163",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792131399243539625/policy_reaction.mp4",
+      "bytes": 3877991,
+      "sha256": "6d40a22141b8e22dbaace648e003d6f8dff179e5c7f0f3bef27734d221fbce7f",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131399243539625/real.mp4",
+      "bytes": 2893430,
+      "sha256": "2ba2949874137e4ef5f78188d8d9de6118c96d8b98b548d8449907219b3ee84e",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131433217058206/actions.jsonl",
+      "bytes": 163377,
+      "sha256": "74636931ba36bf6fef3a5086427c89def70a18fc6405ed9db9f1719c47b4ec04",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792131433217058206/policy_reaction.mp4",
+      "bytes": 1265084,
+      "sha256": "45b8968d27b9a7d26eb7f45dd2f831e67428727a69d97793de7856afb1133ae5",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131433217058206/real.mp4",
+      "bytes": 964051,
+      "sha256": "e43cbfe08756489638cb9bf5ec96206ee125812c09b0b2169c3df963891bfe8f",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131444471147939/actions.jsonl",
+      "bytes": 162179,
+      "sha256": "b2d76f09877ad50cb999b1d2873dafe6c8e6758f759744c0225ce5e5e250bfb9",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792131444471147939/policy_reaction.mp4",
+      "bytes": 1254842,
+      "sha256": "f524034441f319331a0dccd90d02bc24775e8ae8236f62707ca874dfa2432b78",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131444471147939/real.mp4",
+      "bytes": 966371,
+      "sha256": "9a02a4fa31fe8e2f8508913d68a7a2ca8e3b81da76582a889979dee708f2617f",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131522116260687/actions.jsonl",
+      "bytes": 274068,
+      "sha256": "4e9970c0b9f5938243832cb3407defa32c024c5bfa5862363493e8029b3f941c",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792131522116260687/policy_reaction.mp4",
+      "bytes": 1733112,
+      "sha256": "8566ca8c084e2ef127c79da99fd0b9e77028aa5bb53a83cdc95066590ca11b77",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131522116260687/real.mp4",
+      "bytes": 1391672,
+      "sha256": "ef52d4587d5846c16e0fafa67e6b7a5d01624c1c2b9e3e7abd7cf64b2e4a2806",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131831126378683/actions.jsonl",
+      "bytes": 445369,
+      "sha256": "b271ac5e71cbd152d2e6396ba6b4976958cdacb5d38c3523c5c5ed861c52d039",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792131831126378683/policy_reaction.mp4",
+      "bytes": 3581894,
+      "sha256": "f3ecb3ea5ee5707d80669869939b969fb432cb54f944e911f9bc9d2469b42e67",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792131831126378683/real.mp4",
+      "bytes": 2736960,
+      "sha256": "a8fe9a7e8af1233deaa42bf5813c4a9e39f92951727982e95f404ea40c3e2a41",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792132095906975564/actions.jsonl",
+      "bytes": 605314,
+      "sha256": "b8e825c0b9523ad21fa7bd3289d536402b78fe24e9e5009339fca95f53e00b57",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792132095906975564/policy_reaction.mp4",
+      "bytes": 4990307,
+      "sha256": "b9b06f389fce133e167d0a400f357f6eba5b4f806711f7767a951b60306745a9",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792132095906975564/real.mp4",
+      "bytes": 3887488,
+      "sha256": "431f90f6de15109fa7e6b2f7e79733243326f1ddef2072cd88f9f1f4fbf723b5",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792132161602493935/actions.jsonl",
+      "bytes": 1769836,
+      "sha256": "7385195d8906784d8bc25354cfd2807074587d37a8f1f36e7e31c2f08fdd5b0c",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792132161602493935/policy_reaction.mp4",
+      "bytes": 15443830,
+      "sha256": "d3a9006d39056accbb4245d813cc7c85d88c0a1df151b17af8c2cc40063aec34",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792132161602493935/real.mp4",
+      "bytes": 11827272,
+      "sha256": "4a63c0c642776557ce69f373fd02360f56fc7ea7d641ae8bc5cc18283e47b17d",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792142115772318944/actions.jsonl",
+      "bytes": 61034,
+      "sha256": "eb319137a08e5f388c99555e0aff4ffef4a143f735498f728bb16cb5befa92b6",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792142115772318944/policy_reaction.mp4",
+      "bytes": 520616,
+      "sha256": "b6bb472f6345229a65989c994f15046f9fe6d84c38bf05f50027c782f540de1e",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792142115772318944/real.mp4",
+      "bytes": 436225,
+      "sha256": "f4926a5732d9e1ab85bf895ef08297f061c1e8196c88577f02b4d2dfc367118f",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792143000279103220/actions.jsonl",
+      "bytes": 1343470,
+      "sha256": "81fb7cead231fd06d3ffaa0371e0fefa50370f7c44bd15d333e46657e058921b",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792143000279103220/policy_reaction.mp4",
+      "bytes": 10272689,
+      "sha256": "5c64f7a55db3bd06e80415fc1cf22652ba93a39ec4115c132f3714978aec2320",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792143000279103220/real.mp4",
+      "bytes": 7825084,
+      "sha256": "a8d4c633274a3a23500c7e13abf86daf00afb5b75bc5b3a77e2fd888a368ca4c",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792146342169583185/actions.jsonl",
+      "bytes": 1344154,
+      "sha256": "6a43e975d976c4f3cf1bf0fd81e9abde48c0eb39f191c493c86c1a29476cb0da",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/real_policy/1792146342169583185/policy_reaction.mp4",
+      "bytes": 11149048,
+      "sha256": "f77714e9f610b5ceee0ab67e7988ebd99ef1a850515efdb524497d0a8fcd49fb",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/1792146342169583185/real.mp4",
+      "bytes": 8949452,
+      "sha256": "7544a4e6cef953e4b98934d652daedde5d752893aad52034a379ae04ccabdae4",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/attempt_20261016_105250/policy_reaction.mp4",
+      "bytes": 258,
+      "sha256": "799cb4183c87329a60ec0bf2a7021409a80bdd8ded3f774ae5537f2edc272186",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_policy/attempt_20261016_105250/real.mp4",
+      "bytes": 258,
+      "sha256": "799cb4183c87329a60ec0bf2a7021409a80bdd8ded3f774ae5537f2edc272186",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/real_table_tex.png",
+      "bytes": 55368,
+      "sha256": "b4a282acf5422738ee207424738326da940adcfd6a8ea4a9b1fbc50130d51ca3",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/rgb_cleanup_20261014.json",
+      "bytes": 681,
+      "sha256": "7a708dcc6e6fcb1b7c4c8010ff71ce8ad87c472c82fa70ca9621f532fc18217c",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/sim_env_perfect_1280x720.png",
+      "bytes": 619431,
+      "sha256": "63df27085905c8c4c011bc592a2e7a6b7134f43d192f4bbf9475b7c5ea642672",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/test_comparison/sim_footage.mp4",
+      "bytes": 2625881,
+      "sha256": "0d59f5e5f1095db020fbeee4ca1db9ea9a733a3025f23422a201634366ef95e6",
+      "reason": "Existing video/animation recording"
+    },
+    {
+      "path": "outputs/texture_backup/box_grain.png",
+      "bytes": 231089,
+      "sha256": "f2d74baa22d97de8da341efaaab3a388684b9ed5e839d3f302c938801bc06f20",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/texture_backup/cube_grain.png",
+      "bytes": 309979,
+      "sha256": "7d41a2a9568a6a2455304b317176e2ce2e197aeba72f54d5c9479fd07cf85973",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/texture_backup/table_green_texture.png",
+      "bytes": 64757,
+      "sha256": "433e3c87d9ab8202a31c2062711ca89e362c107cd602d3ce960ff89442a63844",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/training/resume_photo_home_20261015_184919.json",
+      "bytes": 2032,
+      "sha256": "2462f43439e5f69d5ae436ca915918c83b3d977f160b6de56487e25ea81c8c6a",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "outputs/training/resume_photo_home_20261015_184919.log",
+      "bytes": 43180,
+      "sha256": "b65d6315c4688c6c864997811a1e4cb45ef9df66c07a25505b5e72c0e3d5de0d",
+      "reason": "Generated video, trace, duplicate image, old diagnostic, or backup"
+    },
+    {
+      "path": "scripts/__pycache__/hardware_bridge.cpython-312.pyc",
+      "bytes": 26092,
+      "sha256": "62e035260f15596ac8669cc530e610d59e1037d6635fc6ce1573f5e6f6432af2",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "scripts/checks/__pycache__/check_gripper_contact.cpython-312.pyc",
+      "bytes": 21713,
+      "sha256": "d8a6d1c457849c4835aa24b4e26317ec984a591a272124155e09513efb9beb57",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "scripts/checks/__pycache__/verify_grasp.cpython-312.pyc",
+      "bytes": 18711,
+      "sha256": "1cf7699591c964517e73da9b741d0fe080ba7ff25f855cc8baff74b631c8861e",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "scripts/hardware/__pycache__/hardware_bridge.cpython-312.pyc",
+      "bytes": 32510,
+      "sha256": "87e5a405122e5569624f46733f1dec9deb183dfbf626fe6553dcd0b692c691e8",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "scripts/hardware/__pycache__/mirror_evaluation.cpython-312.pyc",
+      "bytes": 22058,
+      "sha256": "ed11b90612d0f98be262102cbc7112282e682a88308f73c8106a5a03292524b9",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "scripts/hardware/__pycache__/real_camera_policy.cpython-312.pyc",
+      "bytes": 22610,
+      "sha256": "c50231819583c9fea7cb43da05425a59c4aa14733b0edcdc0afefb88ce1bcdf2",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "scripts/hardware/__pycache__/return_policy_home.cpython-312.pyc",
+      "bytes": 9503,
+      "sha256": "b3308b48869cb20a7786968c7542ccb918474da1834a19f19dc495d9f59af9cc",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "scripts/hardware/compare_pick_place.py",
+      "bytes": 19400,
+      "sha256": "ed8a194757669f5a98ccab1d8f22e58a595faa216ba7dab1f714050c1046c5c5",
+      "reason": "Superseded scripted comparison/parking/streaming tool or old handover"
+    },
+    {
+      "path": "scripts/hardware/park_home.py",
+      "bytes": 5575,
+      "sha256": "be9bfd01f4956b41dd52721a22b44c6219e85ae32fcdec17774e2c8cd9735731",
+      "reason": "Superseded scripted comparison/parking/streaming tool or old handover"
+    },
+    {
+      "path": "scripts/hardware/stream_to_robot.py",
+      "bytes": 13737,
+      "sha256": "dd814dfbf0b9fe0b944a6001444891725347152c9a5c07c8ff06bc4b813e990f",
+      "reason": "Superseded scripted comparison/parking/streaming tool or old handover"
+    },
+    {
+      "path": "src/isaac_vision_rl/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 220,
+      "sha256": "42eaac53802e4213f2f6066948ea3e1c0afd4fda9a19fef0965c1bb2bb1fe09a",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 354,
+      "sha256": "afa5d84fca06e7b993716e7454b2760d0a8af1f9f4ecb4142b98596586fbb7b7",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 216,
+      "sha256": "ba901a86d9ec9f23bf55b1ef422250ac456b4480356fded3b8e74088e8303753",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/config/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 223,
+      "sha256": "519d9db55fd6e845821407325aede50dc9cfa2acb5bd86bdb6c077ec4221ad3c",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/config/so101/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 826,
+      "sha256": "d6a396d7d201084ce017070b0185c365a0447d5e9f1bc81f59822a7af91e777d",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/config/so101/__pycache__/env_cfg.cpython-312.pyc",
+      "bytes": 22953,
+      "sha256": "2a852630250b61df3a3a6024a3d4d027ff9ebaef75403ddb5faeed84f3b65ed1",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/config/so101/agents/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 257,
+      "sha256": "a3902cc65f6175cd2f54c2c6f2dc89b0113ea8d47e355ed0255b1c443de04d88",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/config/so101/agents/__pycache__/rsl_rl_ppo_cfg.cpython-312.pyc",
+      "bytes": 3871,
+      "sha256": "7fd4f12b48c240375ca2bb79f0b32eecabd2f36970361b7e02405cbabde5946e",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 356,
+      "sha256": "99b592aff4ba52ca667e7f1a0f50af278716d86e3b3fe96e07e401bd7ae7f5da",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/actions.cpython-312.pyc",
+      "bytes": 5291,
+      "sha256": "f8b503b8e820351e24aff8177d90ba60e50fc4fffb0ad9203ce1068e7b8071fb",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/actions_cfg.cpython-312.pyc",
+      "bytes": 1325,
+      "sha256": "6effbd0e36d8280b3637bc0df42b52417dda6306974dfeb97e0f35479c21e3fe",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/events.cpython-312.pyc",
+      "bytes": 2566,
+      "sha256": "9314f4f444af59a9e1c8a07e04b390689e8c2761463a00ba8ae74116400f114f",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/health.cpython-312.pyc",
+      "bytes": 3151,
+      "sha256": "8baae70e4f4cda7a5c3a63c7c11b211c197ad06007c3618c515acbcb0f3c874b",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/observations.cpython-312.pyc",
+      "bytes": 5314,
+      "sha256": "9e4c1980dd057da6005e1da777fcebce96407d6a67297303e91aae4b21b66993",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/rewards.cpython-312.pyc",
+      "bytes": 46984,
+      "sha256": "d7f8174184a05ee58dfd50d59aa89650db2d07de885ea90fceea06a612f726ed",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/terminations.cpython-312.pyc",
+      "bytes": 7874,
+      "sha256": "0ee506ca1d2c1229acb90dec1b37224d6b62de96223de79c182d30c5a57e45cc",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/__init__.cpython-312.pyc",
+      "bytes": 361,
+      "sha256": "268e769560157ad98631d09ed466ca37565cde9145b6d56d6d8b4a55fe974df3",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/calibration.cpython-312.pyc",
+      "bytes": 10608,
+      "sha256": "5224a76abe92fe7975b1d77af14d2f16a2704e88dcaa6bbad6d958a67d8664c4",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/contact_overlay.cpython-312.pyc",
+      "bytes": 7787,
+      "sha256": "77ad669f536b09574265f6da9c534dfe5af0a2baa2aff8e06e923fd36efd8d98",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/cube_material.cpython-312.pyc",
+      "bytes": 2139,
+      "sha256": "16b7a506f5fea58e3bca76633a784f9f7096dce3998d8729cfa205db4600d0c0",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/evaluation_mirror.cpython-312.pyc",
+      "bytes": 20899,
+      "sha256": "7b24203d6d2013a44b41feb713a64105e23e6b60b881bd742a8d163a2cf8f042",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/grasp_geometry.cpython-312.pyc",
+      "bytes": 7460,
+      "sha256": "9d5bb11e500866c6389d1997b41f7d0256a0bd9c17385ea413d53a8727e93345",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/hand_table.cpython-312.pyc",
+      "bytes": 3838,
+      "sha256": "670a7f45b14bbab5f4b124c3ce24a44a7b13b9e237dbd6e9a20e361c3fdb9742",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/hardware_client.cpython-312.pyc",
+      "bytes": 5981,
+      "sha256": "68419627c17b1b7230ab16abcf2d5c47fd1b2a2109f9252cf67c3e48daac8897",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/home_pose.cpython-312.pyc",
+      "bytes": 662,
+      "sha256": "3669cfd1a5a7a49697481fd2de43e8a4cd4e94da60d9778b495c8d4a1b3e0276",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/motion_filter.cpython-312.pyc",
+      "bytes": 1366,
+      "sha256": "a05895c3d4e29404943d8f043bde2f4f9cb6364db85c116e3b5dedbcb28ceb53",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/pipeline.cpython-312.pyc",
+      "bytes": 22111,
+      "sha256": "312a95be2ea0467065e14da8fc58619751b9bd198615121e4b32e73e73ae11fb",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/real_policy.cpython-312.pyc",
+      "bytes": 10898,
+      "sha256": "f8d3e2f083eef7d922bf73ac2dc1a348c4411f6f8358c6fb57dc0b6a2d41e933",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/rgb_image.cpython-312.pyc",
+      "bytes": 1253,
+      "sha256": "4e0d24d053c3ba2e47e0d65eb4d1f4abf5b7d4a7843ca376d16e78ccf7e79523",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/rl_agent.cpython-312.pyc",
+      "bytes": 12911,
+      "sha256": "d5c2e55ef65038be084b185036ac010df258b7e41f99e438654ca91ee61f1d79",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/table_clearance.cpython-312.pyc",
+      "bytes": 9282,
+      "sha256": "50ceb934da560e36016c7f212a1935cba4a176687e63fa3c153180fd76fc0345",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "src/isaac_vision_rl/utils/__pycache__/ui.cpython-312.pyc",
+      "bytes": 16561,
+      "sha256": "812a71e36fdf10c5ab77783a14b856b05d0d61a798ea2d32e6686dca959ef8d6",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_agent.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 16084,
+      "sha256": "f1d86769136fda1df1cf61071043ebfb72c606537381847817fcbe38396b4c3f",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_agent.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 16018,
+      "sha256": "b36eb3a342a591936417c2a0dd6a80dffd55b3c98641d79ab98dad7f9c044a60",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_agent.cpython-312.pyc",
+      "bytes": 15905,
+      "sha256": "08c010af87fc4828a099ad8e9e8256b84dc9b9925b405de5c1ddb7e753d6a75d",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_bridge_startup.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 16010,
+      "sha256": "12508de14c96c8b6aa4c17cbf68abd7566e3c2950c0baeac2238f0c833a0f01b",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_bridge_startup.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 18134,
+      "sha256": "5405db4fda2386176c4418e8d6b7f43215595c98eac8b301f8dce91e9bd231a7",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_bridge_startup.cpython-312.pyc",
+      "bytes": 15860,
+      "sha256": "259011c65ffde3b4a915ea81de0692d311e9a656cf61327ea37e67ae4784436e",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_camera_reset.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 1979,
+      "sha256": "b612a2640013014d29ae7994d134297eb2f752e13cb03e73911f810fdcd27c25",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_camera_reset.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 2009,
+      "sha256": "6b3a617b95b6da24b956c8f5a1c2b0e9c99ae8dd72e5e47be1f52a00cb830aa6",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_camera_reset.cpython-312.pyc",
+      "bytes": 1896,
+      "sha256": "502d62db659966ef9b71a3d201dcf44db05236477d3d5c33a486a7ba4afa013a",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_evaluation_mirror.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 20114,
+      "sha256": "41dd98719a9cdb48b76a120d1926358cd61526aa7230cb46543ab0ff0ad227d9",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_evaluation_mirror.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 27086,
+      "sha256": "a4a3261c013e64fd8762fb0ee12a25a96170d37314c32f012b9151926aa28bfd",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_evaluation_mirror.cpython-312.pyc",
+      "bytes": 26973,
+      "sha256": "f82c73d98b7a982b58807a74abe9242352e3176efbf3fc8d44e0affc32c92f23",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_hand_table.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 7219,
+      "sha256": "d581d185cbfe02f321e0b576486311f5c281996269c840fa4b17031d2c262fc9",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_hardware_bridge.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 6934,
+      "sha256": "94713d566f76dc6ed9c73c6a854b3977e524febe930c5e888275333d99bcf354",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_hardware_bridge.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 6920,
+      "sha256": "174543b0888abb72bc2df3f77d7f00505ecc745550e2090905a963bedd0736bc",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_hardware_bridge.cpython-312.pyc",
+      "bytes": 6807,
+      "sha256": "719789f6c3e6bf5076a2891bb99d9b1c2be1b5999578713947322971b005e440",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_home_pose.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 4216,
+      "sha256": "1426c562f90707b5f6a136ecc2872a9b2e911d27eb2958d41387cc69196b9cc2",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_home_pose.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 4214,
+      "sha256": "6c2741f837188dbf1c30482acedec9d1cb1b2d8e671a100e268bd1663c47ef9c",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_home_pose.cpython-312.pyc",
+      "bytes": 4101,
+      "sha256": "cae3582272ec45a07443cd694491f53a2bfea9aa21b8e623365957232617ca90",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_lift_diagnostics.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 3314,
+      "sha256": "bc96bc034b10cc35b200cb32c0822017ef7c476d72e11fe1bad461e67f804eee",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_lift_diagnostics.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 3492,
+      "sha256": "67778c9b6d37a1f2eb82198c3686d80754aab48555135c4c7144d9ad8541ee13",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_lift_diagnostics.cpython-312.pyc",
+      "bytes": 2062,
+      "sha256": "71416b0a625ea96cfda83e0f2e45f250c4df7318ffd4035c562633c701d0d42a",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_motion_filter.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 8678,
+      "sha256": "af91be037d65bce4c5598cc02d68fed89c24bb046fb5f19d570ce2bca8fbe1bb",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_motion_filter.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 9084,
+      "sha256": "79bcb71efbaa273a3b8c47d01d58192f470d0f9c1919dc3c1d4bbca8fbaebe76",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_motion_filter.cpython-312.pyc",
+      "bytes": 2398,
+      "sha256": "dc857ca7a08e37ebf0344236c6b89c9eddb60e8a09ab24f915f06d77ec03bd4f",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_picklift_logic.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 35473,
+      "sha256": "a16d432b122ac216efbfe8786aaba5191671e0d667cf34add99d88caa1b97fb2",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_picklift_logic.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 39120,
+      "sha256": "1839b9c793f368a4151590300f1ae985ba90fc0ac4d3103381a434a181fac1b0",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_picklift_logic.cpython-312.pyc",
+      "bytes": 38359,
+      "sha256": "8cd1af9d81fadda0a3b11b59d1cd038ec3e6414c303cc4b3cbd08bcb031b68dc",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_pipeline.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 9447,
+      "sha256": "3d459b683cddbdfa2ce5dae7defc608e88eb3702f788bc17b410a5af1b103a47",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_pipeline.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 11327,
+      "sha256": "7af502294884ef514086ea7c981475372685093371cc46b62fffb1723cca6d5e",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_pipeline.cpython-312.pyc",
+      "bytes": 9258,
+      "sha256": "353a48893ae8ca4228276a3155ef99437a530e118e0fb1dc0293002f32196135",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_real_policy_shutdown.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 7373,
+      "sha256": "b179a4accfdf59bbe7880adbaef7304ef7ba506c2ba968d138b9e4949a4d0da0",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_registration.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 2735,
+      "sha256": "7e975c683d2599d4d86e81315c892ce7c744e5c11bea92eebcf02c6cece6aee8",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_registration.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 2854,
+      "sha256": "0eeccae1abddcb2b14b11b8d64ad750ca5a92037817ad3aed07f85b69407465c",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_registration.cpython-312.pyc",
+      "bytes": 1271,
+      "sha256": "a39b7a4c65663495ef82a9891745166f53517b86e4f99e76e2fba891da14481f",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_rgb_image.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 1751,
+      "sha256": "0790a50de3ad2f4a5ec1e285c944c0329a0b7785febe0fedfa7a4e30f7d56fb5",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_rgb_image.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 1751,
+      "sha256": "1699deebcfc29672209ff5c1f7480b768243ee3ad2989e5870d64f3c8e04ca10",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_rgb_image.cpython-312.pyc",
+      "bytes": 1638,
+      "sha256": "15c90516fee00c67ec48aaca5d28adbe390df0d6bad81c258ca0c375f07fe30d",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_rgb_policy.cpython-312-pytest-7.4.4.pyc",
+      "bytes": 3260,
+      "sha256": "db408541bbff5550c411d8af5ad4546ae8ebe93af5ba8ab8a2f92d6653c71a9e",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_rgb_policy.cpython-312-pytest-9.1.1.pyc",
+      "bytes": 3254,
+      "sha256": "afae8d5eac18df7b8afd04b370af987295a2d4382d3f1ced85d8d063bc48b979",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "tests/__pycache__/test_rgb_policy.cpython-312.pyc",
+      "bytes": 3141,
+      "sha256": "eb81e695c7cb3979d7406a6090b0105ccc46620453a10e536f666a551a00073c",
+      "reason": "Regenerable Python bytecode"
+    },
+    {
+      "path": "urdf/box.urdf",
+      "bytes": 3542,
+      "sha256": "ca408ade05904627aab8b0d6131e3083cab8c0304cb2c32125261b5f66711851",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box/box.usda",
+      "bytes": 2119,
+      "sha256": "41613f3bd946bb5735622bca1a25658247322949a6a143098c40278d45a54620",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box/payloads/Physics/physics.usda",
+      "bytes": 2040,
+      "sha256": "643c42544c494c4ca1d768ae41296e4cbee760c3fd03d21c46f10c6dd5fd2794",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box/payloads/base.usda",
+      "bytes": 7340,
+      "sha256": "7560fdbf94b55826e3f6ed4d3a4b0f86ac576e9682d9beec75693820c62a437d",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box/payloads/materials.usda",
+      "bytes": 1599,
+      "sha256": "b4c7e9989e569c6a291fe1f9007573f082258d33c536162706e40b2f37436a5a",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box/payloads/robot.usda",
+      "bytes": 803,
+      "sha256": "0203dfdbc464cc71d4a82e72596bb676342094762b5e1cb9cc45235665281ab9",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box_1/box.usda",
+      "bytes": 2119,
+      "sha256": "41613f3bd946bb5735622bca1a25658247322949a6a143098c40278d45a54620",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/box_1/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube.urdf",
+      "bytes": 1379,
+      "sha256": "4d36ef4e9aa0f848c1d7eb6614df4f733ef5f1807f15708e816a8095ee3cbb6f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube/cube.usda",
+      "bytes": 2115,
+      "sha256": "0a46933c4fbb6b6d2f534c25d8cd7378674f212482892ffeeace068df4fc6800",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube/payloads/Physics/physics.usda",
+      "bytes": 1513,
+      "sha256": "ed9503813050913f8a0c81df63d6c78ecd7e8a4adcd2834305c4c8fbf2d5429f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube/payloads/base.usda",
+      "bytes": 2379,
+      "sha256": "d97a9c4a15d653bee0203daa8dd4933ec1b54225d65d274a0c2de8b707ac10c7",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube/payloads/materials.usda",
+      "bytes": 1572,
+      "sha256": "4a4be98b67e24be9cdec239c01801f1cf98bf7a081418f6c68a05cdc42b52799",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube/payloads/robot.usda",
+      "bytes": 787,
+      "sha256": "bf2c3e5a1d0d1378a61a2266785212ec33feb8e1e91ddc76f511823286aa54b0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube_1/cube.usda",
+      "bytes": 2115,
+      "sha256": "0a46933c4fbb6b6d2f534c25d8cd7378674f212482892ffeeace068df4fc6800",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube_1/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube_1/payloads/Physics/physics.usda",
+      "bytes": 1513,
+      "sha256": "ed9503813050913f8a0c81df63d6c78ecd7e8a4adcd2834305c4c8fbf2d5429f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube_1/payloads/base.usda",
+      "bytes": 2381,
+      "sha256": "79e33cd803cd4ff5564641ddae5355300042d73b9d9ebe55e1659bb0a00d8588",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube_1/payloads/materials.usda",
+      "bytes": 1572,
+      "sha256": "4a4be98b67e24be9cdec239c01801f1cf98bf7a081418f6c68a05cdc42b52799",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/cube_1/payloads/robot.usda",
+      "bytes": 787,
+      "sha256": "bf2c3e5a1d0d1378a61a2266785212ec33feb8e1e91ddc76f511823286aa54b0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415.urdf",
+      "bytes": 3408,
+      "sha256": "6fc28cfa75a76fd27a48bae616486fcbcdbfcc60a4aacacef922b1a5236aa4da",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415/payloads/Physics/physics.usda",
+      "bytes": 1662,
+      "sha256": "0995394c4ab88045cc7d0a7dbd9edf74eefbb149f74aa037e332604c299bb6a5",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415/payloads/base.usda",
+      "bytes": 5291,
+      "sha256": "8176cc29abf29b4bf4135ba897bcc2c5736ce53e583fe414a595d6746ba76583",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415/payloads/materials.usda",
+      "bytes": 2947,
+      "sha256": "050fe66498d54f203c029b0ffb157d211d5e77c85aa2039f7ff9e6b84382eda6",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415/payloads/robot.usda",
+      "bytes": 912,
+      "sha256": "131eadef3e3dbecdc56fec004ed8430085640f3f2b1d395d5cb02f3c0324581f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415/realsense_d415.usda",
+      "bytes": 3702,
+      "sha256": "21b00c08a92e02c5dcbdf77c75bc169ff360d1cd3a625ca51ec749b0b810dcbd",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415_1/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/realsense_d415_1/realsense_d415.usda",
+      "bytes": 3702,
+      "sha256": "21b00c08a92e02c5dcbdf77c75bc169ff360d1cd3a625ca51ec749b0b810dcbd",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/scene.urdf",
+      "bytes": 8456,
+      "sha256": "566482d8d0a8f091c6de08bc14a46210c8a0447c79fafc10ae3228aef5e87fdd",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/scene/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/scene/payloads/Physics/physics.usda",
+      "bytes": 6197,
+      "sha256": "1a1727f429c62e2181d1867296f78306dfa4a811488681cbd8336e44ea7aaad1",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/scene/payloads/base.usda",
+      "bytes": 22155,
+      "sha256": "af8efdd2bef830d08497cc469da045ba1712d141fe09b73e3c93564512a9ae91",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/scene/payloads/materials.usda",
+      "bytes": 9729,
+      "sha256": "0f1065a147f98b13268fded6acbd832de2c004f3161dec35fc5f84b4a43df545",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/scene/payloads/robot.usda",
+      "bytes": 1870,
+      "sha256": "f32fe6fea3dd76bfbf6da2a1d767711a8545e30d3ed172f6c7ec588cf91fa964",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/scene/scene.usda",
+      "bytes": 11717,
+      "sha256": "fc0e658b0c4e9eb52e10dc92dba368ff66e1458eeda3382ff254febbb6df1e2f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101.urdf",
+      "bytes": 16698,
+      "sha256": "8bae4362f402b0964c52f9ae3b6934f31aeb0a62a67de33dfb527776a721983e",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/Physics/mujoco.usda",
+      "bytes": 3227,
+      "sha256": "23cbcc80339d717981346dc10132953a12ad3b9e55bd0857dec6d1e37c45cb22",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/Physics/physics.usda",
+      "bytes": 14049,
+      "sha256": "0133d452d79b75e17d814224a9990cfd93d9159279e62b96ddb6cd34d0b0d1ef",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/Physics/physx.usda",
+      "bytes": 1015,
+      "sha256": "d2b73fe14a065b063fecb51dac1aa2255850c0990a926663a997c14d4af0a5f0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/base.usda",
+      "bytes": 28339,
+      "sha256": "98306c7311871d8f0230aa9192ddeacbfef98fe49a05d0aea39077472d7bcba6",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/geometries.usd",
+      "bytes": 5773095,
+      "sha256": "be16ab0e417ff8ee2b8090a2ea219a1aaa61c7081ef8d15bb75410bc32cb5690",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/instances.usda",
+      "bytes": 14634,
+      "sha256": "fe8d1977aa5d23f862231eff828c1aa7e429bf41add72a41c160df3452813657",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/materials.usda",
+      "bytes": 2901,
+      "sha256": "7e23a651e00a9ad5e2187dcf182fbc7c15946cf080e5f84fcb954f93d3ff88c8",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/payloads/robot.usda",
+      "bytes": 4009,
+      "sha256": "58695304d8dcc347f06adf2444daa87dc9df2134a679f1787e9f73bda3461d4f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101/so101.usda",
+      "bytes": 744,
+      "sha256": "7e17f6130efe26998533d9d65cf2ea357068c328ec732728218efe5115db92c0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/Physics/mujoco.usda",
+      "bytes": 3227,
+      "sha256": "23cbcc80339d717981346dc10132953a12ad3b9e55bd0857dec6d1e37c45cb22",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/Physics/physics.usda",
+      "bytes": 14049,
+      "sha256": "0133d452d79b75e17d814224a9990cfd93d9159279e62b96ddb6cd34d0b0d1ef",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/Physics/physx.usda",
+      "bytes": 1015,
+      "sha256": "d2b73fe14a065b063fecb51dac1aa2255850c0990a926663a997c14d4af0a5f0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/base.usda",
+      "bytes": 28341,
+      "sha256": "da7dd14e8d391eb8557a50d38a11da818ec1de4affca709a7fdc5d49141fc415",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/geometries.usd",
+      "bytes": 5773095,
+      "sha256": "be16ab0e417ff8ee2b8090a2ea219a1aaa61c7081ef8d15bb75410bc32cb5690",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/instances.usda",
+      "bytes": 14634,
+      "sha256": "fe8d1977aa5d23f862231eff828c1aa7e429bf41add72a41c160df3452813657",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/materials.usda",
+      "bytes": 2901,
+      "sha256": "7e23a651e00a9ad5e2187dcf182fbc7c15946cf080e5f84fcb954f93d3ff88c8",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/payloads/robot.usda",
+      "bytes": 4009,
+      "sha256": "58695304d8dcc347f06adf2444daa87dc9df2134a679f1787e9f73bda3461d4f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_1/so101.usda",
+      "bytes": 744,
+      "sha256": "7e17f6130efe26998533d9d65cf2ea357068c328ec732728218efe5115db92c0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/so101_2/so101.usda",
+      "bytes": 744,
+      "sha256": "7e17f6130efe26998533d9d65cf2ea357068c328ec732728218efe5115db92c0",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table.urdf",
+      "bytes": 3737,
+      "sha256": "e86c892575572c8657d3b045682d9f17e57759a2f9019e9fb4dc6e16b8bb385c",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table/payloads/Physics/physics.usda",
+      "bytes": 2228,
+      "sha256": "80557d7aa14e2c6ece5ed6f2159ec24950787d272dc8219ab84e375e6f50ff17",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table/payloads/base.usda",
+      "bytes": 9169,
+      "sha256": "cc7eca3086a6f682e0f2c584e9d63625477b2ef10d4934341e6a8b1b677f5489",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table/payloads/materials.usda",
+      "bytes": 2965,
+      "sha256": "31de5cc4b624c1b00facc91604b67a4993e90fa4e1366d070e2c4d32e238e571",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table/payloads/robot.usda",
+      "bytes": 894,
+      "sha256": "d05127702ff5bedfc9e890a9c88d3f4ba70f81fd7ddaeaa3402e3e5a74d33153",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table/table.usda",
+      "bytes": 3702,
+      "sha256": "b54ce040e6c996b24115ceb11474c5f45a555e7743c9d419f00e53cae493dcc2",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_1/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_1/payloads/Physics/physics.usda",
+      "bytes": 2228,
+      "sha256": "80557d7aa14e2c6ece5ed6f2159ec24950787d272dc8219ab84e375e6f50ff17",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_1/payloads/base.usda",
+      "bytes": 9171,
+      "sha256": "3fb27777c050e0dabcd36bfea2a3c7553ba1cb7825a4c1e9482ae9e263f87c46",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_1/payloads/materials.usda",
+      "bytes": 2965,
+      "sha256": "31de5cc4b624c1b00facc91604b67a4993e90fa4e1366d070e2c4d32e238e571",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_1/payloads/robot.usda",
+      "bytes": 894,
+      "sha256": "d05127702ff5bedfc9e890a9c88d3f4ba70f81fd7ddaeaa3402e3e5a74d33153",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_1/table.usda",
+      "bytes": 3702,
+      "sha256": "b54ce040e6c996b24115ceb11474c5f45a555e7743c9d419f00e53cae493dcc2",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_2/payloads/Physics/mujoco.usda",
+      "bytes": 210,
+      "sha256": "7281896cb77a828a1d8fb479ff1c69a61ac8ac282beef3cebcc786571c0fc65f",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "urdf/table_2/table.usda",
+      "bytes": 12335,
+      "sha256": "40d401bf581b3084c3e478a54a12b8076088ba6524e307a4e35424a56e93eace",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "usd/cube.usd",
+      "bytes": 8145,
+      "sha256": "793f0495d755d789c6e48fe5b0bfca45672b397783890766b358a37266bf1e0c",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "usd/robot_grasp_surface_v2.usda",
+      "bytes": 50939798,
+      "sha256": "5a3115a00cc1c55daa40e1cb8591fa1b746dd5134d984626fc9c117294e2d44d",
+      "reason": "Unused asset/source export outside runtime and checkpoint dependency graph"
+    },
+    {
+      "path": "scripts/compare_pick_place.py",
+      "bytes": 70,
+      "sha256": "01a896ed2439eccd90c9b6dafb3fccac18e700738a1129f43a95af513fc7e454",
+      "reason": "Dangling alias to removed legacy script",
+      "symlink_target": "/home/ai/jamshi/isaac_vision_rl/scripts/hardware/compare_pick_place.py"
+    },
+    {
+      "path": "scripts/park_home.py",
+      "bytes": 61,
+      "sha256": "194813f8ed8f3df2bab0b1439aa269b8f9fca66616deb495dc9447a4d2b90838",
+      "reason": "Dangling alias to removed legacy script",
+      "symlink_target": "/home/ai/jamshi/isaac_vision_rl/scripts/hardware/park_home.py"
+    }
+  ],
+  "protected_sha256": {
+    "src/isaac_vision_rl/__init__.py": "451e1dfb84ab18125897d7d77affc228abd4525b5f8eec38f6225f10f745893e",
+    "src/isaac_vision_rl/tasks/__init__.py": "9d4d97d9f11862d6f63abe9d26ebad24d384837760d49c63edf7faf3b863507f",
+    "src/isaac_vision_rl/utils/calibration.py": "fee79b37cc9b6aa4bd1eb5721005c0be07884e56fe2643f0aa1350737e99defd",
+    "src/isaac_vision_rl/utils/hardware_client.py": "dccfa10adaa71b2fccd7eacd071592f8b87749bf86145c3e11560f61cf1edd73",
+    "src/isaac_vision_rl/utils/rl_agent.py": "28347af4c4b23e76932a1c157032b0434cf8b67a3e3c5b725c2824520ab87b9d",
+    "src/isaac_vision_rl/utils/pipeline.py": "cdcc04289b4d621112ad2ff3cfd8bb8abb99c20ce78f700b7e52bcc731b952a3",
+    "src/isaac_vision_rl/utils/cube_material.py": "f5c820ec00299cb8f5e9d416e2f7677b883b46f4d4872a287d924ca402d432a6",
+    "src/isaac_vision_rl/utils/mirror_video.py": "c2a352f4cc66271801c7e4270395ef888884def5b7e4ae31b8c01f3ae92f4ccf",
+    "src/isaac_vision_rl/utils/ui.py": "d9a508942920cba7a1bf5e24d948cc99c680a4437676fbce7ccaa60f42cb2f9b",
+    "src/isaac_vision_rl/utils/home_pose.py": "e996860c4fa0eb63990429067ced98d68d75a79aeaecc0fa564023972abda9df",
+    "src/isaac_vision_rl/utils/real_policy.py": "a08e26e41915b8fb7d93494ca7b9501c8f886d9b712ad90a35c242bae8c8de17",
+    "src/isaac_vision_rl/utils/evaluation_mirror.py": "72f58cb917d23f58816f852d807f1f1fd2ea452c8fe22ac538cd88d58696e34c",
+    "src/isaac_vision_rl/utils/table_clearance.py": "db89321935042e1b0f9e7f84aca328cda5758b9793f89b8849fd8c8dcfb31426",
+    "src/isaac_vision_rl/utils/hand_table.py": "5d3d87c3d45d9fa9d03fde4211b8176e819623138ec323a7ba4cfc86910f18c7",
+    "src/isaac_vision_rl/utils/__init__.py": "c98f771901f3daf71596937f6116aa604a77f1712c9ad1ba1d80e2061407d0cf",
+    "src/isaac_vision_rl/utils/rgb_image.py": "a4b2705e87f1be59b7d01aa28ef4d6a7321c9d68d51b0f0491ead41648d1f036",
+    "src/isaac_vision_rl/utils/grasp_geometry.py": "3a5925f53b959a49e385a16a38ffdc734252596afa02c179903877ccb02ec6a0",
+    "src/isaac_vision_rl/utils/contact_overlay.py": "f93baa0e7ff1e5dfb08e2f564519a4262af212a55b9deeac6a6c75a5e66dc58b",
+    "src/isaac_vision_rl/utils/motion_filter.py": "4fe2c2bb0f7508055e4f84b0f70e170ed89cd122c84e8c077cd860f818f6ee9f",
+    "src/isaac_vision_rl/tasks/pickplace/__init__.py": "553984e45986f910e5ae2948e5706a4bbbaafa393b386da4d4f5544960c5b8d2",
+    "src/isaac_vision_rl/tasks/pickplace/config/__init__.py": "553984e45986f910e5ae2948e5706a4bbbaafa393b386da4d4f5544960c5b8d2",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/health.py": "af983f5806b49fb1ee1de8b3d2e51c21ab537df008df4ba59d4253f5146ec5c7",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/actions_cfg.py": "ad568f1131374622529715b73a9c51facddfc3ae770e1e3b4138e5e4f09c535b",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/events.py": "b2ba6695d92008e85a973c1d78ccfd2c92e78b9f064912cbe52702cedf9c93ab",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/actions.py": "211b4164a7894a1c8d086b9fbadd7467fe42a71546dac983f43e9732b066adb6",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/observations.py": "acac9cdbfb75fc46d86d759d881bc4d6de5eafd75288841125150e74472fd6db",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/__init__.pyi": "62cfb4300b6fbb3416bf9fb2e62a23beef26b87b13ea4a6bce34482f746d2f37",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/rewards.py": "03b6e0632400bb9d40ec777439ce7a6243c742fb75e59950dab10b2e6143cff3",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/__init__.py": "382e3603f88e6111d595e976d6024c881a353d3fac7067741c2d335b4d8013b0",
+    "src/isaac_vision_rl/tasks/pickplace/mdp/terminations.py": "05c45a2b92d1c132e8fee6285f2be592e2d8d29ce16e17c4536c7c127f0ee31b",
+    "src/isaac_vision_rl/tasks/pickplace/config/so101/env_cfg.py": "88dcff3bc22501043941a3f8b2b091de5283c162218e6af27420774b7d05a3c9",
+    "src/isaac_vision_rl/tasks/pickplace/config/so101/__init__.py": "9d92fbaf5ee80ddfebeb96a122d06d0912b7018a3f4d92fd8d69c1702747def5",
+    "src/isaac_vision_rl/tasks/pickplace/config/so101/agents/__init__.py": "af4a465801c5034d02c802969c388a9b12d2d2d12361c37da3a589e208ca77a8",
+    "src/isaac_vision_rl/tasks/pickplace/config/so101/agents/rsl_rl_ppo_cfg.py": "bb6bff792b1f336d8ef03c4b9a0e6df4905b5fb0ff3150e9f593fd61876e6da0",
+    "tests/test_hand_table.py": "61c590340f16447a668e0b6d5fb26f38013f53a6cd0d007fbf76b25714953a41",
+    "tests/test_pipeline.py": "d3fec313fb9af96ebe197e94baa2abe4e2dfd3179ecaaf84b5612457ce98b34a",
+    "tests/test_evaluation_mirror.py": "28b9d4df8d74f0e9111d6ca40aa5f7181c951481ff9e5279c45ede882fb72fc0",
+    "tests/test_lift_diagnostics.py": "09512647d5d302435e85fbc8f8f6597b9a3717697b75d30d904a3776756ca956",
+    "tests/test_picklift_logic.py": "23f2e4eab0c880c3da59ca8b9a3689b10dadd6478dd0b17c37fc0124f4360241",
+    "tests/test_rgb_image.py": "75c237f51fab414ae2b4dda03d245ec47d3335c20fb8a16f8e611f2cbc67013e",
+    "tests/test_registration.py": "1ac6749cd6a26d1ec44c8bec7cdb97965b1ba033f622161008bef25a976b2df3",
+    "tests/test_home_pose.py": "7861ce6fddf6447fd482f6f28b33f333d5b8b0749457a838f25207068a7981f3",
+    "tests/test_motion_filter.py": "b1b884a22ec5d202dd377f183625035a82fae9516d54c1dd7e891ea218b31691",
+    "tests/test_agent.py": "90247adca5b92773015339738f9b85afad456d25641154ef8afb027d15c59626",
+    "tests/test_bridge_startup.py": "204962d5c7b268b9dded618fece1fa633812a798d4c9fa09672430ef7d432552",
+    "tests/test_camera_reset.py": "9ade6a3eb9fadfb86889a472ee198d01a1a6bc11088cb925ee74ddcb94111ad5",
+    "tests/test_real_policy_shutdown.py": "ca972514edd284599e4bd93e68cce312ed5c638b154a7acd38bba6f9cce82bfd",
+    "tests/test_hardware_bridge.py": "3ce109b9f082bbe40dad3b214b205a1703861fdd209146ef8e84bf01c3f13899",
+    "tests/test_rgb_policy.py": "f158ca2722ad98f134415dda19aefff7c7f001a9ab8e5edd062d29163d228f53",
+    "scripts/eval_pipeline.py": "84618c59914824bd792f9166edc16fef28c298cb20d92383c0b0fa64c8bd1f0b",
+    "scripts/capture_snapshot.py": "1255486ec0d2c275c951e808d40e2d507ce45d4f97521d2cf20829f0c823faba",
+    "scripts/train_pipeline.py": "41681ed3595e048878cc2e26f16de2ca8375e042a57dbc0ac1c4af42948990ca",
+    "scripts/play.py": "1e72ea04a59f7fde241d08ffe607fee1e9f50d952fc60f6f154dca514c45c50c",
+    "scripts/train.py": "2c3776853b235965552b365cc2b89b48f044348b48d4e69b9690a0b99b75bb35",
+    "scripts/train_live_session.py": "bb174ec5e4fda045459e29db16105fe34d9c6955129744c90225c7d2a5e795a1",
+    "scripts/demo_mirror_motion.py": "c5806a89e38d02481613159c4f46cbad165249c2756fe97b34ff11728a92a080",
+    "scripts/README.md": "e253cf25ff7110967d0df73eac4eb17377b9cf554a0df50c07f9e6802eb8bf39",
+    "scripts/checks/check_workcell.py": "7a7d381f6a8c8dbc060d2f492322bc1db80a80a617dd7d9dbbd256bd2aeea9d3",
+    "scripts/checks/check_stability.py": "f0218c8e259819908d05b1eddb43fbc5252445b1106e7ebe3c2c4ad6ce5434cf",
+    "scripts/checks/check_gripper_surface.py": "477decdcc0ae0e88b14617102defbb61b4fa8a677cd2b01bcf0619bb1a3f96fc",
+    "scripts/checks/check_gripper_contact.py": "3b4802eff8cb7bf65ecf86b7b0121ad1bb226e7163e9bd2c760acc26848400ee",
+    "scripts/checks/list_envs.py": "2fcad0f4a8f0bee2d67ee7dea9b1a0eee00a9a4e3f3bc96bfa265eda05495bdb",
+    "scripts/checks/verify_grasp.py": "1fbde14719674138e19772e0b3b99254556428f84e893a7d3dcb9d351c8ec083",
+    "scripts/checks/check_resets.py": "17b2cbf3ff0f6183b8d561329c0c342485262721c07ae150220ff46572307140",
+    "scripts/hardware/probe_connection.py": "5e43f57d7ccfffe2bd7bb651d1dec6dd08913271ab50aa33df20909bd8e6ff1d",
+    "scripts/hardware/real_camera_policy.py": "a6647918dbd7d62e580a227663d53b7dfa5f87dc7fba9c46ec15036c9f0ca68e",
+    "scripts/hardware/mirror_evaluation.py": "2c06f053778a5682c014af0812b60ab8ae2a3f9d7f796d3b902ce17a59c673b5",
+    "scripts/hardware/return_policy_home.py": "2263c5f2df1ea23a2569f4ab86a772202a335c27c9a1af6712032e95ac7eab5f",
+    "scripts/hardware/camera_placement_guide.py": "8f31c3bfa7c7c570e26a0764604524c9a0a65a25b1f12dc9ad34d97e411e801e",
+    "scripts/hardware/hardware_bridge.py": "dab52eb47367f406c9c1898c947e5811c100b79995aabb139c8899e59a89d8d1",
+    "scripts/hardware/check_hardware_signs.py": "3589ddb4c0cb098ab3dffc45e1a2fff3d9ef1e8ef602c3f5930ca1b0ca3630a3",
+    "scripts/hardware/realsense_rgb_preview.py": "23e6987acb08acf5f0a805197ff0db4de482eb30e10c3984c2eeb06afe57d9cd",
+    "scripts/assets/build_robot_asset.py": "c763aed151be34e44bb1a3db19c79fd4c3edb11fc2d04f2e70ecbc5ff3c35ba9",
+    "scripts/assets/build_table_texture.py": "540bb75236fdaee3bf162fba2b7d73036e809ac4f5459a0bbacc8c02ca1fdaa4",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_650.pt": "01f25fe4b0fbe7b7e6808d9d9db34e6211cdceb61f0cb1bc087789f90b00a296",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1200.pt": "f9e0f952e5c690acd03fabef82f5beff53973cbd76c20221b6ad15ead53d0b76",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/run.json": "4bbec642a87e39796c2e34b1e1aacae79679452a8eed36fca1b3996121ed72e7",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_200.pt": "a05d07fceaa578f20563c420ba33344287f52f5e6aa871fc549df119a9051057",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_100.pt": "43fd62c3cb74092c69651adf0e434b94c7640d4c7beb2a1f7716d0d6c5a80abe",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1150.pt": "e63e95af82c327acb7b239fa9c6d404b25ffb653d079c5f80dd2ca4431bb5195",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_850.pt": "43f9ba95b65507d6b05e640acc9455f0df300b0e145075c8f3025486cc1f3e50",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_350.pt": "f781f635cd187b720c0405b3b282b782d44a9b3b7123cd0aed0d4b967a7d0a79",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_900.pt": "ceb9e9ab38c55d2fc26b587631ebb5d4c42c63bf76628b1a11cbd96d9956b998",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_500.pt": "8571eb3c35269cd49eaede435548e4529970ddead644fe3a7c44d7aca5c46476",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_400.pt": "dd942f02fe14c62f74fdb06b3e3069013e68c24509b55bc22548064c8b8bef0a",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_0.pt": "1bc394167d2f8f4b749ecbbe028f138c46f9d629860972bae1a331bb5da8edf3",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_250.pt": "e11321a489f3ceac2a66d0c22c8413391d1ed96180b7b1a059d337e2869ff0e3",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_50.pt": "38d40d923360e29f2c5a778579108bede734718d75e88d8e22714cf3784bf685",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/events.out.tfevents.1791952034.ai.93019.0": "9464cba28d6ab28f4f8b3eb4c3a7e582ee7b3fcb30734df0a4f3a165d73f625b",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1100.pt": "3898e422b7d94fb56240d4188847e1b3d0a9cb5ed0eb39afb65fbf6565038b18",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_800.pt": "9fa4bcd12216dfbcdec4c8b6b9d4879f80b2c48653572df1207ebe9ae60ac7ed",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1000.pt": "15ce39e44f605242bbc93b6321164865b1221e2ca658850763d4d028ee230863",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_300.pt": "9117f411f4421e1b52a7bf5233f06c920c13dd740172e867a56465667bccac90",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_450.pt": "85b03858ea400ae7fdda3b4da21ce636f7faa2f79d5025d96acb398adcfacce4",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1250.pt": "7acae1a14d876b5f6d250267a0f49a92f908ec8c598074188cced0a222752380",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_550.pt": "41d1475435d91ae197af3f72154d37d3e717f47731da88bde1664ba3f2e2553f",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_600.pt": "64bc82f35fb0ea59d045c9a4ad6e8daa5cc28f7d700f95259c3c310e71132fc2",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1050.pt": "e7a11f4da4d3dcbbad38c4bd93f75e2eedf3978fdf954a6394b310e3b6b11804",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_700.pt": "0676b722687fea62b3aaa763337dfa31c557bfc45a4cb2884556096ab39fe6e4",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_150.pt": "fa92814147306d4f3ce7ff8838c30a7b4bcdf88ea23184150057e2ac898f0777",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_750.pt": "1da77d0dd67eabe5cd26db659f49b3a9514ef183d17819c12aa87f3c08891a4f",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_950.pt": "9155945b18734c51de46c7938f806a01acf1528cf5bf9d839ee9bf8be849cc92",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/params/agent.yaml": "561062e2e2e808eeeb66543c5a6273360b08d641c1bdd6b7d8938f7b3fb8e4d1",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/params/env.yaml": "f3aecb3ac7f75ca15ac587a27f9393b235115b74ed2bb6f3e460bb829a345799",
+    "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/git/IsaacLab.diff": "f95a05ebbd491d9b688a46456ab49127fbcea1bf2d9cd62762aa2a5ef9260879",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/model_2050.pt": "23caa02153558f5e83d8c0ec3e405b88640773b1e604df9f42c1ef96afcb35a5",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/run.json": "753db24a4488d492f4a0ce51bcc44dd7cba72211e2cfeb16d2dc398069c78821",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/events.out.tfevents.1792210535.ai.75264.0": "112234fe281037d3e1a48f37eb08fedf86d9716dddda0c3ac32c9eef25ccfee9",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/model_2000.pt": "39c5dcf8e9103223d2074527687f69e5d6c621b78d5800e9732eef485c3c2920",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/model_1999.pt": "3cf4765c9087b194706e16b50103a8e0d81bd09e6af74aebd2cbbde391b23402",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/run.json": "8ab25950a874d7c7915fce90b72dd3ada393948db94e4eeddbff0ce63b3bbcca",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/events.out.tfevents.1792070370.ai.52201.0": "d93981754c95eaa8d890defa39e7041f600a957155de48ce8518bc7347b86837",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/model_1900.pt": "3170a65e3e5ae9aa8dab0556faeddf7d8335a97ecbd0d0a435571e1930d5121f",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/model_1950.pt": "6ee45b976ececdbc69bcf2c0ea96df0756283ac65c3efa3b577d0c3014566b5b",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_650.pt": "4dbc2d50b51b7e15e560e47478b324077dfc99806cf639afac05245fac9602af",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1300.pt": "cd3e0c25332dea8c8776e2e126771327acaba8792ec637eee34effc87b3a9d5b",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1999.pt": "ad707542bc9496e07ae2f6e07b2219d36af9fcd3d35e36d3fdea3422ea50a056",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1450.pt": "e2ded4f37348c997a4fc0fe1b95b212a94011d25745307cea511cccd7baae13f",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1200.pt": "4d5e412db21bcec1f9eba91517f67bd2bca0615d24c74188aeff3a41bd3ad95f",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/run.json": "8b08126a6745dd49758b298cb4a3fcd363c909100531ae320334f3df85a3d04a",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_200.pt": "e0ac9b77f19545f28de384d39b9c489658a263b346599e274d42280588c48bc7",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1750.pt": "e754bf29ef7fbfee1034ee0dee4324937341a9c3e407c97bccf007ac35a23715",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_100.pt": "fd39e1aae36f5c2c56bb7dd76c4de74f85530e02c2d2e9d49edc539d53e841e5",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1150.pt": "db78b4e19b6f79659c2e5909e38dc61fcc2310392280553804980d5d4e9a6235",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_850.pt": "52b8bd9dff68c3018e5a3d082b9c1871fce2e7c51ceb6ffcffccecca8d887108",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1550.pt": "55cd13cc035da10775906bb9b13a180ec166bfc5466b8b247a2054b6c231c8d9",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1800.pt": "409b88623aff793be9dade0cb87ac893c77898ad59b2b9aa22b4a0943aea9f00",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_350.pt": "d60be20ced90c255417a89762e6a1ae69ece6c7ef067fa1b5bdec0db59fbd4e1",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1700.pt": "d469389fd66bf29fbc028d324fbdc6a5c320c091b5fabecd8e3ede5e6c4f9a76",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1600.pt": "3c1b224f21c9115fe1ff9a53a594ab353f831a20f121d49b0a825bf114a852b5",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_900.pt": "a982d62d6ef46cc50df0d192173ab88ffa3e4fb1d8aea095ac40c73f027d434e",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1850.pt": "3db6beda9c78f3dda6406aa8b2af144036f047910ee855857f6e84e2f4578d3e",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1400.pt": "dc188790b06ad1702c5e9ea26c4b4522e3db350a38c7bc16311cbde30d2d9856",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_500.pt": "0fc42434235f593cb45fcae910e6133daaa457f71ce539994d6888e70c7e54cd",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_400.pt": "d7f778a1abd7c093965588925a9350e9dd56ba99295dd2663f5aa9fbded5954a",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_0.pt": "2b797e647c09a99926509cf70e8842ab60f540b163c43dbd79db2634dc7aa5bd",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_250.pt": "90fb6bc9429112cbdcf532b1a18a2990a4b67c8e9e2220884cc4b187830e03c8",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1900.pt": "617428327ecfe57339f84642d9c17ce9fbdeb43b186305a1ee2bba0ef7b50c3e",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1500.pt": "0e615c10a42fac56d5fae0081ae04ac23001d9cda8d03ef97658025112102535",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_50.pt": "7eea72fc8c4b5da52a6b9ca2ff9e9845e03453cf3efb1ae6c255757d44cf5a52",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1100.pt": "7bd6592bc0bc255ce5fa41899146b286897274360b37b9947cf829b34ddb1426",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_800.pt": "28bea55e4f5563b7b9a7a8e8f814a257a10ddcc4c9190b5bdbcb15397369f8c1",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1000.pt": "2b8fa4ad88c88e29e36c67f67948f6cb45d997dc79f8fbf3c2136cfc931419c3",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_300.pt": "3f4d4d536d8c0ca707e47178d54da863aea9770154c11e757895f6fb6325ed2a",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1350.pt": "1455808ab76b5bada3b8c6d7067641cf0ef907f5c1ca1443a70c62ca35fd820b",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1650.pt": "3b61d93491bd22596ca2c888a707cd78b4066f859ad9861eb578f9cdd7f2d73a",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_450.pt": "1770fc2c458bef3c8b5959bd0cc2baeab145999f372bed0d931559f68873c115",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/events.out.tfevents.1792153225.ai.65652.0": "ebd349eefcf78456aa99dcf5e0759a2f69855b9ead92e0cf1eafc87e715075a4",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1250.pt": "f181899e2cd3b631a125c868c16cfd1c095aa3fff06902ef11d67f28222c9bb6",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_550.pt": "bf7ff1095564dcf9281b00be3989dd31e6abaa3ee0695dddb6199fbb778c52e2",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_600.pt": "7849c3c07be5f9c0009293214e964ad22bb3b8437a8db07c12504eecfc52e31a",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1050.pt": "bbdc0df1b44ecb7b57ef003a8921b96a8facdf713072a181045543fba187878e",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_700.pt": "edf8682778f2c01a4aef2b7af6a254e1e38e12081c9669693d738491f0eb8b3f",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1950.pt": "48a15b138160db9779fca94a8010d6207b5038d858b5d7c7f3b27c3eaf2f6a78",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_150.pt": "317bb22f9fb9bbe5d7670451bf30aac66f69a1045914b91ffe4fcc24179692e3",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_750.pt": "0fda126a2d4bbb044111565967e595d4cc07d3137a784fdadd4f04e305577d1e",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_950.pt": "65517a6470b5f3f8aa2c88adfffed7ee3117de111cbf011a751109ed20b28405",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1300.pt": "38e51bdf928439f689b7352e1ea55c6ac4981971402dd2f9bfcf824d4a0b44e0",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1450.pt": "d0cf85d841bdea292239d14ad8e7bacf9cc873c0b72de8c5a2695ea8ea8fa13f",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/run.json": "a6f7a2890df694eb0dbcd1d324522ce1341c46121605c9afdfce716d90fa5226",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1750.pt": "0ef857bd40f21504f77e90466a4dfdd649f6630836e4e99e76fcf17e86da4cde",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1550.pt": "62412594deedaba87ec6b2d2ac6b7c0db79fa1bb8efbfb74f459c4c6461bf5f0",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1800.pt": "189b664f6104b56a10f7363c2e5462f08953b4d95908f88c2515fc321f1d6cc6",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1700.pt": "a882b0993a68f9f33e3789feaf8beff6009afaa8dda96360160c462a938ac59b",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1600.pt": "f02d5296d08e2a4417364767801f56674c1536addfb59913a033d89c8f1264a2",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1850.pt": "9ad060b952a9f10a7e96e9b9a5eb52e895abc4ae4b6bc03a30ebb8aabf2f0b0b",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1400.pt": "d85828b550a86a5259c6457b66adfc0a450f2ec783624f59810ba25ea3572d4a",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1900.pt": "67defb9ec04940868879121862086a381cec646036046e8834ad088d7488b1f0",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1500.pt": "0d3b9f9b21fc05fe24653f2855f6f97ef2be6a2a038f19e1a5ddae653bfd0e1d",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/events.out.tfevents.1792050086.ai.19103.0": "56249fdd48925c93833917a967527966f8dabe87c6c2ca5f7696e0ca410a2eaa",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1350.pt": "419cfcc2b699fddb01639986251b485657c1d01122e7a80c262e2c1d88140c64",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1650.pt": "4fff61c97da657dab1c8ab3ca1afab6f1ba08f511320874af349b0af629509b2",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1250.pt": "5f9432e43f89d2a24842afc2d2c3f3c18129f7a5927070df6ea4232e6b8519c6",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-44-46/run.json": "03b68e450035368281cc60ffe78fc9bac173fbe1e47a51a2604bd271342eee5a",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/params/agent.yaml": "34ead4ae303e75ac492ae1fdcd3b4826088a7b81e1f3bd1a35d4238d567a1fe0",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/params/env.yaml": "d71db39bcb33ddbc33f3beb141917112044f4998eb7c13f8b7c2679f06153b84",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/git/IsaacLab.diff": "f95a05ebbd491d9b688a46456ab49127fbcea1bf2d9cd62762aa2a5ef9260879",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/params/agent.yaml": "538ed7014f7981787b97163a31ab51ac117ab3b1d1b7d2fe0333e8d7fd435621",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/params/env.yaml": "973c7acccd55092f540f9c10f53dfa68b2a9072ef9eb7d8b587d1d31d66edb6b",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/git/IsaacLab.diff": "f95a05ebbd491d9b688a46456ab49127fbcea1bf2d9cd62762aa2a5ef9260879",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/params/agent.yaml": "338787857cfb03a4abcc2699ae295c614f36f9fdce187d01693249f91b8d3568",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/params/env.yaml": "6924f268becf56615e23e5a21132de0e5739462fae18acdcc62409d2912a35b7",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/git/IsaacLab.diff": "f95a05ebbd491d9b688a46456ab49127fbcea1bf2d9cd62762aa2a5ef9260879",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/params/agent.yaml": "eae2ff6239e38b0ef2a431fee7dba0b5d9762ee1aea325d633648fee84779855",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/params/env.yaml": "4c6690f7b2dfdd8e5c87df8aa319e5d5a6eb9d6d2705ac9f70b7207b07fc0066",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/exported/policy.pt": "4a74b0d8e2e316cfe65dfc98c8dc24d3d24da8de0c3236552f3eeb24e33d599e",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/exported/policy.onnx.data": "ce1afc687d57c95ec3ccf272ceb0878e058eb64ad0b38b087cd51435e92fc49e",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/exported/policy.onnx": "32d78e98c3a5e360304df99021748beb62ff3d6435fcede0685220a07a34b612",
+    "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/git/IsaacLab.diff": "f95a05ebbd491d9b688a46456ab49127fbcea1bf2d9cd62762aa2a5ef9260879",
+    "outputs/evaluations/model1999_latest_video_20261017.json": "d3cb399202036e1f19b9619e5fef4d5459d6e4dad966b2b961e11c053aa770b8",
+    "urdf/table_2/payloads/base.usda": "06ee7f605c00e8b51b0cb1985f175c941fd726a087c07fa57a38cbb05e64c9aa",
+    "outputs/evaluations/eval_model1999_fresh_surface_v3.json": "3fa401fc438e4a70f23bf54bd2c11069a9a72f0e4e1f72d855080c0f1404e4ff",
+    "outputs/pipeline/physical_grasp.json": "281946d6c2d3b58aa7de80a9307194c8043217944cd87e2d77af272f3fa2f313",
+    "outputs/real_policy/1792127848968835792/report.json": "486afe45be54614efb1a2bea484beed9c3495124638f62a563250b60d03a071d",
+    "usd/table_reference.usda": "7515f726f1ba0843e88f242164740d72d7d6f8fef1cf706897a28d42a090d457",
+    "usd/table_green_texture.png": "433e3c87d9ab8202a31c2062711ca89e362c107cd602d3ce960ff89442a63844",
+    "outputs/real_policy/1792129478140068763/report.json": "86dfd57fb0632b83d9f8507a4a4a0b85820e3b373c1910d71d7bdc1e5e9e82d0",
+    "outputs/evaluations/rgb_model1900_latest_seed101_20261015_episodes/episodes.json": "7bc8e9ba4c0ab777c8ebef315914200f5923a3ef89e523ebd3127d770859fbdf",
+    "outputs/real_policy/1792128702626866635/report.json": "dae3680cb6525e693c7c72ecebec4094b7e125973c2f5d3c47a0dc0d715b924d",
+    "urdf/realsense_d415_1/payloads/robot.usda": "131eadef3e3dbecdc56fec004ed8430085640f3f2b1d395d5cb02f3c0324581f",
+    "outputs/pipeline/table_safe_grasp_20261017.json": "56e09a5e6cc58335114b8d54b768fccd12d6506f8ecf2e7a0ba8db8c916e7127",
+    "urdf/so101_2/payloads/geometries.usd": "9e54da31c688598bbebc90f68c5032f319f16bea924966a62dc52518cf6e0714",
+    "outputs/evaluations/photo_home_model1999_seed101_20261015.json": "c471edc06a80c341b65bf4ce601fb7053b312010217233177bd7a728eed5243a",
+    "outputs/evaluations/model2050_corrected_grasp_20261017.json": "52428648026f41378d8d7647d149a0e9320ec25972f1932963e15fb342fcaae0",
+    "usd/table.usd": "4bb812dec06d3c46b85ec179c3c3b455c61921ffb31a7797ac263dfdc60637f0",
+    "outputs/pipeline/grasp_audit_20261017.json": "574a0a7362c22961548164c46450a6c7afbd6a804a313f6d3d0932338e048794",
+    "outputs/audits/grasp_audit_20261017.md": "c3487a9c7c6cb4961652ca5bedbff50498a6336b9280744b73d7eacf092409e8",
+    "outputs/real_env_reference_1280x720.jpg": "a236bfa72174af474f8c9b52da32ae5a1e41cf10edc6366ec1e1051277519fa8",
+    "urdf/table_2/payloads/robot.usda": "d05127702ff5bedfc9e890a9c88d3f4ba70f81fd7ddaeaa3402e3e5a74d33153",
+    "outputs/real_policy/1792146342169583185/report.json": "6fe9fca73ac4d3740dbec39a18f04fdfef17ac12da817f7117f66b0f7dbb7c5f",
+    "outputs/rgb_scene_reference.png": "0007f42f5f67e5187d55e6b1b71298153ac650da37fd05bafae7ba64b9c492bf",
+    "outputs/real_policy/adapter_parity.json": "30b7133b3f672e42aaaee332ca34b37a61f5469f93bf6ba2699ceec0af6c44c9",
+    "urdf/so101_2/payloads/robot.usda": "58695304d8dcc347f06adf2444daa87dc9df2134a679f1787e9f73bda3461d4f",
+    "outputs/audits/pre_fix_evidence_20261017/physical_grasp.json": "8ff30cb1b4e2116141b402d72d4b4b7b18fba6e860d4b4661d20985842b2eac7",
+    "urdf/table_2/payloads/materials.usda": "31de5cc4b624c1b00facc91604b67a4993e90fa4e1366d070e2c4d32e238e571",
+    "outputs/real_policy/attempt_20261016_105250/report.json": "3e6a700f86ee85ab50e9ea5b92c7339ac621896d1cab6738d4c062c762071dc0",
+    "outputs/real_policy/1792131522116260687/report.json": "c5a535ccb86c9ee3ddb69494b8a52b7eb11d1acb725ec82a18ee11b7754f711b",
+    "outputs/evaluations/rgb_model1250_surface_v3_seed202.json": "4bfdd7144e89e24379eae26b4a15aec055007d3a35058494d56b9443c817ef95",
+    "outputs/audits/pre_grasp_audit_20261017.patch": "dc11e8ee5bd9903ad32ed69bee113f216264cf020c149deb838543b7f1e175e2",
+    "urdf/so101_2/payloads/instances.usda": "27bab72c9ec72bc54c7059ba03a286897159f2c9bb0a40886eac835dfc254a1d",
+    "outputs/real_policy/1792129377110176607/report.json": "4e3dab93a11ed0072c9013fa4be4aa72a99339d12037415a1d1b937b4b4ffd1f",
+    "urdf/so101_2/payloads/Physics/physics.usda": "0133d452d79b75e17d814224a9990cfd93d9159279e62b96ddb6cd34d0b0d1ef",
+    "urdf/box_1/payloads/robot.usda": "0203dfdbc464cc71d4a82e72596bb676342094762b5e1cb9cc45235665281ab9",
+    "usd/geometries.usd": "9e54da31c688598bbebc90f68c5032f319f16bea924966a62dc52518cf6e0714",
+    "urdf/realsense_d415_1/payloads/materials.usda": "050fe66498d54f203c029b0ffb157d211d5e77c85aa2039f7ff9e6b84382eda6",
+    "usd/cube_grain.png": "8ef2fdb750f41ee13f4c72c90f050f4a96cd078dc71ceb2024c4412d8b9dfdec",
+    "outputs/real_policy/1792131433217058206/report.json": "6d06f39023b074c0d5bbe6b864b458cdff13c093e4cd5101e02e69efceb2d31b",
+    "urdf/realsense_d415_1/payloads/base.usda": "522a4b3b91d599c361f0e892f9749c81f8152096d92c5358fad239accdbc5be8",
+    "outputs/pipeline/workcell_audit_20261017.json": "47aa078f42cfe5233bfd4724bf956445f8fd4ea9d738f7241663263a4e6fbe4b",
+    "usd/robot.usda": "58695304d8dcc347f06adf2444daa87dc9df2134a679f1787e9f73bda3461d4f",
+    "usd/base.usda": "a2d7e5706b64b4b839494e3c192f07657429c07c6154392786f07753598ffb13",
+    "outputs/audits/pre_fix_evidence_20261017/workcell_physics.json": "29388b8ceb52a5dbd7c722e2486a62fc25c9ddd13be7f05694195a2e1c19a4d7",
+    "urdf/so101_2/payloads/materials.usda": "bd327a16d3428903bd6f020961f33a577afbce2e27991bd912db7cdeba55ebcf",
+    "outputs/real_policy/1792131831126378683/report.json": "0fc89fc5b95c81442ba84337f5aa9119bac1c799cfda2761cae95b3cbec04aa8",
+    "outputs/real_policy/1792130781762167168/report.json": "b4d40ce36405b8c8a14c92e3952221a53ffb1fc746a125b53ac9718d89e274e7",
+    "outputs/real_policy/1792130571568150017/report.json": "25b7321b41e6c12fb8abab81a2a3a6b0e8fcd859cf0e0f7aaa7dd94aa79e0884",
+    "urdf/so101_2/payloads/Physics/mujoco.usda": "23cbcc80339d717981346dc10132953a12ad3b9e55bd0857dec6d1e37c45cb22",
+    "usd/instances.usda": "27bab72c9ec72bc54c7059ba03a286897159f2c9bb0a40886eac835dfc254a1d",
+    "outputs/real_policy/1792129071655969249/report.json": "0ed37ed10409fbe92ad0e63dec2b13fb0b281b5b928e2ff2f76c035388397e2e",
+    "outputs/real_policy/1792131248121914480/report.json": "7a149b7041b070f56168e3b6e823faf4944d76a7a3a7aa906ee8fa1600d4fcfe",
+    "outputs/real_policy/1792132161602493935/report.json": "fd076184dc8aa0c439b3daab13196b955bce3ddc1f48e2666530d1d145a38ece",
+    "usd/box_grain.png": "53d7f33a72a6056d8cde05d5bf1184f62353df7a5f4bec5a6abc7732908f5bea",
+    "outputs/pipeline/workcell_physics.json": "7156ef31150849d846eaf574aa4086df64bb7bf61b209c5f961a8713f1aa433c",
+    "usd/robot_grasp_surface_v3.usda": "e0f93d7ee749c9cde0ff9201d315f75b983a15c2f8b95cd9463fdec2647956de",
+    "outputs/eval_model_1900_test.json": "2deb188486ba581b75e2e28262a7126371b923747cebf559f9da77401dd66c55",
+    "outputs/real_policy/1792129038430680915/report.json": "f930907e5edaa60ff3a6adbd4559692974ccd88909ff4163e63816c586e289fb",
+    "outputs/hardware_mapping/photo_home_20261015.json": "6eb6c4b1c58b697ccbe3508ef41deea4b6114ae4e710a187eb4c40230e378110",
+    "urdf/box_1/payloads/materials.usda": "b4c7e9989e569c6a291fe1f9007573f082258d33c536162706e40b2f37436a5a",
+    "usd/camera.usd": "0c7083e53bc91ef05c7dec9ebe1df161225bf367f41730518d6d23d665d50993",
+    "outputs/eval_model_1900.json": "71826b495c6130be55b660002f61d959618c444d5958958b79c46c46bee521d2",
+    "outputs/hardware_mapping/home_clearance_check.json": "a4198f7e3eefeca28e3df020e9d1a3d760ca86f394866b8dced6a1df4299808a",
+    "pyproject.toml": "8aa0e05122bfecddd6338fd13257142ab2577c357cce2c0a0207e0c8864769d2",
+    "urdf/so101_2/payloads/base.usda": "a2d7e5706b64b4b839494e3c192f07657429c07c6154392786f07753598ffb13",
+    "outputs/real_policy/1792130613226729882/report.json": "dd453e6c599e31ec2a8c6e72783e9988cc4f863ad2551369bafd378e9c9346d5",
+    "outputs/real_policy/1792127582521790001/report.json": "593bca7f1172fea767e2966d6ea66473555f2c49607c5d45071d2700dc96cd94",
+    "usd/robot_grasp_calibrated.usda": "4311c00e8aa4128a07ee587b8a8aefeeb29bb102f07c0b1de42a62f1cea44122",
+    "urdf/box_1/payloads/base.usda": "b587e77c5a361834168b67708a10680bfebe510e9ce55e959780f77fb3c692dd",
+    "urdf/box_1/payloads/Physics/physics.usda": "643c42544c494c4ca1d768ae41296e4cbee760c3fd03d21c46f10c6dd5fd2794",
+    "urdf/so101_2/payloads/Physics/physx.usda": "d2b73fe14a065b063fecb51dac1aa2255850c0990a926663a997c14d4af0a5f0",
+    "usd/materials.usda": "bd327a16d3428903bd6f020961f33a577afbce2e27991bd912db7cdeba55ebcf",
+    "outputs/pipeline/table_safe_workcell_20261017.json": "997cb418965cb9db434f409fef4337d4615bf9b3e97a73a4a826f93c3c9efe35",
+    "outputs/real_policy/1792130753486132760/report.json": "f106da5f4b361f131edc83aa1aeb5d0c96ba3bbbb5561fcc6a9eb69a743ec685",
+    "usd/box.usd": "2e95bc8bf1ff25118d899b06e0a60c8d69bd664b59de0e231a6974c17a01c9de",
+    "outputs/evaluations/rgb_model1250_surface_v3_10ep_seed202.json": "c8cbe919e7f7b62a3d59873f5505628f6a3d2485a6937de06cb6818c1cf265b3",
+    "outputs/pipeline/grasp_audit_contact_20261017.json": "7bb9fb64bd6ce1a9c3e6dbafdc37b5d4df1c2a36aff18abded01ff3553425be1",
+    "outputs/pipeline/grasp_audit_fixed_20261017.json": "281946d6c2d3b58aa7de80a9307194c8043217944cd87e2d77af272f3fa2f313",
+    "outputs/real_policy/1792143000279103220/report.json": "39554701a84c58c9b579d1aa2853945af4d63d0e7d58ba5f678bc97bb46d642a",
+    "outputs/real_policy/1792131444471147939/report.json": "5f6b9189bea02e56dcb9f2cbaefb9dd080d015ba643e4c5d9ed25c94fa54bdea",
+    "outputs/pipeline/workcell_audit_fixed_20261017.json": "7156ef31150849d846eaf574aa4086df64bb7bf61b209c5f961a8713f1aa433c",
+    "outputs/pipeline/rgb_surface_v3_grasp.json": "cfdd683bf658bd3403f0a14f70a5e0c01dbdb5303d94d471e0083366681ad6e2",
+    "urdf/realsense_d415_1/payloads/Physics/physics.usda": "0995394c4ab88045cc7d0a7dbd9edf74eefbb149f74aa037e332604c299bb6a5",
+    "outputs/evaluations/photo_home_model1999_seed101_20261015.provenance.json": "9949ee266a0dc6f49277b5b322f952bb059e63a62a8608a8cd22be5e5441b217",
+    "usd/box_reference.usda": "4c0fa33dc23ca9fcfad5e1a4071e6321a789b62dad8090df489993efcbbf70be",
+    "outputs/evaluations/rgb_model1900_latest_seed101_20261015.json": "c9769be27f2da5aa14306d35204ffae1a0375361f5acadeac420f32752d41575",
+    "outputs/real_policy/1792142115772318944/report.json": "c494e968064576563b51f9fc0030e2830c87c858e64abaa95721a9ec7a297023",
+    "outputs/real_policy/1792130514725063143/report.json": "516db10d8055482ed181c818ec026b804d2e8a03938bf52815dce2a75f6f3d88",
+    "outputs/real_policy/1792127629087734247/report.json": "92655f9e580efabfe5fa1b955b935058624111707e676c68923cff5f17cfda03",
+    "my_awesome_follower_arm.json": "a270e75526c8bfa77c25baf39051bc62efccf783f3aef2cea030e0193b5138a9",
+    "urdf/table_2/payloads/Physics/physics.usda": "86d3c8beb27ff7c2d5704b622f7e91d1a235f65d24455266e0f85eb251a943bc",
+    "outputs/real_policy/1792131399243539625/report.json": "c9e2310a4f18b86ddee1a21e9aae4eba4796e445e1470eae9c6978d899fa2242",
+    "usd/robot.usd": "cc9f92f3c52e62d99e37edd17057ca8a77f1f952802f1341bebae7289a719271",
+    "outputs/pipeline/table_unsafe_control_20261017.json": "d6c4c7220c4d84d6cbe5141a5d5d9222c4020080b498ef69f28235b271b6e622",
+    "outputs/real_policy/1792132095906975564/report.json": "9414825e43c677c04ae096612d48624c979d8a67b053eefd29d6bdc18c803930",
+    "outputs/real_policy/1792130873233514560/report.json": "b87f331bc027838be1b3ed05a63dbc992e0eba3046d345f713a118a80007219f",
+    "outputs/real_policy/1792130488320996905/report.json": "7648fae3cfd07a006aeaa9d5b282eadf8d4550d35500357676e96d5977825e52",
+    "outputs/evaluations/surface_v3_10ep_contact_distance.json": "c208070b2e001510739245bfce97012ef83bc8e31cd6d590f48e85a224d8bd6f",
+    "usd/table_real_rgb.usda": "5b2b305022e982c6c9d749d3b196495613b24f450d5a1b0b3eefc7b8c8ce1164"
+  },
+  "required_asset_paths": [
+    "urdf/box_1/payloads/Physics/physics.usda",
+    "urdf/box_1/payloads/base.usda",
+    "urdf/box_1/payloads/materials.usda",
+    "urdf/box_1/payloads/robot.usda",
+    "urdf/realsense_d415_1/payloads/Physics/physics.usda",
+    "urdf/realsense_d415_1/payloads/base.usda",
+    "urdf/realsense_d415_1/payloads/materials.usda",
+    "urdf/realsense_d415_1/payloads/robot.usda",
+    "urdf/so101_2/payloads/Physics/mujoco.usda",
+    "urdf/so101_2/payloads/Physics/physics.usda",
+    "urdf/so101_2/payloads/Physics/physx.usda",
+    "urdf/so101_2/payloads/base.usda",
+    "urdf/so101_2/payloads/geometries.usd",
+    "urdf/so101_2/payloads/instances.usda",
+    "urdf/so101_2/payloads/materials.usda",
+    "urdf/so101_2/payloads/robot.usda",
+    "urdf/table_2/payloads/Physics/physics.usda",
+    "urdf/table_2/payloads/base.usda",
+    "urdf/table_2/payloads/materials.usda",
+    "urdf/table_2/payloads/robot.usda",
+    "usd/Physics",
+    "usd/base.usda",
+    "usd/box.usd",
+    "usd/box_grain.png",
+    "usd/box_reference.usda",
+    "usd/camera.usd",
+    "usd/cube_grain.png",
+    "usd/geometries.usd",
+    "usd/instances.usda",
+    "usd/materials.usda",
+    "usd/robot.usd",
+    "usd/robot.usda",
+    "usd/robot_grasp_calibrated.usda",
+    "usd/robot_grasp_surface_v3.usda",
+    "usd/table.usd",
+    "usd/table_green_texture.png",
+    "usd/table_real_rgb.usda",
+    "usd/table_reference.usda"
+  ],
+  "asset_resolver_unresolved_before": [
+    "OmniPBR.mdl"
+  ],
+  "keep_outputs": [
+    "outputs/audits/grasp_audit_20261017.md",
+    "outputs/audits/pre_fix_evidence_20261017/physical_grasp.json",
+    "outputs/audits/pre_fix_evidence_20261017/workcell_physics.json",
+    "outputs/audits/pre_grasp_audit_20261017.patch",
+    "outputs/eval_model_1900.json",
+    "outputs/eval_model_1900_test.json",
+    "outputs/evaluations/eval_model1999_fresh_surface_v3.json",
+    "outputs/evaluations/model1999_latest_video_20261017.json",
+    "outputs/evaluations/model2050_corrected_grasp_20261017.json",
+    "outputs/evaluations/photo_home_model1999_seed101_20261015.json",
+    "outputs/evaluations/photo_home_model1999_seed101_20261015.provenance.json",
+    "outputs/evaluations/rgb_model1250_surface_v3_10ep_seed202.json",
+    "outputs/evaluations/rgb_model1250_surface_v3_seed202.json",
+    "outputs/evaluations/rgb_model1900_latest_seed101_20261015.json",
+    "outputs/evaluations/rgb_model1900_latest_seed101_20261015_episodes/episodes.json",
+    "outputs/evaluations/surface_v3_10ep_contact_distance.json",
+    "outputs/hardware_mapping/home_clearance_check.json",
+    "outputs/hardware_mapping/photo_home_20261015.json",
+    "outputs/pipeline/grasp_audit_20261017.json",
+    "outputs/pipeline/grasp_audit_contact_20261017.json",
+    "outputs/pipeline/grasp_audit_fixed_20261017.json",
+    "outputs/pipeline/physical_grasp.json",
+    "outputs/pipeline/rgb_surface_v3_grasp.json",
+    "outputs/pipeline/table_safe_grasp_20261017.json",
+    "outputs/pipeline/table_safe_workcell_20261017.json",
+    "outputs/pipeline/table_unsafe_control_20261017.json",
+    "outputs/pipeline/workcell_audit_20261017.json",
+    "outputs/pipeline/workcell_audit_fixed_20261017.json",
+    "outputs/pipeline/workcell_physics.json",
+    "outputs/real_env_reference_1280x720.jpg",
+    "outputs/real_policy/1792127582521790001/report.json",
+    "outputs/real_policy/1792127629087734247/report.json",
+    "outputs/real_policy/1792127848968835792/report.json",
+    "outputs/real_policy/1792128702626866635/report.json",
+    "outputs/real_policy/1792129038430680915/report.json",
+    "outputs/real_policy/1792129071655969249/report.json",
+    "outputs/real_policy/1792129377110176607/report.json",
+    "outputs/real_policy/1792129478140068763/report.json",
+    "outputs/real_policy/1792130488320996905/report.json",
+    "outputs/real_policy/1792130514725063143/report.json",
+    "outputs/real_policy/1792130571568150017/report.json",
+    "outputs/real_policy/1792130613226729882/report.json",
+    "outputs/real_policy/1792130753486132760/report.json",
+    "outputs/real_policy/1792130781762167168/report.json",
+    "outputs/real_policy/1792130873233514560/report.json",
+    "outputs/real_policy/1792131248121914480/report.json",
+    "outputs/real_policy/1792131399243539625/report.json",
+    "outputs/real_policy/1792131433217058206/report.json",
+    "outputs/real_policy/1792131444471147939/report.json",
+    "outputs/real_policy/1792131522116260687/report.json",
+    "outputs/real_policy/1792131831126378683/report.json",
+    "outputs/real_policy/1792132095906975564/report.json",
+    "outputs/real_policy/1792132161602493935/report.json",
+    "outputs/real_policy/1792142115772318944/report.json",
+    "outputs/real_policy/1792143000279103220/report.json",
+    "outputs/real_policy/1792146342169583185/report.json",
+    "outputs/real_policy/adapter_parity.json",
+    "outputs/real_policy/attempt_20261016_105250/report.json",
+    "outputs/rgb_scene_reference.png",
+    "outputs/training/scene_preview.png"
+  ],
+  "verification": {
+    "tests_passed": 105,
+    "protected_files_checked": 287,
+    "protected_files_updated_during_cleanup": [
+      {
+        "path": "src/isaac_vision_rl/tasks/pickplace/config/so101/env_cfg.py",
+        "current_sha256": "6ffc93d5a1c228d89ec9c4ff23308f2956748d15b2006cdd249c41f9d9092006",
+        "cause": "concurrent external update; preserved"
+      },
+      {
+        "path": "tests/test_pipeline.py",
+        "current_sha256": "12b6263bd67ff4e684782426047e695e53a743571ef66d944d914d25884a44ec",
+        "cause": "concurrent external update; preserved"
+      },
+      {
+        "path": "tests/test_picklift_logic.py",
+        "current_sha256": "948ff898b7ea4ebc1ac056e59aa8194310261abd8971c81f8a6d5e1d51204b3e",
+        "cause": "concurrent external update; preserved"
+      },
+      {
+        "path": "scripts/README.md",
+        "current_sha256": "855e21b7afba374a82e7d2d24ce2c464ca298ba5ceb354602fba3334f29a8185",
+        "cause": "cleanup documentation update"
+      },
+      {
+        "path": "outputs/pipeline/physical_grasp.json",
+        "current_sha256": "56e09a5e6cc58335114b8d54b768fccd12d6506f8ecf2e7a0ba8db8c916e7127",
+        "cause": "concurrent external update; preserved"
+      },
+      {
+        "path": "outputs/pipeline/workcell_physics.json",
+        "current_sha256": "997cb418965cb9db434f409fef4337d4615bf9b3e97a73a4a826f93c3c9efe35",
+        "cause": "concurrent external update; preserved"
+      }
+    ],
+    "bytecode_regenerated_by_other_processes": [
+      ".pytest_cache/.gitignore",
+      ".pytest_cache/CACHEDIR.TAG",
+      ".pytest_cache/README.md",
+      ".pytest_cache/v/cache/nodeids",
+      "scripts/checks/__pycache__/verify_grasp.cpython-312.pyc",
+      "src/isaac_vision_rl/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/config/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/config/so101/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/config/so101/__pycache__/env_cfg.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/config/so101/agents/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/config/so101/agents/__pycache__/rsl_rl_ppo_cfg.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/actions.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/actions_cfg.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/events.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/health.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/observations.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/rewards.cpython-312.pyc",
+      "src/isaac_vision_rl/tasks/pickplace/mdp/__pycache__/terminations.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/__init__.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/calibration.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/cube_material.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/grasp_geometry.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/hand_table.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/home_pose.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/motion_filter.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/pipeline.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/rgb_image.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/rl_agent.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/table_clearance.cpython-312.pyc",
+      "src/isaac_vision_rl/utils/__pycache__/ui.cpython-312.pyc",
+      "tests/__pycache__/test_agent.cpython-312-pytest-9.1.1.pyc",
+      "tests/__pycache__/test_hand_table.cpython-312-pytest-9.1.1.pyc",
+      "tests/__pycache__/test_lift_diagnostics.cpython-312-pytest-9.1.1.pyc",
+      "tests/__pycache__/test_picklift_logic.cpython-312-pytest-9.1.1.pyc",
+      "tests/__pycache__/test_pipeline.cpython-312-pytest-9.1.1.pyc",
+      "tests/__pycache__/test_rgb_image.cpython-312-pytest-9.1.1.pyc"
+    ],
+    "videos_remaining": 0,
+    "images_remaining": [
+      "outputs/rgb_scene_reference.png",
+      "outputs/real_env_reference_1280x720.jpg",
+      "outputs/pipeline/table_force_verified_20261017_grasp_raised_actor.png",
+      "outputs/pipeline/table_safe_final_20261017_grasp_raised.png",
+      "outputs/pipeline/table_force_verified_20261017_grasp_open.png",
+      "outputs/pipeline/table_press_control_20261017_grasp_closed.png",
+      "outputs/pipeline/table_safe_final_20261017_grasp_open_actor.png",
+      "outputs/pipeline/table_safe_final_20261017_grasp_closed.png",
+      "outputs/pipeline/table_press_control_20261017_grasp_open.png",
+      "outputs/pipeline/table_press_control_20261017_grasp_raised_actor.png",
+      "outputs/pipeline/table_press_control_20261017_grasp_raised.png",
+      "outputs/pipeline/table_force_verified_20261017_grasp_closed_actor.png",
+      "outputs/pipeline/table_safe_final_20261017_grasp_open.png",
+      "outputs/pipeline/table_force_verified_20261017_grasp_open_actor.png",
+      "outputs/pipeline/table_force_verified_20261017_grasp_closed.png",
+      "outputs/pipeline/table_force_verified_20261017_grasp_raised.png",
+      "outputs/pipeline/table_press_control_20261017_grasp_open_actor.png",
+      "outputs/pipeline/table_safe_final_20261017_grasp_closed_actor.png",
+      "outputs/pipeline/table_press_control_20261017_grasp_closed_actor.png",
+      "outputs/pipeline/table_safe_final_20261017_grasp_raised_actor.png",
+      "usd/table_green_texture.png",
+      "usd/cube_grain.png",
+      "usd/box_grain.png"
+    ],
+    "fingerprint_files": 21,
+    "USD_unresolved_before_and_after": [
+      "OmniPBR.mdl"
+    ]
+  }
+}

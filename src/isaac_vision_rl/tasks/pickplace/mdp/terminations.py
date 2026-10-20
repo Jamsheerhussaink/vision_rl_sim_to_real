@@ -11,6 +11,13 @@ from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils.math import quat_apply_inverse
 
 
+def unsafe_hand_table_contact(env):
+    """End a failed episode before continued scraping can earn task reward."""
+    from isaac_vision_rl.utils.hand_table import hand_table_metrics
+    clearance, force = hand_table_metrics(env)
+    return (clearance < 0.003) | (force > 0.1)
+
+
 def get_camera_projection_params(env: ManagerBasedRLEnv):
     """Retrieve camera pose, intrinsics, and dimensions with workcell defaults."""
     camera = env.scene["camera"] if hasattr(env.scene, "keys") and "camera" in env.scene.keys() else None

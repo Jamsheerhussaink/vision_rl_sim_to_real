@@ -27,6 +27,7 @@ def main():
     p.add_argument("--viz", choices=["kit", "newton"])
     p.add_argument("--policy", choices=["rgb"], default="rgb")
     p.add_argument("--device", default="cuda:0")
+    p.add_argument("--grasp-offset", type=float, default=0.012, help="Tool height above cube centre, metres")
     args = p.parse_args()
     os.environ["SO101_POLICY"] = args.policy
     os.environ["SO101_CURRICULUM"] = "fixed"
@@ -64,7 +65,7 @@ def main():
         center[2] = 0.425
         home = [cfg.scene.robot.init_state.joint_pos[n] for n in ARM_NAMES]
         above = geometry.solve(center + [0, 0, 0.04], home)
-        grasp = geometry.solve(center, above)
+        grasp = geometry.solve(center + [0, 0, args.grasp_offset], above)
         raised = geometry.solve(center + [0, 0, 0.08], grasp)
         cfg.scene.robot.init_state.joint_pos.update(dict(zip(ARM_NAMES, above.tolist(), strict=True)))
         # Open before spawning: opening from a closed pose beside the cube can
@@ -99,6 +100,7 @@ def main():
             print("FIXED BASE", robot.is_fixed_base, flush=True)
             robot.write_joint_state_to_sim(q, torch.zeros_like(q))
             records = []
+            clearances, table_forces = [], []
 
             def step(target):
                 q[:, ids] = torch.tensor(target, device=args.device, dtype=torch.float32)
@@ -106,6 +108,10 @@ def main():
                 unwrapped.scene.write_data_to_sim()
                 unwrapped.sim.step()
                 unwrapped.scene.update(cfg.sim.dt)
+                from isaac_vision_rl.utils.hand_table import hand_table_metrics
+                clearance, force = hand_table_metrics(unwrapped)
+                clearances.append(float(clearance[0]))
+                table_forces.append(float(force[0]))
                 actual = tensor(robot.data.joint_pos)
                 if not torch.isfinite(actual).all() or actual.abs().max() > 4:
                     raise RuntimeError("Physical joint state diverged; grasp gate failed before policy training.")
@@ -132,6 +138,11 @@ def main():
                 target = output.with_name(output.stem + "_" + name + ".png")
                 target.parent.mkdir(parents=True, exist_ok=True)
                 Image.fromarray(rgb.cpu().numpy().astype("uint8")).save(target)
+                from isaac_vision_rl.utils.rgb_image import actor_rgb
+                actor_image = actor_rgb(rgb[None])[0].permute(1, 2, 0)
+                Image.fromarray((actor_image.cpu().numpy() * 255).round().astype("uint8")).save(
+                    target.with_name(target.stem + "_actor.png")
+                )
 
             opened = np.r_[above, 1.2]
             down = np.r_[grasp, 1.2]
@@ -163,20 +174,29 @@ def main():
                         "z_separation_m": float(torch.abs((pos - tool)[2])),
                         "cube_speed_m_s": float(torch.norm(tensor(cube.data.root_lin_vel_w)[0])),
                         "bilateral_contact": bool(bilateral_cube_contact(unwrapped)[0].item()),
+                        "finger_forces_world_n": {
+                            name: tensor(unwrapped.scene[name].data.normal_force_matrix_w).reshape(-1, 3).sum(0).cpu().tolist()
+                            for name in ("fixed_finger_contact", "moving_finger_contact")
+                        },
                     }
                 )
             snapshot("grasp_raised")
-            passed = fk_error < 0.005 and all(
+            table_safe = min(clearances) >= 0.005 and max(table_forces) < 0.1
+            passed = table_safe and fk_error < 0.005 and all(
                 r["cube_z"] > 0.47 and r["distance"] < 0.06 and r["bilateral_contact"]
                 for r in records[-hold_steps:]
             )
-            strict_held_lift = all(
+            strict_held_lift = table_safe and all(
                 r["cube_z"] > 0.47 and r["xy_separation_m"] < 0.035
                 and r["z_separation_m"] < 0.045 and r["gripper"] < 1.10
                 and r["cube_speed_m_s"] < 0.25 and r["bilateral_contact"]
                 for r in records[-hold_steps:]
             )
             report = {
+                "table_safe": table_safe,
+                "minimum_hand_table_clearance_m": min(clearances),
+                "peak_hand_table_force_n": max(table_forces),
+                "grasp_offset_m": args.grasp_offset,
                 "passed": passed,
                 "strict_held_lift_passed": strict_held_lift,
                 "fk_error_m": fk_error,

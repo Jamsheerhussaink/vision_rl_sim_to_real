@@ -85,6 +85,11 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     )
 
     def __post_init__(self):
+        schedule = os.environ.get("SO101_LR_SCHEDULE", "fixed")
+        if schedule not in ("fixed", "adaptive"):
+            raise ValueError("SO101_LR_SCHEDULE must be fixed or adaptive")
+        self.algorithm.schedule = schedule
+        self.algorithm.desired_kl = 0.01 if schedule == "adaptive" else None
         variant = os.environ.get("SO101_POLICY", "rgb")
         if variant != "rgb":
             raise ValueError(f"Unknown SO101_POLICY: {variant}")

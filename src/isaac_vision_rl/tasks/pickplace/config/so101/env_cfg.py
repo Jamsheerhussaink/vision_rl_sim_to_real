@@ -149,6 +149,7 @@ class PickplaceSceneCfg(InteractiveSceneCfg):
         ),
         filter_prim_paths_expr=["{ENV_REGEX_NS}/Cube"],
         track_contact_points=True,
+        max_contact_data_count_per_prim=1024,
     )
     moving_finger_contact = ContactSensorCfg(
         prim_path=(
@@ -157,6 +158,20 @@ class PickplaceSceneCfg(InteractiveSceneCfg):
         ),
         filter_prim_paths_expr=["{ENV_REGEX_NS}/Cube"],
         track_contact_points=True,
+        max_contact_data_count_per_prim=1024,
+    )
+
+    fixed_table_contact = ContactSensorCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/Geometry/base_link/shoulder_link/upper_arm_link/lower_arm_link/wrist_link/gripper_link",
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/Table/Geometry/table_base_link/table_top_link"],
+    )
+    moving_table_contact = ContactSensorCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/Geometry/base_link/shoulder_link/upper_arm_link/lower_arm_link/wrist_link/gripper_link/moving_jaw_so101_v1_link",
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/Table/Geometry/table_base_link/table_top_link"],
+    )
+    wrist_table_contact = ContactSensorCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/Geometry/base_link/shoulder_link/upper_arm_link/lower_arm_link/wrist_link",
+        filter_prim_paths_expr=["{ENV_REGEX_NS}/Table/Geometry/table_base_link/table_top_link"],
     )
 
     # 4. Yellow Cube (5cm) resting flush on tabletop (table surface Z=0.40m, center Z=0.425m)
@@ -218,7 +233,7 @@ class PickplaceSceneCfg(InteractiveSceneCfg):
         update_period=0.0,
         height=512,
         width=512,
-        data_types=["rgb", "distance_to_image_plane"],
+        data_types=["rgb"],
         spawn=sim_utils.PinholeCameraCfg(
             focal_length=19.5,
             horizontal_aperture=24.88,
@@ -444,7 +459,7 @@ class PickLiftRewardsCfg:
     displacement_penalty = RewTerm(func=cast(Any, mdp.CubeTableDisplacementPenalty), weight=-12.0)
 
     # 7. Table collision penalty: Penalize gripper pushing down or scraping into tabletop
-    table_collision = RewTerm(func=mdp.gripper_table_collision_penalty, weight=-0.5)
+    table_collision = RewTerm(func=mdp.gripper_table_collision_penalty, weight=-5.0)
 
     # 8. Action smoothness and jerk penalty (enforces smooth, graceful trajectories)
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.06)
@@ -484,6 +499,8 @@ RewardsCfg = PickplaceRewardsCfg
 @configclass
 class TerminationsCfg:
     """Termination conditions for the MDP."""
+
+    unsafe_table_contact = DoneTerm(func=mdp.unsafe_hand_table_contact)
 
     # Fail with a physical-state diagnostic before NaNs can enter rewards or PPO.
     physics_health = DoneTerm(func=mdp.assert_finite_physics)

@@ -149,8 +149,13 @@ def main():
             previous = obs["critic"][0, task_start : task_start + 3].clone()
             initial_distance = float(torch.norm(previous - obs["critic"][0, task_start + 6 : task_start + 9]))
             closest_distance, visible_steps = initial_distance, 0.0
+            from isaac_vision_rl.utils.hand_table import hand_table_metrics
+            minimum_clearance, peak_table_force = float("inf"), 0.0
             with torch.inference_mode():
                 while len(results) < args.episodes:
+                    clearance, table_force = hand_table_metrics(base)
+                    minimum_clearance = min(minimum_clearance, float(clearance[0]))
+                    peak_table_force = max(peak_table_force, float(table_force[0]))
                     action = runner.alg.actor(obs, stochastic_output=True) if args.sample_actions else policy(obs)
                     if video is not None or args.trace_only:
                         image = base.scene["camera"].data.output["rgb"]
@@ -238,6 +243,14 @@ def main():
                     reward_sum += float(reward[0])
                     steps += 1
                     if terminal:
+                        termination_terms = (
+                            "unsafe_table_contact", "physics_health", "time_out", "cube_dropped",
+                            "robot_dropped", "gripper_out_of_view", "cube_out_of_view", success_term,
+                        )
+                        termination_reasons = [
+                            name for name in termination_terms
+                            if bool(base.termination_manager.get_term(name)[0])
+                        ]
                         results.append(
                             {
                                 "success": bool(
@@ -252,6 +265,10 @@ def main():
                                 "initial_tool_distance_cm": 100 * initial_distance,
                                 "closest_tool_distance_cm": 100 * closest_distance,
                                 "camera_visible_fraction": None,
+                                "minimum_sampled_hand_table_clearance_mm": 1000 * minimum_clearance,
+                                "peak_sampled_hand_table_force_n": peak_table_force,
+                                "unsafe_table_termination": bool(base.termination_manager.get_term("unsafe_table_contact")[0]),
+                                "termination_reasons": termination_reasons,
                             }
                         )
                         if video is not None or args.trace_only:
@@ -275,6 +292,7 @@ def main():
                             })
                         print(f"Episode {len(results)}/{args.episodes}: {results[-1]}")
                         reward_sum, steps, peak, drag = 0.0, 0, 0.0, 0.0
+                        minimum_clearance, peak_table_force = float("inf"), 0.0
                         previous = obs["critic"][0, task_start : task_start + 3].clone()
                         initial_distance = float(
                             torch.norm(previous - obs["critic"][0, task_start + 6 : task_start + 9])

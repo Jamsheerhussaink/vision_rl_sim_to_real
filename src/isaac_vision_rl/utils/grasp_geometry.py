@@ -63,12 +63,14 @@ class GraspGeometry:
         a, b = self.joints["gripper_frame_joint"]
         return result @ a @ b
 
-    def solve(self, position, initial=None, downward=True):
+    def solve(self, position, initial=None, downward=True, position_weight=1.0):
+        if not np.isfinite(position_weight) or position_weight<=0:
+            raise ValueError("position_weight must be positive and finite")
         position = np.asarray(position)
 
         def residual(q):
             pose = self.forward(q)
-            error = pose[:3, 3] - position
+            error = position_weight * (pose[:3, 3] - position)
             downward_align = 0.08 * (pose[:3, 2] - [0, 0, -1])
             roll_penalty = 0.1 * q[4]
             return np.r_[error, downward_align, roll_penalty] if downward else error

@@ -1,5 +1,9 @@
 # Run the simulated policy and mirror it on SO-101
 
+Cleanup note (2026-10-17): historical videos, per-frame traces, and diagnostic
+images referenced below were removed. Retained JSON summaries remain evidence;
+new runs can create fresh recordings. See [the cleanup guide](project_cleanup.md).
+
 `scripts/hardware/mirror_evaluation.py` loads an explicit checkpoint and runs its
 deterministic actor on the simulation RGB camera and simulated joint/controller
 readings. Real scene changes do not feed back into the policy. A real camera is

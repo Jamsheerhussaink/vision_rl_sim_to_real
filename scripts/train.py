@@ -142,11 +142,44 @@ def main():
         help="RGB images and joint/controller readings",
     )
     parser.add_argument("--cube-jitter", type=float, default=0.0, help="Cube XY reset jitter in metres, 0 to 0.05")
+    parser.add_argument("--approach-curriculum", action="store_true", help="Progress from nearby grasp resets toward home starts; requires fixed curriculum and zero cube jitter")
+    parser.add_argument("--approach-ramp-updates", type=int, default=1000, help="Updates over which approach reset difficulty grows")
+    parser.add_argument("--lr-schedule", choices=["fixed", "adaptive"], default="fixed", help="PPO learning-rate schedule; adaptive targets KL divergence 0.01")
+    parser.add_argument("--reward-profile", choices=["legacy", "four-stage"], default="legacy", help="Versioned four-stage full task; requires task/curriculum place")
+    parser.add_argument("--reward-style", choices=["continuous","progress"], default="continuous", help="Current-state reward every step, or historical new-best progress shaping")
+    parser.add_argument("--grasp-reward-mode", choices=["bounded","overlap"], default="bounded", help="Bounded grasp rewards for new policies; overlap reproduces old checkpoints")
+    parser.add_argument("--training-goal", choices=["lift","place"], default="place", help="Stop successfully after stable held lift, or continue through placement")
+    parser.add_argument("--lift-rise-min", type=float, default=0.15, help="Minimum cube rise above its reset height to complete Lift, in metres (default: 0.15)")
+    parser.add_argument("--lift-rise-max", type=float, default=0.20, help="Upper safe cube rise above its reset height, in metres (default: 0.20)")
+    parser.add_argument("--record-successes", action="store_true", help="Record full successes, every completed stage and major failures across all environments")
+    parser.add_argument("--reward-window", action="store_true", help="Standalone reward charts for environment 0; supports headless simulation")
+    parser.add_argument("--live-reward-graphs", action="store_true", help="Read-only individual reward charts for environment 0 in Newton; four-stage profile only")
     parser.add_argument("--box-jitter", type=float, default=0.0, help="Box XY reset jitter in metres, 0 to 0.05")
     parser.add_argument("--fps", type=int, choices=[25, 30, 60], default=30, help="Policy and camera rate in Hz (default: 30)")
     parser.add_argument("--width", type=int, default=1280, help="Camera width in pixels (default: 1280)")
     parser.add_argument("--height", type=int, default=720, help="Camera height in pixels (default: 720)")
     args = parser.parse_args()
+    if args.lift_rise_min <= 0 or args.lift_rise_max <= args.lift_rise_min:
+        parser.error("--lift-rise-min and --lift-rise-max must be positive and max must be greater than min")
+    if args.record_successes and args.reward_profile != "four-stage":
+        parser.error("--record-successes requires --reward-profile four-stage")
+    os.environ["SO101_REWARD_STYLE"]=args.reward_style
+    os.environ["SO101_GRASP_REWARD_MODE"]=args.grasp_reward_mode
+    os.environ["SO101_TRAINING_GOAL"]=args.training_goal
+    os.environ["SO101_LIFT_RISE_MIN"]=str(args.lift_rise_min)
+    os.environ["SO101_LIFT_RISE_MAX"]=str(args.lift_rise_max)
+    os.environ["SO101_STAGE_VIDEOS"] = "1" if args.record_successes else "0"
+    os.environ["SO101_RECORD_SUCCESSES"] = "1" if args.record_successes else "0"
+    if args.reward_window and args.reward_profile != "four-stage":
+        parser.error("--reward-window requires --reward-profile four-stage")
+    if args.live_reward_graphs:
+        if args.reward_profile != "four-stage" or args.headless or not (args.newton or args.viz in ("newton", "newton_gl")):
+            parser.error("Live reward graphs require --reward-profile four-stage and --viz newton")
+        if args.max_visible_envs is None:args.max_visible_envs=1
+    if args.reward_profile == "four-stage" and (args.task != "place" or args.curriculum != "place" or args.approach_curriculum):
+        parser.error("Four-stage profile requires --task place --curriculum place and home starts")
+    if args.approach_curriculum and (args.curriculum != "fixed" or args.cube_jitter != 0 or args.approach_ramp_updates < 1):
+        parser.error("Approach curriculum requires --curriculum fixed, --cube-jitter 0 and a positive ramp")
     args.num_envs = args.num_envs if args.num_envs is not None else (64 if args.profile == "rgb64" else 32)
     args.max_iterations = args.max_iterations if args.max_iterations is not None else 2000
     if args.num_envs < 1 or args.max_iterations < 1:
@@ -167,7 +200,13 @@ def main():
     os.environ["SO101_CUBE_JITTER"] = str(args.cube_jitter)
     os.environ["SO101_BOX_JITTER"] = str(args.box_jitter)
     os.environ["SO101_POLICY"] = args.policy
+    os.environ["SO101_REWARD_PROFILE"] = args.reward_profile
+    os.environ["SO101_REWARD_WINDOW"] = "1" if args.reward_window else "0"
+    os.environ["SO101_LIVE_REWARD_GRAPHS"] = "1" if args.live_reward_graphs else "0"
+    os.environ["SO101_LR_SCHEDULE"] = args.lr_schedule
     os.environ["SO101_CURRICULUM"] = args.curriculum or ("place" if args.task == "place" else "lift")
+    os.environ["SO101_APPROACH_CURRICULUM"] = "1" if args.approach_curriculum else "0"
+    os.environ["SO101_APPROACH_RAMP_UPDATES"] = str(args.approach_ramp_updates)
     os.environ["SO101_ALLOW_FPS_MISMATCH"] = "1" if args.adapt_checkpoint else "0"
 
     # Map task name to registered Gym environment
@@ -179,10 +218,19 @@ def main():
         exp_name = f"so101_pickplace_{args.policy}"
     if args.profile:
         exp_name += "_tuned64"
+    if args.reward_profile == "four-stage":
+        from isaac_vision_rl.utils.four_stage import VERSION
+        exp_name += "_" + VERSION
+        if args.training_goal=="lift":exp_name+="_lift_goal"
 
     # Log directory root
     log_root = os.path.join(ROOT_DIR, "logs", "rsl_rl", exp_name)
     os.makedirs(log_root, exist_ok=True)
+    if args.record_successes:
+        from datetime import datetime
+        video_dir=os.path.join(log_root,"successful_videos",datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f"))
+        os.environ["SO101_SUCCESS_VIDEO_DIR"]=video_dir
+        print(f"[INFO] Successful episode videos will be saved to: {video_dir}")
     if not args.raw_log:
         from isaac_vision_rl.utils.ui import setup_clean_terminal_ui
 

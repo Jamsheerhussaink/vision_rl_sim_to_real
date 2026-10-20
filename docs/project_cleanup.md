@@ -1,77 +1,60 @@
-# Project cleanup
+# Core project cleanup — 2026-10-17
 
-## Script organization — 2026-10-15
+Removed 478 files and two obsolete script aliases (391.67 MiB), including all 69 existing videos, bulk evaluation
+traces, duplicate screenshots, texture/appearance backups, obsolete diagnostics,
+unused CAD/source exports, duplicate imported models, caches, and the earlier
+script archive. This cleanup deletes those files; it does not create recovery
+copies. Git history was not rewritten.
 
-Reduced the top-level script list from 27 to six everyday entry points. Moved
-seven checks into `scripts/checks/`, five hardware tools into `scripts/hardware/`,
-and two asset builders into `scripts/assets/`. Updated pipeline calls, evidence
-fingerprint paths, the bridge test import, and documentation for those moves.
-
-Seven earlier demo/troubleshooting scripts are stored byte-for-byte in
-`archive/scripts_20261015.tar.gz`; recovery instructions and the complete list
-are in [archive/README.md](../archive/README.md). The manifest there records
-original checksums and relocated paths. Checkpoints, evaluation outputs,
-calibration, scene assets, and training logic were not changed by this step.
-
-Saved curriculum gates fingerprint source files and script paths. Existing gates
-can therefore become stale after this reorganization; reevaluate a checkpoint
-before advancing a gated stage. Recorded reports remain preserved.
-
-See [scripts/README.md](../scripts/README.md) for current commands and locations.
-
-Validation: all 60 existing tests passed (59 inside the sandbox; the localhost
-UDP loopback test passed separately with socket access). All 13 checked CLI
-entry points accepted `--help`, active Python files parsed, the evidence
-fingerprint resolved every file, and archived contents matched their checksums.
-No training, simulation rollout, asset rebuild, or physical motor command was run.
-
-Repeat the tests from the project root in the Isaac Lab environment:
-
-```bash
-PYTHONPATH=src:. python -m pytest -q
-```
-
-## RGB-only cleanup — 2026-10-14
-
-Active training, playback, evaluation and hardware-streaming entry points accept
-only `--policy rgb`. The actor receives RGB plus joint/controller readings;
-simulator object state remains available to rewards, the critic and evaluation.
-
-Removed from the active project:
-- RGB-D cube estimator and perception package.
-- Camera-grasp latch, automatic jaw override and capture-based arm hold.
-- Depth-camera verification and camera-assisted pick/lift scripts.
-- Depth/state-only tests and obsolete depth diagnostics in evaluation traces.
-- Duplicate legacy episode recorder; eval_pipeline.py records RGB evaluation MP4s.
-- Unused SKRL agent configuration; RSL-RL PPO remains registered.
-- logs/rsl_rl/so101_picklift_vision, including its 15 depth-assisted checkpoints.
-- Legacy depth model/evaluation artifacts and copied source snapshots.
+Removed superseded scripts: `scripts/hardware/compare_pick_place.py`,
+`scripts/hardware/park_home.py`, and `scripts/hardware/stream_to_robot.py`.
+Removed the older cloud handoff, training handover, and pan-investigation notes.
 
 Retained:
-- train.py (including rgb64 preset), play.py and eval_pipeline.py.
-- RGB staged pipeline with success gates and physical preflight checks.
-- Snapshot/demo, workcell/reset/stability/grasp checks and asset builders.
-- RealSense RGB preview, hardware bridge/client, joint-calibration and tracking checks.
-- RGB checkpoints, tuned rewards, current camera/scene, runtime textures and assets.
-- Tests covering PPO/GAE, RGB input, contact/lift logic, physics, curriculum gates,
-  controller filtering and hardware bridge behavior.
 
-The cleanup manifest is outputs/rgb_cleanup_20261014.json. Recovery archives are
-outside the project in /tmp/so101_rgb_cleanup_20261014/recovery.tar.gz and
-legacy_outputs.tar.gz. /tmp is temporary storage, not a durable backup. The
-recovery archive also includes pre-cleanup source, tests, scripts and docs.
+- Training, playback, completed-episode evaluation, staged preflight, snapshots,
+  physical checks, asset builders, and their tests.
+- Current real-camera policy, mock/default evaluation mirror, hardware bridge,
+  read-only probe, camera preview/alignment, joint mapping, and checked home tools.
+- All 89 model/checkpoint/export files, their run settings, training logs, and
+  saved provenance. Checkpoint deletion requires a separate explicit instruction.
+- Calibration, measured-home records, current camera reference images,
+  runtime textures, source robot USD for the asset builder, and all imported
+  payload layers required by the scene and saved checkpoint configurations.
+- Compact evaluation/real-policy summaries, physical-grasp/workcell reports,
+  and the latest audit changes/evidence. A retained report does not imply that
+  the current configuration passes a gate or that the robot learned the task.
+- Current hardware/training guides and the PPO and robotics study notes.
 
-All 51 retained tests passed, including a localhost UDP test with no robot motor
-commands. The latest RGB checkpoint is being evaluated after cleanup to verify
-checkpoint/controller compatibility. Test passes alone are not task mastery.
+Only required payload files remain under `urdf/`; the original URDF conversion
+sources and unused CAD meshes were removed after resolving USD dependencies.
+The older `robot_grasp_calibrated.usda` is retained because a saved checkpoint
+configuration references it. The unused `robot_grasp_surface_v2.usda` is removed.
 
-Training examples (run only one simulator at a time):
+Older references to recordings in retained guides are historical; those videos
+and per-frame traces were deleted by this cleanup. New runs can still record
+videos using their existing options. No recording defaults or policy behavior
+were changed.
+
+The exact removed paths, sizes, checksums, and protected-file checksums are in
+[core_cleanup_manifest_20261017.json](core_cleanup_manifest_20261017.json).
+See [the script guide](../scripts/README.md) for current commands.
+
+Verification commands (from the project root):
 
 ```bash
-python scripts/train.py --profile rgb64 --headless --device cuda:0 --dashboard
-python scripts/train.py --profile rgb64 --viz newton --max_visible_envs 4 --device cuda:0 --dashboard
+conda activate env_isaaclab
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:. python -m pytest -q -p no:cacheprovider
 ```
 
-For interrupted runs, use ordinary train.py flags with an explicit checkpoint;
-the rgb64 preset intentionally starts fresh. Evaluate separately from training
-because concurrent simulators previously exhausted system RAM and swap.
+The UDP loopback test requires permission to open a localhost socket. Verification
+also checks retained file hashes, USD dependencies, Python syntax, the evidence
+fingerprint, and the absence of video files. No simulator rollout, training,
+asset rebuilding, or real motor command is part of this cleanup.
+
+Verification completed: 105 tests passed; all 89 model/checkpoint/export files
+were unchanged, required USD dependencies remained available, and no videos
+remained. Concurrent work updated source/tests and physical-check reports and
+created new grasp-audit images during cleanup; those changes were preserved.
+Caches can also regenerate while other Python processes are running. The test
+result describes the suite at the time it ran, not a lock on concurrent edits.

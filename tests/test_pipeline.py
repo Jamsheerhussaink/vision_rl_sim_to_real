@@ -9,6 +9,33 @@ from isaac_vision_rl.utils import pipeline
 
 
 class PipelineTests(unittest.TestCase):
+    def test_finger_contact_buffers_cover_mesh_manifolds(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101.env_cfg import PickLiftEnvCfg
+
+        cfg = PickLiftEnvCfg()
+        for sensor in (cfg.scene.fixed_finger_contact, cfg.scene.moving_finger_contact):
+            self.assertTrue(sensor.track_contact_points)
+            self.assertGreaterEqual(sensor.max_contact_data_count_per_prim, 64)
+
+    def test_hand_table_sensors_filter_the_table_rigid_body(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101.env_cfg import PickLiftEnvCfg
+        cfg = PickLiftEnvCfg()
+        for name in ("fixed_table_contact", "moving_table_contact", "wrist_table_contact"):
+            sensor = getattr(cfg.scene, name)
+            self.assertEqual(sensor.filter_prim_paths_expr,
+                             ["{ENV_REGEX_NS}/Table/Geometry/table_base_link/table_top_link"])
+
+    def test_stale_workcell_is_rejected_by_default(self):
+        import json
+
+        with tempfile.TemporaryDirectory() as folder, patch.object(pipeline, "ROOT", Path(folder)):
+            evidence = Path(folder) / "outputs/pipeline"
+            evidence.mkdir(parents=True)
+            (evidence / "workcell_physics.json").write_text(json.dumps({"passed": True}))
+            with patch.object(pipeline, "sha256", return_value="current"):
+                with self.assertRaisesRegex(ValueError, "stale"):
+                    pipeline.read_physical_report()
+
     def reports(self):
         return [
             {

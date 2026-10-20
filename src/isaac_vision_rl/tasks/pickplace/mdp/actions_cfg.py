@@ -15,3 +15,5 @@ class SlewLimitedArmActionCfg(EMAJointPositionToLimitsActionCfg):
 @configclass
 class PolicyGripperActionCfg(JointPositionActionCfg):
     class_type: type | str = "isaac_vision_rl.tasks.pickplace.mdp.actions:PolicyGripperAction"
+    max_target_speed: float = 0.0  # Legacy direct-target behavior unless enabled.
+    max_target_acceleration: float = 0.9

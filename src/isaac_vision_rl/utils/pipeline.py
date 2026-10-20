@@ -31,6 +31,7 @@ def fingerprint():
         "src/isaac_vision_rl/utils/rl_agent.py",
         "src/isaac_vision_rl/utils/pipeline.py",
         "src/isaac_vision_rl/utils/grasp_geometry.py",
+        "src/isaac_vision_rl/utils/approach_curriculum.py",
         "scripts/eval_pipeline.py",
         "scripts/assets/build_robot_asset.py",
         "scripts/checks/check_workcell.py",
@@ -47,19 +48,22 @@ def fingerprint():
     return {p: sha256(ROOT / p) for p in paths}
 
 
-def read_physical_report():
+def read_physical_report(strict=True):
     workcell_path = ROOT / "outputs/pipeline/workcell_physics.json"
     if not workcell_path.exists():
         raise ValueError("Table/box collision evidence is missing; rerun --stage preflight.")
     workcell = json.loads(workcell_path.read_text())
-    if not workcell.get("passed") or any(
+    if not workcell.get("passed"):
+        raise ValueError("Table/box collision evidence is failed; rerun --stage preflight.")
+    stale_workcell = any(
         workcell.get(key) != sha256(ROOT / path)
         for key, path in (
             ("env_config_hash", "src/isaac_vision_rl/tasks/pickplace/config/so101/env_cfg.py"),
             ("box_reference_hash", "usd/box_reference.usda"),
             ("box_source_hash", "usd/box.usd"),
         )
-    ):
+    )
+    if stale_workcell and strict:
         raise ValueError("Table/box collision evidence is failed or stale; rerun --stage preflight.")
     path = ROOT / "outputs/pipeline/physical_grasp.json"
     if not path.exists():
@@ -67,22 +71,28 @@ def read_physical_report():
     report = json.loads(path.read_text())
     if not report.get("passed"):
         raise ValueError("Physical grasp failed; training is blocked until grasp geometry is corrected.")
+    if not report.get("table_safe") or report.get("minimum_hand_table_clearance_m", 0) < 0.005:
+        raise ValueError("Table-safe grasp evidence is missing or failed; rerun --stage preflight.")
     required = (
         "asset_hash",
         "robot_asset",
         "source_asset_hash",
         "env_config_hash",
         "above_joint_pos",
+        "grasp_joint_pos",
+        "base_pos",
+        "base_rot",
         "above_action",
         "grasp_action",
     )
     if any(key not in report for key in required) or not Path(report["robot_asset"]).is_file():
         raise ValueError("Physical grasp evidence is incomplete; rerun --stage preflight.")
-    if (
+    stale_grasp = (
         report["asset_hash"] != sha256(report["robot_asset"])
         or report["source_asset_hash"] != sha256(ROOT / "usd/robot.usd")
         or report["env_config_hash"] != sha256(ROOT / "src/isaac_vision_rl/tasks/pickplace/config/so101/env_cfg.py")
-    ):
+    )
+    if stale_grasp and strict:
         raise ValueError("Physical grasp evidence is stale; rerun --stage preflight.")
     return report
 
@@ -175,7 +185,17 @@ def configure_curriculum(cfg, stage):
     cfg.actions.gripper_action.offset = 0.6
     if stage == "grasp":
         report = read_physical_report()
-        cfg.scene.robot.init_state.joint_pos.update(report["above_joint_pos"])
+        if any(abs(a - b) > 1e-6 for a, b in zip(report["base_pos"], cfg.scene.robot.init_state.pos, strict=True)) or any(
+            abs(a - b) > 1e-6 for a, b in zip(report["base_rot"], cfg.scene.robot.init_state.rot, strict=True)
+        ):
+            raise ValueError("Grasp reset base pose differs from physical evidence; rerun --stage preflight.")
+        pose_mode = os.environ.get("SO101_GRASP_POSE", "enclosed")
+        if pose_mode not in ("above", "enclosed"):
+            raise ValueError("SO101_GRASP_POSE must be 'above' or 'enclosed'")
+        if pose_mode == "above":
+            cfg.scene.robot.init_state.joint_pos.update(report["above_joint_pos"])
+        else:
+            cfg.scene.robot.init_state.joint_pos.update(report["grasp_joint_pos"])
     if stage in ("grasp", "fixed"):
         # Fixed conditions still need an explicit pose AND velocity reset.
         # RigidObject.reset() clears buffers/wrenches, not the object's pose.
@@ -189,6 +209,31 @@ def configure_curriculum(cfg, stage):
         cfg.events.randomize_cube_mass = None
         cfg.events.randomize_cube_friction = None
     jitter = float(os.environ.get("SO101_CUBE_JITTER", "0"))
+    if os.environ.get("SO101_APPROACH_CURRICULUM", "0") == "1":
+        if stage != "fixed" or jitter != 0:
+            raise ValueError("Approach reset curriculum requires fixed cube conditions")
+        import numpy as np
+        from isaaclab.managers import EventTermCfg
+        from isaac_vision_rl.utils.approach_curriculum import reset_approach_curriculum
+        from isaac_vision_rl.utils.grasp_geometry import ARM_NAMES
+        report = read_physical_report()
+        if not np.allclose(report["base_pos"], cfg.scene.robot.init_state.pos, atol=1e-6) or not np.allclose(
+            report["base_rot"], cfg.scene.robot.init_state.rot, atol=1e-6
+        ):
+            raise ValueError("Approach grasp evidence uses a different base pose")
+        names = ARM_NAMES + ["gripper"]
+        near = np.array([report["grasp_joint_pos"][n] for n in ARM_NAMES] + [1.2])
+        home = np.array([cfg.scene.robot.init_state.joint_pos[n] for n in ARM_NAMES] + [1.2])
+        poses = [(1 - t) * near + t * home for t in np.linspace(0, 1, 41)]
+        for pose in poses:
+            pose[-1] = 1.2
+        ramp = int(os.environ.get("SO101_APPROACH_RAMP_UPDATES", "1000"))
+        if ramp < 1:
+            raise ValueError("Approach ramp must be positive")
+        cfg.events.reset_robot_joints = EventTermCfg(func=reset_approach_curriculum, mode="reset", params={
+            "joint_names": names, "start_poses": [p.tolist() for p in poses],
+            "ramp_steps": ramp * round(32 * fps / 25),
+        })
     if not 0 <= jitter <= 0.05:
         raise ValueError("Cube jitter must be between 0 and 0.05 metres")
     if jitter:
@@ -204,6 +249,11 @@ def configure_curriculum(cfg, stage):
             "y": (-box_jitter, box_jitter),
             "yaw": (-0.35, 0.35),
         }
+    if os.environ.get("SO101_REWARD_PROFILE", "legacy") == "four-stage":
+        if stage != "place" or os.environ.get("SO101_APPROACH_CURRICULUM", "0") == "1":
+            raise ValueError("Four-stage task requires --task place --curriculum place and home resets")
+        from isaac_vision_rl.utils.four_stage import configure
+        configure(cfg)
 
 
 def evaluations_pass(reports, episodes=50):

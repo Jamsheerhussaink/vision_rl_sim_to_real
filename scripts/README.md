@@ -36,8 +36,11 @@ at a time. Completing the bounded workflow does not establish grasp/lift success
 | `checks/` | `list_envs.py` | List registered environments |
 | `hardware/` | `realsense_rgb_preview.py` | Real camera preview without motor commands |
 | `hardware/` | `camera_placement_guide.py` | Live RGB with simulation ghost for manual visual alignment |
-| `hardware/` | `hardware_bridge.py`, `check_hardware_signs.py` | Motor bridge and joint mapping checks |
-| `hardware/` | `mirror_evaluation.py`, `stream_to_robot.py` | Mirror simulation poses on hardware; uses simulated camera observations |
+| `hardware/` | `hardware_bridge.py`, `check_hardware_signs.py`, `probe_connection.py` | Motor bridge, joint mapping, and read-only connection checks |
+| `hardware/` | `mirror_evaluation.py` | Mirror simulation poses on hardware; uses simulated camera observations |
+| `hardware/` | `real_camera_policy.py` | Standalone policy from real RGB and encoder feedback; shadow mode by default |
+| `hardware/` | `return_policy_home.py` | Plan a bounded nearby return to checkpoint home; execution is explicit |
+| `hardware/` | `return_photo_home.py` | Plan or execute a bounded return to the measured physical home; no checkpoint required |
 | `assets/` | `build_robot_asset.py`, `build_table_texture.py` | Rebuild robot/table assets when needed |
 
 For example, the camera preview is now:
@@ -61,4 +64,7 @@ Press `g` to toggle the ghost or `q` to close. No motors are commanded.
 Hardware tools can move motors depending on their options. For bridge startup,
 see [the startup guide](../docs/bridge_startup_checks.md).
 
-Earlier demos and debugging sessions are in [the recovery archive](../archive/README.md).
+`scripts/demo_mirror_motion.py` remains for the measured-home and table-clearance
+workflow described in [the clearance guide](../docs/photo_home_and_clearance.md).
+The old archive and superseded `compare_pick_place.py`, `park_home.py`, and
+`stream_to_robot.py` were removed in the [core cleanup](../docs/project_cleanup.md).

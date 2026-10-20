@@ -82,7 +82,12 @@ def make_env():
         find_bodies=lambda name: ([{"gripper_frame_link": 0, "gripper_link": 1, "moving_jaw_so101_v1_link": 2}[name]], [name]),
         find_joints=lambda _: ([0], ["gripper"]),
     )
-    scene = {"robot": robot, "cube": cube}
+    class Scene(dict):
+        env_origins = torch.zeros(2, 3)
+    scene = Scene(robot=robot, cube=cube)
+    from isaac_vision_rl.utils.hand_table import TABLE_SENSORS
+    for name in TABLE_SENSORS:
+        scene[name] = SimpleNamespace(data=SimpleNamespace(normal_force_matrix_w=torch.zeros(2, 1, 1, 3)))
     for name in ("fixed_finger_contact", "moving_finger_contact"):
         scene[name] = SimpleNamespace(
             data=MockContactData(
@@ -91,7 +96,8 @@ def make_env():
                 torch.tensor([[[[1.0, 0.0, 0.0]]]] * 2) * (1 if name == "fixed_finger_contact" else -1),
             )
         )
-    return SimpleNamespace(num_envs=2, device="cpu", step_dt=0.04, scene=scene)
+    return SimpleNamespace(num_envs=2, device="cpu", step_dt=0.04, scene=scene,
+                           _hand_table_vertices=[(0, torch.zeros(1, 3))])
 
 
 class PickLiftLogicTests(unittest.TestCase):
@@ -272,6 +278,16 @@ class PickLiftLogicTests(unittest.TestCase):
         self.assertEqual(success(env, hold_time_s=0.2).tolist(), [True, False])
         success.reset(torch.tensor([0]))
         self.assertFalse(success(env).any())
+
+    def test_table_contact_disqualifies_an_otherwise_valid_lift(self):
+        env = make_env()
+        env.scene["robot"].data.joint_pos.torch[:] = 0.97
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.52
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.53
+        env.scene["fixed_table_contact"].data.normal_force_matrix_w[:, 0, 0, 2] = 1.0
+        success = LiftSuccess(SimpleNamespace(), env)
+        for _ in range(20):
+            self.assertFalse(success(env).any())
 
     def test_object_goal_distance_rewards_transport_when_holding_cube(self):
         env = make_env()

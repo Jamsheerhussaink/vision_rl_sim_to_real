@@ -124,6 +124,14 @@ class ExplorationPPO(PPO):
         saved = super().save()
         saved["so101_policy_variant"] = os.environ.get("SO101_POLICY", "rgb")
         saved["so101_agent_schema"] = "rgb_policy_gripper_v1"
+        saved["so101_reward_profile"] = os.environ.get("SO101_REWARD_PROFILE", "legacy")
+        if saved["so101_reward_profile"] == "four-stage":
+            from isaac_vision_rl.utils.four_stage import VERSION
+            saved["so101_reward_version"] = VERSION
+            saved["so101_reward_style"]=os.environ.get("SO101_REWARD_STYLE","progress")
+            saved["so101_agent_schema"] = "four_stage_v2_bounded" if os.environ.get("SO101_GRASP_REWARD_MODE","bounded")=="bounded" else "four_stage_v1"
+            saved["so101_training_goal"]=os.environ.get("SO101_TRAINING_GOAL","place")
+            saved["so101_motion_profile"] = "four_stage_smooth_v1"
         saved["so101_gripper_controller"] = "policy_joint_target"
         saved["so101_cube_observation"] = "none"
         saved["so101_control_hz"] = int(os.environ.get("SO101_RGB_FPS", "30"))
@@ -157,16 +165,36 @@ class ExplorationPPO(PPO):
                         "pass --adapt-checkpoint to fine-tune at the new frequency, or start fresh without --checkpoint."
                     )
         expected_schema = "rgb_policy_gripper_v1"
+        if os.environ.get("SO101_REWARD_PROFILE", "legacy") == "four-stage":
+            expected_schema = "four_stage_v2_bounded" if os.environ.get("SO101_GRASP_REWARD_MODE","bounded")=="bounded" else "four_stage_v1"
         if loaded_dict.get("so101_agent_schema") != expected_schema:
             raise ValueError(
                 "This checkpoint uses an unsupported policy schema; "
-                "start a fresh run."
+                "Start a fresh run for bounded rewards, or use --grasp-reward-mode overlap to evaluate/resume an old four_stage_v1 checkpoint."
             )
         expected = os.environ.get("SO101_POLICY", "rgb")
         if loaded_dict.get("so101_policy_variant") != expected:
             raise ValueError(
                 f"Checkpoint policy does not match --policy {expected}; use a matching checkpoint or start fresh."
             )
+        if loaded_dict.get("is_bc_checkpoint", False):
+            # Behavior Cloning Warm-Start:
+            # 1. Strictly load actor weights only.
+            # 2. Critic remains fresh (randomly initialized for PPO to learn state values from scratch).
+            # 3. PPO optimizer remains fresh (zero momentum).
+            self._raw_actor.load_state_dict(loaded_dict["actor_state_dict"], strict=strict)
+            self.entropy_coef = min(
+                self.entropy_coef_max,
+                max(self.entropy_coef_min, float(loaded_dict.get("exploration_entropy_coef", 0.01))),
+            )
+            self.exploration_distribution().project_noise()
+            import logging
+            logging.getLogger(__name__).info(
+                "[BC-WARMSTART] Loaded actor weights from Behavior Cloning checkpoint. "
+                "Critic network and PPO optimizer remain freshly initialized; training iteration set to 0."
+            )
+            return False
+
         result = super().load(loaded_dict, load_cfg, strict)
         if load_cfg is None or load_cfg.get("optimizer", False):
             self.entropy_coef = min(
@@ -175,3 +203,4 @@ class ExplorationPPO(PPO):
             )
         self.exploration_distribution().project_noise()
         return result
+

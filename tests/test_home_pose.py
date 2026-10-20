@@ -7,7 +7,14 @@ from isaac_vision_rl.utils.calibration import FollowerArmCalibration, JOINT_ORDE
 from isaac_vision_rl.utils.home_pose import HOME_TICKS, home_joint_positions
 from isaac_vision_rl.utils.table_clearance import HandTableClearance
 from pathlib import Path
+import importlib.util
 from scripts.hardware.hardware_bridge import HardwareBridgeDaemon
+
+
+RETURN_SCRIPT = Path(__file__).resolve().parents[1] / "scripts/hardware/return_policy_home.py"
+return_spec = importlib.util.spec_from_file_location("return_policy_home_under_test", RETURN_SCRIPT)
+return_module = importlib.util.module_from_spec(return_spec)
+return_spec.loader.exec_module(return_module)
 
 
 class HomePoseTests(unittest.TestCase):
@@ -39,6 +46,28 @@ class HomePoseTests(unittest.TestCase):
         daemon.shutdown()
         daemon.bus.park_home_smoothly.assert_not_called()
         daemon.bus.close.assert_called_once_with(disable_torque=False)
+
+    def test_photo_home_return_uses_all_six_measured_ticks(self):
+        checkpoint = [2245, 2091, 2320, 2757, 3096, 3545]
+        target, source = return_module.select_home_ticks(
+            checkpoint, HOME_TICKS, photo_home=True, closed_gripper=False
+        )
+        self.assertEqual(target, list(HOME_TICKS))
+        self.assertEqual(source, "photo_calibrated")
+
+    def test_checkpoint_return_can_close_only_the_gripper(self):
+        checkpoint = [2245, 2091, 2320, 2757, 3096, 3545]
+        target, source = return_module.select_home_ticks(
+            checkpoint, HOME_TICKS, photo_home=False, closed_gripper=True
+        )
+        self.assertEqual(target[:5], checkpoint[:5])
+        self.assertEqual(target[5], HOME_TICKS[5])
+        self.assertEqual(source, "checkpoint_with_closed_gripper")
+
+    def test_standalone_photo_home_scene_matches_calibrated_pipeline_layout(self):
+        self.assertEqual(return_module.PHOTO_HOME_ROBOT_POSITION, (-0.25, 0.015, 0.405))
+        self.assertEqual(return_module.PHOTO_HOME_ROBOT_ROTATION, (0.0, 0.0, 0.0, 1.0))
+        self.assertTrue(return_module.PHOTO_HOME_ROBOT_ASSET.is_file())
 
 
 if __name__ == "__main__":

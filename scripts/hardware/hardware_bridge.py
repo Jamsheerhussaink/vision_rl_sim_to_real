@@ -20,6 +20,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 # Ensure project root is in sys.path
 ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT_DIR / "src"))
@@ -163,22 +165,30 @@ class FeetechServoBus:
             if self._read_checked(motor_id, 65, 1) != 0:
                 raise RuntimeError(f"Motor {motor_id} reports a fault")
         positions = [self._read_checked(i, 56) for i in self.calib.servo_ids]
+        margin = 35 if allow_holding else 15
         for index, pos in enumerate(positions):
-            if not self.calib.range_mins[index] <= pos <= self.calib.range_maxs[index]:
-                raise RuntimeError(f"Motor {self.calib.servo_ids[index]} is outside calibrated limits")
-        for motor_id, pos in zip(self.calib.servo_ids, positions):
+            if not self.calib.range_mins[index] - margin <= pos <= self.calib.range_maxs[index] + margin:
+                raise RuntimeError(
+                    f"Motor {self.calib.servo_ids[index]} is outside calibrated limits: "
+                    f"measured={pos}, limits=[{int(self.calib.range_mins[index])}, {int(self.calib.range_maxs[index])}]"
+                )
+        hold_targets = [
+            int(np.clip(pos, self.calib.range_mins[i], self.calib.range_maxs[i]))
+            for i, pos in enumerate(positions)
+        ]
+        for motor_id, pos in zip(self.calib.servo_ids, hold_targets):
             self._write_checked(motor_id, 42, pos)
-        for motor_id, pos in zip(self.calib.servo_ids, positions):
+        for i, (motor_id, pos) in enumerate(zip(self.calib.servo_ids, hold_targets)):
             if self._read_checked(motor_id, 42) != pos:
                 raise RuntimeError(f"Motor {motor_id} holding target readback differs")
-            if abs(self._read_checked(motor_id, 56) - pos) > 3:
+            if abs(self._read_checked(motor_id, 56) - positions[i]) > 3:
                 raise RuntimeError(f"Motor {motor_id} shifted during startup; retry with a stationary arm")
             # Feetech STS3215 hardware firmware sets Torque_Enable=1 on Goal_Position write.
             # Only on fake register bus simulation is torque expected to remain strictly 0 after a goal write.
             if type(self.packet_handler).__name__ == "RegisterBus" and self._read_checked(motor_id, 40, 1) != 0:
                 raise RuntimeError(f"Motor {motor_id} became powered during preparation; refusing startup")
-        logger.info(f"Verified measured holding targets: {positions}")
-        return positions
+        logger.info(f"Verified measured holding targets: {hold_targets}")
+        return hold_targets
 
     def enable_torque(self, allow_holding: bool = False) -> list[int]:
         initial_torque = [self._read_checked(motor_id, 40, 1) for motor_id in self.calib.servo_ids]

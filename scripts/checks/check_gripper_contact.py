@@ -173,6 +173,15 @@ def inspect_sim_contact(device: str = "cuda:0", viz: str | None = None, output_i
             print("-" * 60)
             print(f"Sensor: {sensor_name} (Body: {body_name})")
             print(f"  Total Normal Force:     {force_mag:.3f} N")
+            contact_view = getattr(sensor, "contact_view", None)
+            if contact_view is not None:
+                raw = contact_view.get_contact_data(dt=unwrapped.sim.get_physics_dt())
+                import warp as wp
+                raw = [wp.to_torch(value) if isinstance(value, wp.array) else to_torch(value) for value in raw]
+                print("  Raw counts/start:", raw[-2].cpu().tolist(), raw[-1].cpu().tolist())
+                count = int(raw[-2].reshape(-1)[0])
+                start = int(raw[-1].reshape(-1)[0])
+                print("  Raw world contact points:", raw[1][start:start + count].cpu().tolist())
             if valid.any():
                 v_pts = pts[valid].cpu().numpy()[0]
                 v_local = local_pts[valid][0]

@@ -59,16 +59,16 @@ requirements, tracking limits and shutdown behavior are documented in
 
 ## Retained project tools
 
-The six everyday entry points stay in `scripts/`: `train.py`, `play.py`,
+The training and evaluation entry points stay in `scripts/`: `train.py`, `play.py`,
 `eval_pipeline.py`, `train_live_session.py`, `train_pipeline.py`, and
 `capture_snapshot.py`. Supporting tools live in `scripts/checks/`,
 `scripts/hardware/`, and `scripts/assets/`.
 
 See [scripts/README.md](scripts/README.md) for the full tool list and commands.
-Earlier demo and troubleshooting scripts are stored in a recoverable
-[archive](archive/README.md).
+Obsolete recordings, exports, and the earlier script archive have been removed.
+See [docs/project_cleanup.md](docs/project_cleanup.md) for the retained files.
 
 Required runtime textures are in usd/. Checkpoints and curated model artifacts
-are preserved. See [docs/project_cleanup.md](docs/project_cleanup.md) for recovery.
+are preserved. Cleanup deletions are recorded in the manifest linked from that guide.
 [docs/ppo_pipeline_explained.md](docs/ppo_pipeline_explained.md) and the RL study notes
 include historical pipeline details; the RGB guide describes the active variant.

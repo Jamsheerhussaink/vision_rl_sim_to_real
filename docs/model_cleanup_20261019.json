@@ -1,0 +1,899 @@
+{
+  "policy": "Keep active run, newest substantive checkpoints and exact references in project/evaluation files.",
+  "removed": [
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-08-42/model_0.pt",
+      "bytes": 30492983,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-11-26/model_0.pt",
+      "bytes": 30492983,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_0.pt",
+      "bytes": 30492983,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_100.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_200.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_300.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_400.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_550.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_600.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_650.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_700.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_800.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_850.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_900.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_950.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_1050.pt",
+      "bytes": 30493557,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_1100.pt",
+      "bytes": 30493557,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_1150.pt",
+      "bytes": 30493557,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_1200.pt",
+      "bytes": 30493557,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_15-45-26/model_500.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_15-45-26/model_550.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_15-45-26/model_600.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_15-45-26/model_650.pt",
+      "bytes": 30493451,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_16-35-31/model_0.pt",
+      "bytes": 30492983,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_16-56-14/model_0.pt",
+      "bytes": 30477431,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-20-08/model_0.pt",
+      "bytes": 30477431,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-20-08/model_1.pt",
+      "bytes": 30477431,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-20-52/model_0.pt",
+      "bytes": 30477431,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-20-52/model_3.pt",
+      "bytes": 30477431,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-23-07/model_0.pt",
+      "bytes": 30477495,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-23-07/model_1.pt",
+      "bytes": 30477495,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-23-47/model_0.pt",
+      "bytes": 30477495,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-00-18/model_0.pt",
+      "bytes": 30477559,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-04-45/model_0.pt",
+      "bytes": 30477559,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-11-31/model_0.pt",
+      "bytes": 30477559,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-17-53/model_0.pt",
+      "bytes": 30477559,
+      "reason": "startup/test checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_50.pt",
+      "bytes": 30477921,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_100.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_150.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_200.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_250.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_300.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_350.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_400.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_450.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_500.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_550.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_600.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_650.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_700.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_750.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_800.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_850.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_900.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_950.pt",
+      "bytes": 30478027,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1000.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1050.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1100.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1150.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1200.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1250.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1300.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1350.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1400.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1450.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1500.pt",
+      "bytes": 30478133,
+      "reason": "superseded intermediate checkpoint"
+    }
+  ],
+  "kept": [
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1250.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1300.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1350.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1400.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1450.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1500.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1550.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1600.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1650.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1700.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1750.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1800.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1850.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_13-11-21/model_1900.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/model_1900.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/model_1950.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-15_18-49-25/model_1999.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_0.pt",
+      "bytes": 30492983,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_50.pt",
+      "bytes": 30493345,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_100.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_150.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_200.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_250.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_300.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_350.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_400.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_450.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_500.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_550.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_600.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_650.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_700.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_750.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_800.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_850.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_900.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_950.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1000.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1050.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1100.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1150.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1200.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1250.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1300.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1350.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1400.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1450.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1500.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1550.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1600.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1650.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1700.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1750.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1800.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1850.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1900.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1950.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-16_17-50-20/model_1999.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/model_2000.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_09-45-30/model_2050.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-08-42/model_1.pt",
+      "bytes": 30492983,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_50.pt",
+      "bytes": 30493345,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_150.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_250.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_350.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_450.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_10-12-57/model_499.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-03-05/model_500.pt",
+      "bytes": 30493451,
+      "reason": "newest checkpoint of substantive run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_500.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_750.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_1000.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_13-04-04/model_1250.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_15-45-26/model_700.pt",
+      "bytes": 30493451,
+      "reason": "newest checkpoint of substantive run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_16-21-30/model_500.pt",
+      "bytes": 30493451,
+      "reason": "newest checkpoint of substantive run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-17_16-35-31/model_50.pt",
+      "bytes": 30493345,
+      "reason": "newest checkpoint of substantive run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_0.pt",
+      "bytes": 30492983,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_50.pt",
+      "bytes": 30493345,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_100.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_150.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_200.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_250.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_300.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_350.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_400.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_450.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_500.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_550.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_600.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_650.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_700.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_750.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_800.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_850.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_900.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_950.pt",
+      "bytes": 30493451,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1000.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1050.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1100.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1150.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1200.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1250.pt",
+      "bytes": 30493557,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_16-56-14/model_1.pt",
+      "bytes": 30477431,
+      "reason": "referenced by project/evaluation"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v1/2026-10-17_17-23-47/model_50.pt",
+      "bytes": 30477857,
+      "reason": "newest checkpoint of substantive run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-04-45/model_50.pt",
+      "bytes": 30477921,
+      "reason": "newest checkpoint of substantive run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1550.pt",
+      "bytes": 30478133,
+      "reason": "newest checkpoint of substantive run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-19_09-42-12/model_1550.pt",
+      "bytes": 30478133,
+      "reason": "active training run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-19_09-42-12/model_1600.pt",
+      "bytes": 30478133,
+      "reason": "active training run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-19_09-42-12/model_1650.pt",
+      "bytes": 30478133,
+      "reason": "active training run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-19_09-42-12/model_1700.pt",
+      "bytes": 30478133,
+      "reason": "active training run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-19_09-42-12/model_1750.pt",
+      "bytes": 30478133,
+      "reason": "active training run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-19_09-42-12/model_1800.pt",
+      "bytes": 30478133,
+      "reason": "active training run"
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-19_09-42-12/model_1850.pt",
+      "bytes": 30478133,
+      "reason": "active training run"
+    }
+  ],
+  "removed_bytes": 2011913122,
+  "completed": true
+}

@@ -1,5 +1,9 @@
 # Observe a trained policy reacting to real RGB and encoder feedback
 
+Cleanup note (2026-10-17): historical videos, per-frame traces, and diagnostic
+images referenced below were removed. Retained JSON summaries remain evidence;
+new runs can create fresh recordings. See [the cleanup guide](project_cleanup.md).
+
 This is different from `mirror_evaluation.py`: no simulator launches and no
 simulated camera or joint state is used. `scripts/hardware/real_camera_policy.py`
 loads the trained actor directly and feeds it RealSense RGB and physical encoders.

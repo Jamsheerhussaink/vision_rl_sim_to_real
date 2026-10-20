@@ -7,7 +7,34 @@ import yaml
 from tensordict import TensorDict
 
 from isaac_vision_rl.utils.calibration import JOINT_ORDER
+from isaac_vision_rl.utils.home_pose import home_joint_positions
 from isaac_vision_rl.utils.rgb_image import actor_rgb
+
+RGB_PROFILES = {
+    "424x240_letterbox128_v1": (424, 240),
+    "1280x720_letterbox128_v1": (1280, 720),
+}
+
+
+def camera_profile_dimensions(profile: str) -> tuple[int, int]:
+    """Return the native RGB dimensions required by a saved policy profile."""
+    try:
+        return RGB_PROFILES[profile]
+    except KeyError as error:
+        raise ValueError(f"Unsupported RGB profile: {profile}") from error
+
+
+def deployed_policy_home() -> np.ndarray:
+    """Return the joint reference used by configure_curriculum() at runtime.
+
+    Isaac Lab writes ``params/env.yaml`` before the curriculum hook mutates
+    the arm pose.  That file therefore contains the base asset pose, not the
+    calibrated physical arm reference.  The gripper starts open in simulation;
+    the five arm joints use the measured photo-home calibration.
+    """
+    values = home_joint_positions()
+    values["gripper"] = 1.2
+    return np.asarray([values[joint] for joint in JOINT_ORDER], dtype=float)
 
 
 class RealPolicy:
@@ -16,8 +43,8 @@ class RealPolicy:
         from rsl_rl.models import CNNModel
         checkpoint = Path(checkpoint).resolve()
         saved = torch.load(checkpoint, map_location=device, weights_only=False)
-        if saved.get("so101_rgb_profile") not in ("424x240_letterbox128_v1", "1280x720_letterbox128_v1"):
-            raise ValueError("Unsupported RGB profile")
+        self.rgb_profile = saved.get("so101_rgb_profile")
+        self.camera_width, self.camera_height = camera_profile_dimensions(self.rgb_profile)
         if saved.get("so101_agent_schema") != "rgb_policy_gripper_v1" or saved.get("so101_policy_variant") != "rgb":
             raise ValueError("Unsupported policy schema")
         self.hz = int(saved["so101_control_hz"])
@@ -26,7 +53,7 @@ class RealPolicy:
         # BaseLoader does not construct arbitrary Python objects from saved YAML.
         env = yaml.load((checkpoint.parent / "params/env.yaml").read_text(), Loader=yaml.BaseLoader)
         agent = yaml.load((checkpoint.parent / "params/agent.yaml").read_text(), Loader=yaml.BaseLoader)
-        self.home = np.array([float(env["scene"]["robot"]["init_state"]["joint_pos"][j]) for j in JOINT_ORDER])
+        self.home = deployed_policy_home()
         self.duration = float(env["episode_length_s"])
         self.device = device
         arm = env["actions"]["arm_action"]

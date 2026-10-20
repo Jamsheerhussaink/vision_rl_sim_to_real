@@ -1,5 +1,9 @@
 # Gripper contact inspection
 
+Cleanup note (2026-10-17): historical videos, per-frame traces, and diagnostic
+images referenced below were removed. Retained JSON summaries remain evidence;
+new runs can create fresh recordings. See [the cleanup guide](project_cleanup.md).
+
 Use eval_pipeline.py --record-video --contact-overlay to render the authored
 collision-pad boxes and PhysX mean contact positions on the saved video only.
 The overlay is never fed into the actor. It does not change collision shapes,

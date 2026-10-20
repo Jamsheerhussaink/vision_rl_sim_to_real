@@ -1,1 +1,0 @@
-/home/ai/jamshi/isaac_vision_rl/scripts/hardware/compare_pick_place.py

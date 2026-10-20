@@ -38,6 +38,7 @@ __all__ = [
     "gripper_camera_boundary_penalty",
     "gripper_outside_camera_view",
     "object_outside_camera_view",
+    "unsafe_hand_table_contact",
 ]
 
 # Forward stable MDP terms lazily, then override with environment-specific terms below.
@@ -53,6 +54,7 @@ from .observations import (
     time_remaining,
 )
 from .terminations import (
+    unsafe_hand_table_contact,
     gripper_outside_camera_view,
     object_outside_camera_view,
 )

@@ -32,3 +32,16 @@ def test_filter_settles_without_persistent_oscillation():
                                                     torch.full_like(position, 0.75), 2.0, 0.04)
     assert torch.allclose(position, torch.ones_like(position), atol=1e-5)
     assert velocity.abs().max() < 1e-5
+
+
+def test_gripper_noise_reversals_remain_speed_and_acceleration_bounded():
+    position=torch.ones(3,1)*1.2
+    velocity=torch.zeros_like(position)
+    speed=torch.full_like(position,.45)
+    for i in range(240):
+        target=torch.full_like(position,.5 if (i//15)%2==0 else 1.2)
+        before=velocity.clone()
+        position,velocity=bounded_reference_step(position,target,velocity,speed,.9,1/30)
+        assert velocity.abs().max()<=.450001
+        assert (velocity-before).abs().max()<=.9/30+1e-6
+        assert torch.isfinite(position).all()

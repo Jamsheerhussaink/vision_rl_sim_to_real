@@ -60,8 +60,21 @@ class SlewLimitedArmAction(EMAJointPositionToLimitsAction):
 
 class PolicyGripperAction(JointPositionAction):
     """Apply the learned jaw target without camera-based overrides."""
+    def __init__(self,cfg,env):
+        super().__init__(cfg,env)
+        self._control_dt=env.step_dt
+        self._reference_velocity=torch.zeros_like(self._processed_actions)
+        self._previous_target=self._processed_actions.clone()
+
     def reset(self, env_ids=None):
         super().reset(env_ids)
+        ids=slice(None) if env_ids is None else env_ids
+        if self.cfg.max_target_speed>0:
+            actual=self._asset.data.joint_pos.torch[:,self._joint_ids]
+            self._processed_actions[ids]=actual[ids]
+            self._previous_target[ids]=actual[ids]
+            self._reference_velocity[ids]=0
+            return
         # Preserve the RGB controller's observed reset target for checkpoints.
         self._processed_actions[slice(None) if env_ids is None else env_ids] = 1.2
 
@@ -69,3 +82,13 @@ class PolicyGripperAction(JointPositionAction):
         if not torch.isfinite(actions).all():
             raise FloatingPointError("Non-finite gripper action")
         super().process_actions(actions)
+        if self.cfg.max_target_speed>0:
+            reference,velocity=bounded_reference_step(
+                self._previous_target,self._processed_actions,self._reference_velocity,
+                torch.full_like(self._processed_actions,self.cfg.max_target_speed),
+                self.cfg.max_target_acceleration,self._control_dt)
+            limits=self._asset.data.soft_joint_pos_limits.torch[:,self._joint_ids]
+            clipped=torch.maximum(torch.minimum(reference,limits[...,1]),limits[...,0])
+            self._reference_velocity[:]=torch.where(reference==clipped,velocity,0.)
+            self._processed_actions[:]=clipped
+            self._previous_target[:]=clipped

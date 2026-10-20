@@ -103,10 +103,12 @@ class ReachCubeProgress(ManagerTermBase):
         return progress / env.step_dt if time_normalized else progress
 
 
-def bilateral_cube_contact(env, min_force=0.02):
-    """Require opposing cube contact inside both CAD fingertip regions."""
+def bilateral_cube_contact_diagnostics(env, min_force=0.02):
+    """Report the checks used to decide whether both fingertips pinch the cube."""
     contacts = []
     vectors = []
+    point_in_pad = []
+    force_magnitudes = []
     robot = env.scene["robot"]
     for name, body_name, lower, upper in (
         ("fixed_finger_contact", "gripper_link", (-0.028, -0.010, -0.106), (-0.005, 0.010, -0.064)),
@@ -128,13 +130,33 @@ def bilateral_cube_contact(env, min_force=0.02):
         inside = ((local >= torch.tensor(lower, device=local.device))
                   & (local <= torch.tensor(upper, device=local.device))).all(dim=-1)
         vector = forces.reshape(env.num_envs, -1, 3).sum(dim=1)
-        contacts.append(inside.any(dim=1) & (torch.linalg.vector_norm(vector, dim=-1) > min_force))
+        magnitude = torch.linalg.vector_norm(vector, dim=-1)
+        in_pad = inside.any(dim=1)
+        point_in_pad.append(in_pad)
+        force_magnitudes.append(magnitude)
+        contacts.append(in_pad & (magnitude > min_force))
         vectors.append(vector)
-    opposition = torch.nn.functional.cosine_similarity(vectors[0], vectors[1], dim=-1) < -0.2
+    cosine = torch.nn.functional.cosine_similarity(vectors[0], vectors[1], dim=-1)
+    opposition = cosine < -0.2
     bilateral = contacts[0] & contacts[1] & opposition
     if hasattr(env, "extras"):
         env.extras.setdefault("log", {})["Grasp/bilateral_contact_fraction"] = bilateral.float().mean()
-    return bilateral
+    return {
+        "bilateral": bilateral,
+        "fixed_contact_in_pad": point_in_pad[0],
+        "moving_contact_in_pad": point_in_pad[1],
+        "fixed_force_N": force_magnitudes[0],
+        "moving_force_N": force_magnitudes[1],
+        "fixed_force_vector_N": vectors[0],
+        "moving_force_vector_N": vectors[1],
+        "opposing_forces": opposition,
+        "force_cosine": cosine,
+    }
+
+
+def bilateral_cube_contact(env, min_force=0.02):
+    """Require opposing cube contact inside both CAD fingertip regions."""
+    return bilateral_cube_contact_diagnostics(env, min_force)["bilateral"]
 
 
 class GraspCubeProgress(ManagerTermBase):
@@ -192,8 +214,12 @@ class LiftSuccess(ManagerTermBase):
         offset = cube_pos - robot.data.body_pos_w.torch[:, body_idx]
         xy_dist = torch.norm(offset[:, :2], dim=-1)
         z_dist = torch.abs(offset[:, 2])
+        from isaac_vision_rl.utils.hand_table import hand_table_metrics
+        clearance, table_force = hand_table_metrics(env)
         held = (
             bilateral_cube_contact(env)
+            & (clearance >= 0.003)
+            & (table_force <= 0.1)
             & (cube_pos[:, 2] > minimal_height)
             & (xy_dist < 0.035)
             & (z_dist < 0.045)
@@ -285,8 +311,8 @@ def premature_gripper_closure_penalty(
     xy_dist = torch.norm(cube_pos[:, :2] - ee_pos[:, :2], dim=-1)
     z_above = ee_pos[:, 2] - cube_pos[:, 2]
 
-    # Penalize closing if tool center point is > 1 cm above cube center or laterally misaligned (> 3 cm)
-    too_high = (z_above > 0.010) | (xy_dist > 0.030)
+    # Penalize closing if tool center point is above top face of cube (> 2.5 cm above center) or laterally misaligned (> 3 cm)
+    too_high = (z_above > 0.025) | (xy_dist > 0.030)
 
     gripper_pos = robot.data.joint_pos.torch[:, gripper_idx]
     closure = torch.clamp((1.15 - gripper_pos) / 0.75, min=0.0, max=1.0)
@@ -350,8 +376,10 @@ def grasp_cube(
     )
 
     downward = _tool_downward_alignment(robot, body_idx, env)
+    bilateral = bilateral_cube_contact(env).float()
 
-    return near_cube * close_amount * downward * bilateral_cube_contact(env).float()
+    # Alignment shaping is separate; grasp credit requires physical contact on both fingers.
+    return near_cube * close_amount * downward * bilateral
 
 
 def cube_table_drag_penalty(
@@ -410,14 +438,10 @@ def gripper_table_collision_penalty(
     ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     ee_body_name: str = "gripper_frame_link",
 ) -> torch.Tensor:
-    """Penalize the gripper scraping or digging into the tabletop (strictly clamped to max 1.0 per step)."""
-    robot: Articulation = env.scene[ee_cfg.name]
-    body_idx = robot.find_bodies(ee_body_name)[0][0]
-    ee_z = robot.data.body_pos_w.torch[:, body_idx, 2]
-
-    # Clamp penetration to max 5cm so depenetration solver spikes never blow up PPO returns
-    penetration = torch.clamp(table_height - ee_z, min=0.0, max=0.05)
-    return penetration * 20.0
+    """Repel actual wrist/finger surfaces from the table and penalize filtered contact."""
+    from isaac_vision_rl.utils.hand_table import hand_table_metrics
+    clearance, force = hand_table_metrics(env)
+    return ((0.008 - clearance) / 0.008).clamp(0, 1) + (force / 2.0).clamp(0, 1)
 
 
 def safe_joint_vel_penalty(

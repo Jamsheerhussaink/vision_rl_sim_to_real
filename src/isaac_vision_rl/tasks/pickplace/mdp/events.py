@@ -6,6 +6,13 @@ def select_task_camera_view(env, env_ids=None):
 
     Headless runs have no viewport and require no presentation changes.
     """
+    import os
+    if os.environ.get('SO101_REWARD_PROFILE')=='four-stage':
+        from isaac_vision_rl.utils.newton_colors import apply_newton_colors
+        for visualizer in env.sim.visualizers:
+            viewer=getattr(visualizer,'_viewer',None)
+            if viewer is not None and getattr(viewer,'model',None) is not None:
+                apply_newton_colors(viewer)
     # Newton's GL camera is world-space. Offset by env_0's origin so a grid
     # centered elsewhere does not leave the camera looking between workcells.
     for visualizer in env.sim.visualizers:
