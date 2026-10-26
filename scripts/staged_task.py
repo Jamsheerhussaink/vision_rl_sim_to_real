@@ -1,5 +1,5 @@
 """Four-stage manual control, bounded scripted diagnostics and policy evaluation."""
-import argparse,json,os,re,sys,time
+import argparse,json,math,os,re,sys,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
@@ -7,14 +7,19 @@ sys.path.insert(0,str(ROOT/'src'))
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--mode',choices=['manual','hold','scripted','evaluate','controller-smoke','ik-teacher'],default='manual')
+    p.add_argument('--mode',choices=['manual','hold','scripted','evaluate','controller-smoke','ik-teacher','dagger'],default='manual')
     p.add_argument('--headless',action='store_true')
     p.add_argument('--reward-style',choices=['continuous','progress'],default='continuous')
     p.add_argument('--keep-open',action='store_true',help='Keep Newton and final reward graphs visible after the bounded attempt')
     p.add_argument('--checkpoint')
+    p.add_argument('--lift-hold-seconds',type=float,default=None,help='Override saved lift hold duration for a transition diagnostic')
+    p.add_argument('--lift-rise-min',type=float,default=None)
+    p.add_argument('--lift-rise-max',type=float,default=None)
     p.add_argument('--max-steps',type=int,default=0)
     p.add_argument('--output',default='outputs/four_stage/session.json')
-    p.add_argument('--record-demo',action='store_true',help='Save aligned actor observations and actions from IK teacher; only successful episodes are eligible for cloning')
+    p.add_argument('--record-demo',action='store_true',help='Save aligned actor observations and expert actions; only complete safe attempts are eligible for cloning')
+    p.add_argument('--dagger-policy-steps',type=int,default=5,help='Number of learner actions before the IK teacher takes control in DAgger mode')
+    p.add_argument('--dagger-safe-clearance-mm',type=float,default=5.5,help='Hand-table margin that triggers teacher takeover in DAgger mode')
     p.add_argument('--record-video',action='store_true')
     p.add_argument('--only-success-video',action='store_true',help='Discard recorded video if the rollout does not achieve success')
     p.add_argument('--reward-window',action='store_true',help='Open standalone live reward charts window (supports headless mode)')
@@ -34,6 +39,8 @@ def main():
         os.environ["SO101_GRASP_REWARD_MODE"]=("bounded" if metadata.get("so101_agent_schema")=="four_stage_v2_bounded" else "overlap")
         os.environ["SO101_REWARD_STYLE"]=metadata.get("so101_reward_style","progress")
         os.environ["SO101_TRAINING_GOAL"]=metadata.get("so101_training_goal","place")
+        for key,default in (('rise_min',.15),('rise_max',.20),('hold_seconds',.5)):
+            os.environ['SO101_LIFT_'+key.upper()]=str(metadata.get('so101_lift_'+key,default))
         profile=metadata.get('so101_rgb_profile','1280x720_letterbox128_v1')
         resolution=re.fullmatch(r'(\d+)x(\d+)_letterbox128_v1',profile)
         if resolution is None:p.error(f'Unsupported checkpoint image profile: {profile}')
@@ -41,18 +48,31 @@ def main():
         control_hz=int(metadata.get('so101_control_hz',30))
         if control_hz not in (25,30,60):p.error(f'Unsupported checkpoint control rate: {control_hz}')
         del metadata
+    for key in ('rise_min','rise_max','hold_seconds'):
+        value=getattr(args,'lift_'+key)
+        if value is not None:
+            if not math.isfinite(value) or value<=0:p.error('Lift overrides must be finite and positive')
+            os.environ['SO101_LIFT_'+key.upper()]=str(value)
+    if float(os.environ.get('SO101_LIFT_RISE_MAX','.20'))<=float(os.environ.get('SO101_LIFT_RISE_MIN','.15')):
+        p.error('Maximum lift rise must exceed minimum')
     if args.keep_open and args.headless and not args.reward_window:p.error('--keep-open requires the viewer or --reward-window')
-    if args.record_demo and args.mode!='ik-teacher':p.error('--record-demo requires --mode ik-teacher')
+    if args.record_demo and args.mode not in ('ik-teacher','dagger'):p.error('--record-demo requires --mode ik-teacher or dagger')
+    if args.mode=='dagger' and not args.checkpoint:p.error('--mode dagger requires --checkpoint')
+    if args.mode=='dagger' and not args.record_demo:p.error('--mode dagger requires --record-demo')
+    if args.dagger_policy_steps<0 or not math.isfinite(args.dagger_safe_clearance_mm) or args.dagger_safe_clearance_mm<0:
+        p.error('DAgger action count and clearance must be non-negative')
 
     if args.mode=='manual' and args.headless:p.error('Manual control requires Newton Viewer')
-    if args.mode=='evaluate' and not args.checkpoint:p.error('Evaluation requires a new four-stage checkpoint')
+    if args.mode=='evaluate' and not args.checkpoint:p.error('Evaluation requires a four-stage checkpoint')
     os.environ.update(SO101_POLICY='rgb',SO101_CURRICULUM='place',SO101_REWARD_PROFILE='four-stage',
                      SO101_APPROACH_CURRICULUM='0',SO101_CUBE_JITTER='0',SO101_BOX_JITTER='0',SO101_RGB_FPS=str(control_hz))
     import numpy as np
     import torch
     from isaaclab.app import launch_simulation
     from isaac_vision_rl.tasks.pickplace.config.so101.env_cfg import PickplaceEnvCfg
-    from isaac_vision_rl.utils.four_stage import tick,machine,VERSION
+    from isaac_vision_rl.utils.four_stage import (
+        tick,machine,VERSION,LIFT_RISE_MIN_M,LIFT_RISE_MAX_M,
+    )
     from isaac_vision_rl.utils.grasp_geometry import ARM_NAMES
     from isaac_vision_rl.utils.reward_panel import RewardPanel
     cfg=PickplaceEnvCfg();cfg.scene.num_envs=1;cfg.sim.device=args.device;cfg.seed=args.seed
@@ -68,8 +88,8 @@ def main():
     cfg.sim.default_visualizer_cfg.streaming_view=True
     cfg.sim.default_visualizer_cfg.streaming_envs=[0]
     output=Path(args.output);output.parent.mkdir(parents=True,exist_ok=True)
-    if args.mode=="ik-teacher" and (output.exists() or output.with_suffix(".mp4").exists()):
-        p.error("Use a new output path to preserve existing IK evidence")
+    if args.mode in ("ik-teacher", "dagger") and (output.exists() or output.with_suffix(".mp4").exists()):
+        p.error("Use a new output path to preserve existing teacher/DAgger evidence")
     rows=[];video=None;demo=None;teacher=None;demo_success=False;ui_frames=0
     with launch_simulation(cfg,{'device':args.device,'visualizer':None if args.headless else 'newton'}):
         from isaaclab.envs import ManagerBasedRLEnv
@@ -96,6 +116,7 @@ def main():
                 group_contribution=initial.group_contribution[0].cpu().tolist(),
                 raw=initial.raw[0].cpu().tolist(),contribution=initial.contribution[0].cpu().tolist(),
                 step_reward=0.,measurements={k:float(initial.measurements[k][0])
+                    if k in initial.measurements else 0.
                     for k in ('height','clearance','table_force','bilateral','slide_distance')})
             viewer=None
             if not args.headless:
@@ -113,7 +134,7 @@ def main():
                 env.action_manager.reset(env_ids=torch.arange(env.num_envs,device=args.device))
                 robot.set_joint_position_target(robot.data.joint_pos.torch.clone())
             policy=None
-            if args.mode=='evaluate':
+            if args.mode in ('evaluate','dagger'):
                 from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper,handle_deprecated_rsl_rl_cfg
                 from isaaclab.utils.dict import class_to_dict
                 from rsl_rl.runners import OnPolicyRunner
@@ -123,7 +144,7 @@ def main():
                 wrapped=RslRlVecEnvWrapper(env,clip_actions=agent.clip_actions)
                 runner=OnPolicyRunner(wrapped,class_to_dict(agent),log_dir=None,device=args.device)
                 runner.load(str(Path(args.checkpoint).resolve()));policy=runner.get_inference_policy()
-            if args.mode=='ik-teacher':
+            if args.mode in ('ik-teacher','dagger'):
                 from isaac_vision_rl.utils.ik_teacher import IKTeacher
                 from isaac_vision_rl.utils.grasp_geometry import GraspGeometry
                 from isaac_vision_rl.utils.table_clearance import HandTableClearance
@@ -152,7 +173,9 @@ def main():
                         (bp+[0,0,.043],1.2,2.),(bp+[0,0,.10],1.2,3.)):
                     q=g.solve(pos,q);plan.append((q.copy(),jaw,duration))
                 plan.append((q.copy(),1.2,1.))
+            from isaac_vision_rl.utils.dagger import should_use_teacher
             phase=0;phase_time=0.;start_target=target.clone()
+            dagger_policy_steps=0;dagger_teacher_control=False
             if args.record_video:
                 import cv2
                 video=cv2.VideoWriter(str(output.with_suffix('.mp4')),cv2.VideoWriter_fourcc(*'mp4v'),30.,
@@ -171,8 +194,9 @@ def main():
                     panel.snapshot=dict(stage=int(fresh.stage[0]),reward_stage=int(fresh.reward_stage[0]),
                         group_contribution=[[0.,0.,0.] for _ in range(4)],
                         raw=[0.,0.,0.],contribution=[0.,0.,0.],step_reward=0.,
-                        measurements={k:float(fresh.measurements[k][0]) for k in
-                            ('height','clearance','table_force','bilateral','slide_distance')})
+                        measurements={k:float(fresh.measurements[k][0])
+                            if k in fresh.measurements else 0.
+                            for k in ('height','clearance','table_force','bilateral','slide_distance')})
                 if panel.stop_requested:
                     hold();panel.stop_requested=False
                 if args.ui_smoke or (args.mode=='manual' and (panel.paused or panel.locked)):
@@ -190,7 +214,7 @@ def main():
                     target+=torch.tensor(panel.velocity,device=args.device)*env.step_dt
                     if panel.hold_gripper:
                         target[5]=panel.gripper_hold_target
-                elif args.mode=='ik-teacher':
+                elif args.mode in ('ik-teacher','dagger'):
                     state=tick(env)
                     body=robot.find_bodies('gripper_frame_link')[0][0]
                     proposed=teacher.step(robot.data.joint_pos.torch[0,ids].cpu().numpy(),
@@ -215,15 +239,35 @@ def main():
                 action=torch.zeros(1,6,device=args.device)
                 action[0,:5]=2*(target[:5]-limits[:5,0])/(limits[:5,1]-limits[:5,0])-1
                 action[0,5]=(target[5]-.6)/.6
+                expert_action=None
                 if policy is not None:
                     with torch.inference_mode():action=policy(wrapped.get_observations())
                     if agent.clip_actions is not None:
                         action=action.clamp(-agent.clip_actions,agent.clip_actions)
+                    if args.mode=='dagger':
+                        expert_action=torch.zeros_like(action)
+                        expert_action[0,:5]=2*(target[:5]-limits[:5,0])/(limits[:5,1]-limits[:5,0])-1
+                        expert_action[0,5]=(target[5]-.6)/.6
+                        clearance_m=float(state.measurements['clearance'][0])
+                        dagger_teacher_control=should_use_teacher(
+                            policy_steps=dagger_policy_steps,
+                            clearance_m=clearance_m,
+                            takeover_after_steps=args.dagger_policy_steps,
+                            minimum_clearance_m=args.dagger_safe_clearance_mm/1000.,
+                            teacher_already_in_control=dagger_teacher_control,
+                        )
+                        if dagger_teacher_control:
+                            action=expert_action
+                        else:
+                            dagger_policy_steps+=1
                 if demo is not None:
                     # Snapshot BEFORE stepping: post-step observations would mislabel actions.
                     pre_policy=obs['policy'][0].detach().cpu().numpy().copy()
                     pre_image=obs['image'][0].detach().cpu().numpy().copy()
-                    sent_action=action[0].detach().cpu().numpy().copy()
+                    # DAgger stores the teacher's correction for the exact
+                    # pre-action observation, even while the learner acts.
+                    sent_action=(expert_action[0] if args.mode=='dagger' and expert_action is not None
+                                 else action[0]).detach().cpu().numpy().copy()
                     teacher_phase=teacher.phase_name
                 obs,reward,terminated,truncated,info=env.step(action)
                 if demo is not None:
@@ -232,7 +276,8 @@ def main():
                 steps+=1
                 s=tick(env);m=s.measurements
                 panel.total+=float(reward[0]);panel.joints=robot.data.joint_pos.torch[0,ids].cpu().tolist()
-                diagnostics={k:round(float(m[k][0]),5) for k in ('jaw','height','speed','clearance','table_force','slide_speed','slide_distance','bilateral','enclosed','reach_ready','unsafe','pregrasp_distance','alignment','enclosure','box_distance','lowering','fixed_contact_in_pad','moving_contact_in_pad','fixed_contact_force_N','moving_contact_force_N','fixed_contact_force_x_N','fixed_contact_force_y_N','fixed_contact_force_z_N','moving_contact_force_x_N','moving_contact_force_y_N','moving_contact_force_z_N','opposing_contact_forces','contact_force_cosine')}
+                diagnostic_names=('jaw','height','lift_rise','speed','clearance','table_force','slide_speed','slide_distance','bilateral','enclosed','reach_ready','unsafe','inside_box','placed','opening_for_release','top_push','top_approach_push','side_push','tool_down_speed','pregrasp_distance','alignment','enclosure','box_distance','lowering','fixed_contact_in_pad','moving_contact_in_pad','fixed_contact_force_N','moving_contact_force_N','fixed_contact_force_x_N','fixed_contact_force_y_N','fixed_contact_force_z_N','moving_contact_force_x_N','moving_contact_force_y_N','moving_contact_force_z_N','opposing_contact_forces','contact_force_cosine')
+                diagnostics={k:round(float(m[k][0]),5) for k in diagnostic_names if k in m}
                 for name in ('fixed_finger_contact','moving_finger_contact'):
                     f=env.scene[name].data.normal_force_matrix_w.torch
                     diagnostics[name+'_N']=float(torch.linalg.vector_norm(f[0].reshape(-1,3).sum(0)))
@@ -242,11 +287,22 @@ def main():
                     joint_position_rad=robot.data.joint_pos.torch[0,ids].cpu().tolist(),
                     joint_reference_rad=torch.cat([env.action_manager.get_term(n).processed_actions[0]
                         for n in ('arm_action','gripper_action')]).detach().cpu().tolist(),
-                    dwell_fraction=min(1.,float(s.dwell[0])/(.15,.2,.5,.4)[int(s.stage[0])]),
+                    dwell_fraction=min(1.,float(s.dwell[0])/(.08,.2,s.lift_hold_seconds,.4)[int(s.stage[0])]),
                     reward_weights=s.weights,reward_style=s.reward_style,
                     group_contribution=s.group_contribution[0].detach().cpu().tolist(),raw=s.raw[0].cpu().tolist(),contribution=s.contribution[0].cpu().tolist(),
                     step_reward=float(reward[0]),episode_return=panel.total,measurements=diagnostics)
                 if teacher is not None:row["teacher_phase"]=teacher.phase_name
+                if teacher is not None:
+                    row['teacher_elapsed_s']=round(float(teacher.elapsed),4)
+                    row['teacher_goal_position_m']=(None if teacher.position is None
+                        else np.asarray(teacher.position,dtype=float).tolist())
+                    row['teacher_tcp_error_m']=(None if teacher.position is None
+                        else float(np.linalg.norm(np.asarray(row['tool_position_m'])-teacher.position)))
+                    row['teacher_joint_goal_error_rad']=float(np.max(np.abs(
+                        robot.data.joint_pos.torch[0,ids[:5]].cpu().numpy()-teacher.goal[:5])))
+                if args.mode=='dagger':
+                    row['dagger_teacher_control']=dagger_teacher_control
+                    row['dagger_learner_actions']=dagger_policy_steps
                 panel.snapshot=row;rows.append(row)
                 panel.record(row)
                 if reward_window is not None:reward_window.send(row)
@@ -268,10 +324,15 @@ def main():
                     if hasattr(frame,'numpy'):frame=frame.numpy()
                     Image.fromarray(np.asarray(frame).astype('uint8')).save(output.with_suffix('.png'))
             result=dict(version=VERSION,mode=args.mode,steps=steps,ui_draw_count=ui_frames,
+                        checkpoint=str(Path(args.checkpoint).resolve()) if args.checkpoint else None,
+                        lift_rise_min_m=LIFT_RISE_MIN_M,
+                        lift_rise_max_m=LIFT_RISE_MAX_M,
+                        lift_hold_seconds=machine(env).lift_hold_seconds,
                         terminations_disabled=args.mode=='manual',num_envs=cfg.scene.num_envs,
                         seed=args.seed,cube_start_m=cube_position,success=bool(machine(env).success[0]),
                         end_reason=(rows[-1].get('termination') if rows and 'termination' in rows[-1]
-                                    else 'diagnostic_budget_or_window_closed'),trace=rows)
+                                    else (('teacher_failure: '+teacher.failure) if teacher is not None and teacher.failure
+                                          else 'diagnostic_budget_or_window_closed')),trace=rows)
             if teacher is not None:
                 result["teacher_failure"]=teacher.failure
                 result["teacher_phase"]=teacher.phase_name

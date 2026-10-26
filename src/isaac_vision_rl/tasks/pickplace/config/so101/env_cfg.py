@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Claovementse
 
+import json
 import os
 from typing import Any, cast
 
@@ -118,8 +119,8 @@ class PickplaceSceneCfg(InteractiveSceneCfg):
                 "shoulder_lift": -1.05,  # Folded home stance, clear of the tabletop.
                 "elbow_flex": 1.35,  # Retract the forearm toward the base.
                 "wrist_flex": 1.10,  # Point the open fingers down, as in the reference.
-                "wrist_roll": 0.0,
-                "gripper": 1.20,  # OPEN JAWS ready to grasp cube!
+                "wrist_roll": float(os.environ.get("SO101_INITIAL_WRIST_ROLL", "0.0")),  # Symmetrical 0.0 roll keeps arm straight without side-swing
+                "gripper": 1.55,  # WIDE OPEN JAWS (89 deg) ready for collision-free descent!
             },
         ),
         actuators={
@@ -301,12 +302,12 @@ class ActionsCfg:
         asset_name="robot",
         joint_names=["gripper"],
         # Keep the zero-mean initial policy fully open. Negative actions close
-        # progressively: 0 = open (1.2 rad), -1 = closed (0 rad).
-        scale=0.6,
-        offset=0.6,
+        # progressively: +1 = open (1.55 rad, 89 deg), -1 = closed (0 rad).
+        scale=0.775,
+        offset=0.775,
         use_default_offset=False,
         preserve_order=True,
-        clip={"gripper": (0.0, 1.20)},
+        clip={"gripper": (0.0, 1.55)},
     )
 
 
@@ -444,22 +445,31 @@ class PickLiftRewardsCfg:
     # Closing before the tool is centered turns the fingers into a pusher.
     premature_close = RewTerm(func=mdp.premature_gripper_closure_penalty, weight=-3.0)
 
+    # Dense grasp shaping: position for grasp, close when positioned, graded contact
+    grasp_approach = RewTerm(func=mdp.grasp_approach_shaped, weight=2.0)
+    grasp_close = RewTerm(func=mdp.grasp_close_shaped, weight=3.0)
+    contact_grade = RewTerm(func=mdp.contact_grade_shaped, weight=2.0)
+
     # 4. Grasping: Reward closing fingers when cube is centered between fingertips
     grasp_cube = RewTerm(func=cast(Any, mdp.GraspCubeProgress), weight=4.0)
 
     # 5. Vertical lifting, gated on cube proximity and gripper closure:
     # Continuous elevation progress + lift-off bonus + target height hold bonus
     lift_cube = RewTerm(func=cast(Any, mdp.LiftCubeProgress), weight=8.0)
-    # At dt=0.04, success awards 240 once before termination. This exceeds the
-    # discounted return from hovering just below the success height for 6 seconds.
-    lift_completed = RewTerm(func=cast(Any, mdp.LiftSuccess), weight=6000.0)
+    # Scaled terminal completion bonus (+25.0 episodic return at dt=0.033),
+    # matching the dense reward scale to avoid GAE advantage shock with clipped value loss.
+    lift_completed = RewTerm(
+        func=cast(Any, mdp.LiftSuccess),
+        weight=750.0,
+        params={"minimal_height": 0.46, "hold_time_s": 0.25, "velocity_cap": 0.45},
+    )
 
-    # 6. Anti-Dragging Penalty: Strongly penalize sliding, dragging, or shoving the cube across the table
-    drag_penalty = RewTerm(func=mdp.cube_table_drag_penalty, weight=-5.0)
-    displacement_penalty = RewTerm(func=cast(Any, mdp.CubeTableDisplacementPenalty), weight=-12.0)
+    # 6. Anti-Dragging Penalty: Moderately penalize sliding or shoving the cube across the table
+    drag_penalty = RewTerm(func=mdp.cube_table_drag_penalty, weight=-0.5)
+    displacement_penalty = RewTerm(func=cast(Any, mdp.CubeTableDisplacementPenalty), weight=-0.25)
 
-    # 7. Table collision penalty: Penalize gripper pushing down or scraping into tabletop
-    table_collision = RewTerm(func=mdp.gripper_table_collision_penalty, weight=-5.0)
+    # 7. Table collision penalty: Penalize gripper pushing down or scraping into tabletop (soft penalty, not hard abort)
+    table_collision = RewTerm(func=mdp.gripper_table_collision_penalty, weight=-0.5)
 
     # 8. Action smoothness and jerk penalty (enforces smooth, graceful trajectories)
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.06)
@@ -475,6 +485,9 @@ class PickLiftRewardsCfg:
 
     # 12. Camera boundary penalty: smoothly repel gripper from camera frame edges
     camera_boundary = RewTerm(func=mdp.gripper_camera_boundary_penalty, weight=-2.0)
+
+    # 13. Cube tilt penalty: penalize tilting/toppling on table
+    cube_tilt = RewTerm(func=mdp.cube_tilt_penalty, weight=-1.0)
 
 
 @configclass
@@ -496,11 +509,28 @@ class PickplaceRewardsCfg(PickLiftRewardsCfg):
 RewardsCfg = PickplaceRewardsCfg
 
 
+def apply_reward_overrides(rewards_cfg: Any) -> None:
+    """Dynamically applies reward weight overrides from reward_overrides.json if present."""
+    override_file = os.path.join(_ISAAC_VISION_RL_ROOT, "reward_overrides.json")
+    if os.path.exists(override_file):
+        try:
+            with open(override_file, "r") as f:
+                overrides = json.load(f)
+            for name, weight in overrides.items():
+                if hasattr(rewards_cfg, name):
+                    term = getattr(rewards_cfg, name)
+                    if term is not None and hasattr(term, "weight"):
+                        term.weight = float(weight)
+        except Exception as e:
+            print(f"[WARN] Failed to load reward_overrides.json: {e}")
+
+
 @configclass
 class TerminationsCfg:
     """Termination conditions for the MDP."""
 
-    unsafe_table_contact = DoneTerm(func=mdp.unsafe_hand_table_contact)
+    # Table contact is handled as a penalty; do not hard-terminate compliant grasps near the table surface.
+    # unsafe_table_contact = DoneTerm(func=mdp.unsafe_hand_table_contact)
 
     # Fail with a physical-state diagnostic before NaNs can enter rewards or PPO.
     physics_health = DoneTerm(func=mdp.assert_finite_physics)
@@ -523,7 +553,7 @@ class TerminationsCfg:
     # Terminate immediately if robot gripper leaves the camera's field of view
     gripper_out_of_view = DoneTerm(
         func=mdp.gripper_outside_camera_view,
-        params={"margin": 0.02},
+        params={"margin": 0.03},
     )
 
     # Terminate immediately if cube is knocked out of the camera's field of view
@@ -535,7 +565,10 @@ class TerminationsCfg:
 
 @configclass
 class PickLiftTerminationsCfg(TerminationsCfg):
-    lift_success = DoneTerm(func=cast(Any, mdp.LiftSuccess))
+    lift_success = DoneTerm(
+        func=cast(Any, mdp.LiftSuccess),
+        params={"minimal_height": 0.46, "hold_time_s": 0.25, "velocity_cap": 0.45},
+    )
 
 
 @configclass
@@ -579,6 +612,7 @@ class PickLiftEnvCfg(ManagerBasedRLEnvCfg):
         self.sim.dt = 0.01
         self.sim.render_interval = self.decimation
         self.sim.physics = PhysxCfg()
+        apply_reward_overrides(self.rewards)
         from isaac_vision_rl.utils.pipeline import configure_curriculum
 
         configure_curriculum(self, os.environ.get("SO101_CURRICULUM", "lift"))
@@ -626,6 +660,7 @@ class PickplaceEnvCfg(ManagerBasedRLEnvCfg):
         self.sim.dt = 0.01
         self.sim.render_interval = self.decimation
         self.sim.physics = PhysxCfg()
+        apply_reward_overrides(self.rewards)
         from isaac_vision_rl.utils.pipeline import configure_curriculum
 
         configure_curriculum(self, os.environ.get("SO101_CURRICULUM", "place"))

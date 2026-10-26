@@ -14,9 +14,19 @@ from isaac_vision_rl.tasks.pickplace.mdp.rewards import (
     LiftSuccess,
     ReachCubeProgress,
     bilateral_cube_contact,
+    camera_margin_cost,
+    compute_cube_upright,
+    compute_fixed_pad_pos,
+    compute_pinch_midpoint,
+    compute_sidewall_depth_gate,
+    contact_grade_shaped,
+    cube_tilt_penalty,
     dense_rgb_approach,
+    grasp_approach_shaped,
+    grasp_close_shaped,
     grasp_cube,
     gripper_camera_boundary_penalty,
+    gripper_camera_margin_cost,
     lift_cube_upward,
     object_ee_distance,
     object_goal_distance,
@@ -70,6 +80,7 @@ def make_env():
     cube = SimpleNamespace(
         data=SimpleNamespace(
             root_pos_w=SimpleNamespace(torch=torch.tensor([[0.0, 0.0, 0.425], [0.0, 0.0, 0.425]])),
+            root_quat_w=SimpleNamespace(torch=torch.tensor([[0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 1.0]])),
             root_lin_vel_w=SimpleNamespace(torch=torch.zeros(2, 3)),
         )
     )
@@ -78,6 +89,7 @@ def make_env():
             body_pos_w=SimpleNamespace(torch=torch.tensor([[[0.0, 0.0, 0.625], [0.0, 0.0, 0.5], [0.0, 0.0, 0.5]]] * 2)),
             body_quat_w=SimpleNamespace(torch=torch.tensor([[[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 1.0]]] * 2)),
             joint_pos=SimpleNamespace(torch=torch.tensor([[0.3], [1.2]])),
+            joint_vel=SimpleNamespace(torch=torch.zeros(2, 1)),
         ),
         find_bodies=lambda name: ([{"gripper_frame_link": 0, "gripper_link": 1, "moving_jaw_so101_v1_link": 2}[name]], [name]),
         find_joints=lambda _: ([0], ["gripper"]),
@@ -270,24 +282,39 @@ class PickLiftLogicTests(unittest.TestCase):
             self.assertEqual(result.dtype, torch.bool)
             self.assertFalse(result.any())
         self.assertEqual(success(env, hold_time_s=0.2).tolist(), [True, False])
-        env.scene["cube"].data.root_lin_vel_w.torch[0, 0] = 0.3
+        # Excessive velocity (> 0.45 m/s) breaks the hold
+        env.scene["cube"].data.root_lin_vel_w.torch[0, 0] = 0.50
         self.assertFalse(success(env, hold_time_s=0.2)[0])
+        # Stabilizing again allows leaky accumulator to quickly recover
         env.scene["cube"].data.root_lin_vel_w.torch.zero_()
-        for _ in range(4):
-            self.assertFalse(success(env, hold_time_s=0.2).any())
-        self.assertEqual(success(env, hold_time_s=0.2).tolist(), [True, False])
+        self.assertTrue(success(env, hold_time_s=0.2)[0])
         success.reset(torch.tensor([0]))
         self.assertFalse(success(env).any())
+
+    def test_resting_cube_on_table_earns_zero_lift_reward(self):
+        env = make_env()
+        # Gripper centered and clamped around cube resting at table level (0.425m)
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.0, 0.0, 0.425])
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95
+        # Even with wrist elevated or stationary clamp, resting table cube earns zero lift reward
+        self.assertTrue(torch.equal(lift_cube_upward(env), torch.zeros(2)))
 
     def test_table_contact_disqualifies_an_otherwise_valid_lift(self):
         env = make_env()
         env.scene["robot"].data.joint_pos.torch[:] = 0.97
-        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.52
-        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.53
+        # At border height before elevation bypass (z_cube < 0.455), excessive table force (>0.5N) disqualifies
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.450
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.46
         env.scene["fixed_table_contact"].data.normal_force_matrix_w[:, 0, 0, 2] = 1.0
         success = LiftSuccess(SimpleNamespace(), env)
         for _ in range(20):
-            self.assertFalse(success(env).any())
+            self.assertFalse(success(env, minimal_height=0.44).any())
+        # Once elevated (>= 0.455m), table contact sensor noise is safely bypassed
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.52
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.53
+        for _ in range(20):
+            res = success(env, hold_time_s=0.2)
+        self.assertTrue(res[0])
 
     def test_object_goal_distance_rewards_transport_when_holding_cube(self):
         env = make_env()
@@ -333,6 +360,8 @@ class PickLiftLogicTests(unittest.TestCase):
 
     def test_pinch_force_bonus_requires_bilateral_contact_and_scales_with_force(self):
         env = make_env()
+        # Position gripper at sidewall grasp depth (0.418m)
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.0, 0.0, 0.418])
         # Gripper at 0.98 rad (closed on cube)
         env.scene["robot"].data.joint_pos.torch[0, 0] = 0.98
         bonus = pinch_force_bonus(env)
@@ -377,6 +406,26 @@ class PickLiftLogicTests(unittest.TestCase):
         pen_edge = gripper_camera_boundary_penalty(env, safe_margin=0.08)
         self.assertGreater(float(pen_edge[0]), 0.0)
 
+    def test_new_camera_cost_tracks_wrist_and_both_finger_pads(self):
+        env=make_env()
+        env.scene['robot'].data.body_pos_w.torch[0,:,:]=torch.tensor([-.063,.021,.455])
+        safe=gripper_camera_margin_cost(env)
+        env.scene['robot'].data.body_pos_w.torch[0,:,:]=torch.tensor([.45,.021,.455])
+        edge=gripper_camera_margin_cost(env)
+        self.assertEqual(float(safe[0]),0.)
+        self.assertGreater(float(edge[0]),float(safe[0]))
+
+    def test_camera_margin_cost_is_zero_centered_and_grows_toward_edges(self):
+        u=torch.tensor([[.50,.50,.50],[.04,.50,.50],[0.0,.50,.50]])
+        v=torch.full_like(u,.50)
+        z=torch.full_like(u,.50)
+        cost=camera_margin_cost(u,v,z,safe_margin=.08)
+        self.assertEqual(float(cost[0]),0.0)
+        self.assertGreater(float(cost[1]),0.0)
+        self.assertGreater(float(cost[2]),float(cost[1]))
+        invisible=camera_margin_cost(torch.full((1,1),.5),torch.full((1,1),.5),torch.tensor([[.01]]))
+        self.assertEqual(float(invisible[0]),1.0)
+
     def test_arm_targets_span_limits_and_gripper_can_open_and_close(self):
         from isaaclab.utils.string import string_to_callable
 
@@ -413,9 +462,105 @@ class PickLiftLogicTests(unittest.TestCase):
         torch.testing.assert_close(arm.processed_actions[0], torch.full((5,), 0.20))
         gripper = string_to_callable(cfg.gripper_action.class_type)(cfg.gripper_action, env)
         gripper.process_actions(torch.zeros(2, 1))
-        torch.testing.assert_close(gripper.processed_actions, torch.full((2, 1), 0.6))
+        torch.testing.assert_close(gripper.processed_actions, torch.full((2, 1), 0.775))
         gripper.process_actions(torch.tensor([[-100.0], [100.0]]))
-        torch.testing.assert_close(gripper.processed_actions, torch.tensor([[0.0], [1.2]]))
+        torch.testing.assert_close(gripper.processed_actions, torch.tensor([[0.0], [1.55]]))
+
+    def test_fixed_finger_pad_z_height_and_sidewall_depth(self):
+        env = make_env()
+        cube_pos = env.scene["cube"].data.root_pos_w.torch
+        cube_pos[:] = torch.tensor([0.05, 0.02, 0.426])
+
+        # 1. Hover height when xy > 0.018m: target height is z_cube + 0.055m = 0.481m
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.15, 0.02, 0.481])
+        xy_dist = torch.norm((compute_pinch_midpoint(env) - cube_pos)[:, :2], dim=-1)
+        z_target = cube_pos[:, 2] - 0.008 + 0.063 * torch.clamp((xy_dist - 0.006) / 0.012, min=0.0, max=1.0)
+        torch.testing.assert_close(z_target, torch.full((2,), 0.481), atol=1e-4, rtol=1e-4)
+
+        # 2. Descended target height when xy <= 0.006m: target height is z_cube - 0.008m = 0.418m
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.05, 0.02, 0.418])
+        xy_dist_aligned = torch.norm((compute_pinch_midpoint(env) - cube_pos)[:, :2], dim=-1)
+        z_target_aligned = cube_pos[:, 2] - 0.008 + 0.063 * torch.clamp((xy_dist_aligned - 0.006) / 0.012, min=0.0, max=1.0)
+        torch.testing.assert_close(z_target_aligned, torch.full((2,), 0.418), atol=1e-4, rtol=1e-4)
+
+        # 3. Fixed finger on roof (Z = 0.451m): gate is 0.0, zeroing contact/grasp rewards
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.05, 0.02, 0.451])
+        env.scene["robot"].data.joint_pos.torch[:] = 0.90
+        depth_gate_roof = compute_sidewall_depth_gate(env)
+        torch.testing.assert_close(depth_gate_roof, torch.zeros(2))
+        self.assertEqual(float(contact_grade_shaped(env)[0]), 0.0)
+        self.assertEqual(float(grasp_cube(env)[0]), 0.0)
+        self.assertEqual(float(pinch_force_bonus(env)[0]), 0.0)
+        # Premature close penalty is positive when fixed finger is on roof and closing
+        self.assertGreater(float(premature_gripper_closure_penalty(env)[0]), 0.0)
+
+        # 4. Fixed finger at grasp depth (Z = 0.418m): gate is active (> 0.85)
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.05, 0.02, 0.418])
+        depth_gate_deep = compute_sidewall_depth_gate(env)
+        self.assertTrue(torch.all(depth_gate_deep > 0.85))
+        self.assertEqual(float(premature_gripper_closure_penalty(env)[0]), 0.0)
+
+        # 5. Cube tilt check: tilting the cube by 30 degrees drops upright score and triggers penalty
+        # 30 deg rotation around X in xyzw: sin(15deg)=0.2588, cos(15deg)=0.9659
+        env.scene["cube"].data.root_quat_w.torch[:] = torch.tensor([0.2588, 0.0, 0.0, 0.9659])
+        self.assertEqual(float(compute_cube_upright(env)[0]), 0.0)
+        self.assertGreater(float(cube_tilt_penalty(env)[0]), 0.0)
+        self.assertEqual(float(grasp_cube(env)[0]), 0.0)
+
+    def test_16_env_vectorized_tensor_shapes(self):
+        """Verify that all reward terms support 16-environment vectorization without shape mismatches."""
+        n = 16
+        cube = SimpleNamespace(
+            data=SimpleNamespace(
+                root_pos_w=SimpleNamespace(torch=torch.full((n, 3), 0.426)),
+                root_quat_w=SimpleNamespace(torch=torch.tensor([[0.0, 0.0, 0.0, 1.0]] * n)),
+                root_lin_vel_w=SimpleNamespace(torch=torch.zeros(n, 3)),
+            )
+        )
+        robot = SimpleNamespace(
+            data=SimpleNamespace(
+                body_pos_w=SimpleNamespace(torch=torch.tensor([[[0.0, 0.0, 0.418], [0.0, 0.0, 0.418], [0.0, 0.0, 0.418]]] * n)),
+                body_quat_w=SimpleNamespace(torch=torch.tensor([[[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0], [0.0, 0.0, 0.0, 1.0]]] * n)),
+                joint_pos=SimpleNamespace(torch=torch.full((n, 1), 0.95)),
+                joint_vel=SimpleNamespace(torch=torch.zeros(n, 1)),
+            ),
+            find_bodies=lambda name: ([{"gripper_frame_link": 0, "gripper_link": 1, "moving_jaw_so101_v1_link": 2}[name]], [name]),
+            find_joints=lambda _: ([0], ["gripper"]),
+        )
+        class Scene(dict):
+            env_origins = torch.zeros(n, 3)
+        scene = Scene(robot=robot, cube=cube)
+        from isaac_vision_rl.utils.hand_table import TABLE_SENSORS
+        for name in TABLE_SENSORS:
+            scene[name] = SimpleNamespace(data=SimpleNamespace(normal_force_matrix_w=torch.zeros(n, 1, 1, 3)))
+        for name in ("fixed_finger_contact", "moving_finger_contact"):
+            scene[name] = SimpleNamespace(
+                data=MockContactData(
+                    name,
+                    robot,
+                    torch.tensor([[[[1.0, 0.0, 0.0]]]] * n) * (1 if name == "fixed_finger_contact" else -1),
+                )
+            )
+        env = SimpleNamespace(num_envs=n, device="cpu", step_dt=0.04, scene=scene,
+                               _hand_table_vertices=[(0, torch.zeros(1, 3))])
+
+        terms = [
+            ("grasp_approach_shaped", grasp_approach_shaped(env)),
+            ("grasp_close_shaped", grasp_close_shaped(env)),
+            ("contact_grade_shaped", contact_grade_shaped(env)),
+            ("grasp_cube", grasp_cube(env)),
+            ("pinch_force_bonus", pinch_force_bonus(env)),
+            ("premature_gripper_closure_penalty", premature_gripper_closure_penalty(env)),
+            ("lift_cube_upward", lift_cube_upward(env)),
+            ("cube_tilt_penalty", cube_tilt_penalty(env)),
+            ("dense_reach", dense_rgb_approach(env, "reach")),
+            ("dense_align", dense_rgb_approach(env, "align")),
+            ("dense_open", dense_rgb_approach(env, "open")),
+            ("dense_support", dense_rgb_approach(env, "support")),
+        ]
+        for name, val in terms:
+            self.assertEqual(val.shape, torch.Size([n]), f"Mismatched shape for {name}: {val.shape}")
+            self.assertEqual(val.dtype, torch.float32, f"Mismatched dtype for {name}: {val.dtype}")
 
 
 if __name__ == "__main__":

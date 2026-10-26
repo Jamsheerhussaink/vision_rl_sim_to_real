@@ -14,6 +14,42 @@ RGB_PROFILES = {
     "424x240_letterbox128_v1": (424, 240),
     "1280x720_letterbox128_v1": (1280, 720),
 }
+REAL_POLICY_AGENT_SCHEMAS = frozenset({
+    "rgb_policy_gripper_v1",
+    "four_stage_v1",
+    "four_stage_v2_bounded",
+})
+
+
+def validate_real_checkpoint_metadata(saved: dict) -> None:
+    """Allow RGB checkpoint labels whose actor can be checked against this adapter."""
+    schema = saved.get("so101_agent_schema")
+    if schema not in REAL_POLICY_AGENT_SCHEMAS or saved.get("so101_policy_variant") != "rgb":
+        raise ValueError("Unsupported real-policy checkpoint schema or policy variant")
+
+
+def validate_actor_state_dict(expected: dict, saved: dict) -> None:
+    """Reject actor weights that do not match the deployed RGB+proprio actor."""
+    missing = sorted(set(expected) - set(saved))
+    unexpected = sorted(set(saved) - set(expected))
+    mismatched = [
+        (name, tuple(saved[name].shape), tuple(expected[name].shape))
+        for name in set(expected) & set(saved)
+        if tuple(saved[name].shape) != tuple(expected[name].shape)
+    ]
+    if missing or unexpected or mismatched:
+        detail = []
+        if missing:
+            detail.append(f"missing keys: {missing[:3]}")
+        if unexpected:
+            detail.append(f"unexpected keys: {unexpected[:3]}")
+        if mismatched:
+            name, checkpoint_shape, runtime_shape = mismatched[0]
+            detail.append(f"{name} checkpoint shape {checkpoint_shape}, runtime shape {runtime_shape}")
+        raise ValueError(
+            "Checkpoint actor does not match the real RGB-and-joint inputs (" + "; ".join(detail) + "). "
+            "Train without a simulator-only actor stage input before sim-to-real use."
+        )
 
 
 def camera_profile_dimensions(profile: str) -> tuple[int, int]:
@@ -45,8 +81,7 @@ class RealPolicy:
         saved = torch.load(checkpoint, map_location=device, weights_only=False)
         self.rgb_profile = saved.get("so101_rgb_profile")
         self.camera_width, self.camera_height = camera_profile_dimensions(self.rgb_profile)
-        if saved.get("so101_agent_schema") != "rgb_policy_gripper_v1" or saved.get("so101_policy_variant") != "rgb":
-            raise ValueError("Unsupported policy schema")
+        validate_real_checkpoint_metadata(saved)
         self.hz = int(saved["so101_control_hz"])
         if self.hz not in (30, 60):
             raise ValueError("This real-camera adapter currently requires a 30 Hz or 60 Hz checkpoint")
@@ -57,13 +92,25 @@ class RealPolicy:
         self.duration = float(env["episode_length_s"])
         self.device = device
         arm = env["actions"]["arm_action"]
-        if float(arm["max_target_acceleration"]) != 0 or float(arm["wrist_roll_speed"]) != 0:
-            raise ValueError("Adapter supports the saved velocity-bounded EMA controller only")
         if arm["rescale_to_limits"] != "true" or float(arm["scale"]) != 1:
             raise ValueError("Unsupported arm action mapping")
         self.alpha, self.speed = float(arm["alpha"]), float(arm["max_target_speed"])
+        self.motion_profile = saved.get("so101_motion_profile", "legacy_velocity_ema")
+        self.acceleration = float(arm["max_target_acceleration"])
+        self.wrist_roll_speed = float(arm["wrist_roll_speed"])
+        if self.motion_profile == "four_stage_smooth_v1":
+            if self.acceleration <= 0 or self.wrist_roll_speed <= 0:
+                raise ValueError("Incomplete four-stage smooth controller settings")
+        elif self.acceleration != 0 or self.wrist_roll_speed != 0:
+            raise ValueError("Unsupported saved arm motion controller")
+        self.speed_limits = np.full(5, self.speed, dtype=float)
+        self.speed_limits[4] = self.wrist_roll_speed if self.wrist_roll_speed > 0 else self.speed
+        self.arm_velocity = np.zeros(5, dtype=float)
         jaw = env["actions"]["gripper_action"]
         self.grip_scale, self.grip_offset = float(jaw["scale"]), float(jaw["offset"])
+        self.grip_speed = float(jaw.get("max_target_speed", 0))
+        self.grip_acceleration = float(jaw.get("max_target_acceleration", 0))
+        self.grip_velocity = 0.0
         stage = Usd.Stage.Open(env["scene"]["robot"]["spawn"]["usd_path"])
         limits = {}
         for prim in stage.Traverse():
@@ -86,13 +133,17 @@ class RealPolicy:
         self.actor = CNNModel(obs, {"actor": ["policy", "image"]}, "actor", 6,
                               hidden_dims=[int(v) for v in cfg["hidden_dims"]], activation=cfg["activation"],
                               obs_normalization=True, distribution_cfg=distribution, cnn_cfg=cnn_cfg).to(device)
-        self.actor.load_state_dict(saved["actor_state_dict"], strict=True)
+        actor_state = saved["actor_state_dict"]
+        validate_actor_state_dict(self.actor.state_dict(), actor_state)
+        self.actor.load_state_dict(actor_state, strict=True)
         self.actor.eval()
         self.reset(self.home)
 
     def reset(self, measured):
         self.last_action = np.zeros(6)
         self.filtered = np.array([*measured[:5], 1.2], dtype=float)
+        self.arm_velocity[:] = 0
+        self.grip_velocity = 0.0
         self.steps = 0
 
     def set_executed_target(self, target):
@@ -124,8 +175,34 @@ class RealPolicy:
         action = np.clip(raw, -1, 1)
         desired = self.lower + (action[:5] + 1) * .5 * (self.upper - self.lower)
         ema = np.clip(self.alpha * desired + (1 - self.alpha) * self.filtered[:5], self.lower, self.upper)
-        arm = self.filtered[:5] + np.clip(ema - self.filtered[:5], -self.speed / self.hz, self.speed / self.hz)
-        jaw = np.clip(self.grip_scale * action[5] + self.grip_offset, 0, 1.2)
+        dt = 1.0 / self.hz
+        if self.acceleration > 0:
+            error = ema - self.filtered[:5]
+            brake_speed = np.sqrt((self.acceleration * dt) ** 2 + 2 * self.acceleration * np.abs(error)) - self.acceleration * dt
+            desired_velocity = np.sign(error) * np.minimum(brake_speed, self.speed_limits)
+            velocity = self.arm_velocity + np.clip(
+                desired_velocity - self.arm_velocity,
+                -self.acceleration * dt,
+                self.acceleration * dt,
+            )
+            arm_unclipped = self.filtered[:5] + velocity * dt
+            arm = np.clip(arm_unclipped, self.lower, self.upper)
+            self.arm_velocity[:] = np.where(np.isclose(arm, arm_unclipped, atol=1e-10), velocity, 0.0)
+        else:
+            arm = self.filtered[:5] + np.clip(ema - self.filtered[:5], -self.speed * dt, self.speed * dt)
+        jaw = np.clip(self.grip_scale * action[5] + self.grip_offset, 0, 1.55)
+        if self.motion_profile == "four_stage_smooth_v1" and self.grip_acceleration > 0 and self.grip_speed > 0:
+            jaw_error = jaw - self.filtered[5]
+            jaw_brake_speed = np.sqrt((self.grip_acceleration * dt) ** 2 + 2 * self.grip_acceleration * abs(jaw_error)) - self.grip_acceleration * dt
+            jaw_desired_velocity = float(np.sign(jaw_error) * min(jaw_brake_speed, self.grip_speed))
+            jaw_velocity = self.grip_velocity + float(np.clip(
+                jaw_desired_velocity - self.grip_velocity,
+                -self.grip_acceleration * dt,
+                self.grip_acceleration * dt,
+            ))
+            jaw_unclipped = self.filtered[5] + jaw_velocity * dt
+            jaw = float(np.clip(jaw_unclipped, 0, 1.55))
+            self.grip_velocity = jaw_velocity if abs(jaw - jaw_unclipped) < 1e-10 else 0.0
         self.filtered = np.array([*arm, jaw])
         self.last_action = action.copy()
         self.steps += 1

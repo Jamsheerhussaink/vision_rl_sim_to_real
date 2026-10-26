@@ -1,0 +1,8 @@
+{
+  "grasp_cube": 6.0,
+  "grasp_approach": 4.0,
+  "premature_close": -1.5,
+  "jaws_open": 0.25,
+  "open_jaws": 0.25,
+  "point_down": 0.10
+}

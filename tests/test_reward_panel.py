@@ -50,15 +50,55 @@ def test_overlapping_rewards_record_separate_families():
     assert p.term_history['supported_lift_progress']==[0.]
 
 
+def test_camera_margin_records_as_its_own_reach_graph():
+    from isaac_vision_rl.utils.four_stage import TERMS
+    from isaac_vision_rl.utils.reward_panel import display_name
+    p=RewardPanel([])
+    groups=[[0.,0.,0.,0.,0.,-.1],[0.]*5,[0.]*3,[0.]*3]
+    p.record(dict(reward_stage=0,group_contribution=groups,contribution=[-.1,0.,0.,0.,0.,0.]))
+    assert 'camera_visibility' in TERMS[0]
+    assert display_name('camera_visibility')=='Camera margin'
+    assert p.term_history['camera_visibility']==[-.1]
+
+
+def test_approach_chart_is_running_total_and_can_go_below_zero():
+    p=RewardPanel([])
+    for total in (0.,.3,.1,-.2):
+        p.record(dict(reward_stage=0,contribution=[0.,0.,0.],
+                      group_contribution=[[.3,0.,0.],[0.,0.,0.],[0.,0.,0.],[0.,0.,0.]],
+                      approach_progress_total=total))
+    assert p.term_history['overhead_approach']==[0.,.3,.1,-.2]
+
+
+def test_approach_chart_accumulates_manual_step_rewards_from_zero():
+    p=RewardPanel([])
+    for step in (0.,.3,0.,-.5):
+        p.record(dict(reward_stage=0,contribution=[step,0.,0.]))
+    assert p.term_history['overhead_approach']==[0.,.3,.3,-.2]
+    p.clear_history()
+    assert p.approach_running_total==0.
+
+
+def test_readiness_graph_holds_its_total_while_stationary():
+    p=RewardPanel([])
+    for step in (0.,.1,0.,0.,-.2):
+        p.record(dict(reward_stage=0,contribution=[0.,0.,step]))
+    assert p.term_history['gripper_readiness']==[0.,.1,.1,.1,-.1]
+    p.clear_history()
+    assert p.readiness_running_total==0.
+
+
 def test_confirmed_reward_table_names_and_continuous_weights_match():
     from isaac_vision_rl.utils.reward_panel import display_name
     from isaac_vision_rl.utils.four_stage import TERMS, CONTINUOUS_WEIGHTS
     expected=[('Approach distance',.30),('Table clearance',-1.),
-              ('Hand and gripper readiness',.10),('Cube enclosure',.10),
-              ('Valid two-finger grasp',.10),('Table dragging',-2.),
-              ('Cube lift height',.15),('Stable held lift',.15),
+              ('Wrist downward',.05),('Jaws open',.05),('Centered XY',.10),
+              ('Camera margin',-.25),('Fixed Finger Near Cube Side',.05),
+              ('Moving Finger Near Opposite Side',.05),('Cube enclosure',.10),
+              ('Valid two-finger grasp',.30),('Table dragging',-4.),
+              ('Lift reward',.15),('Stable held lift',.15),
               ('Cube speed during Lift',-1.),('Carry toward box',.15),
-              ('Lower into box',.15),('Successful placement',40.)]
+              ('Lower into box',.15),('Successful placement',1.)]
     actual=[(display_name(term),weight) for terms,weights in zip(TERMS,CONTINUOUS_WEIGHTS)
             for term,weight in zip(terms,weights)]
     assert actual==expected
@@ -66,15 +106,15 @@ def test_confirmed_reward_table_names_and_continuous_weights_match():
 
 def test_chart_defaults_to_live_window_and_can_show_full_session():
     p=RewardPanel([])
-    for i in range(3100):p.record(dict(reward_stage=0,contribution=[float(i),0.,0.]))
-    x,y=p.chart_samples('overhead_approach')
+    for i in range(3100):p.record(dict(reward_stage=0,contribution=[0.,float(i),0.]))
+    x,y=p.chart_samples('table_clearance')
     assert not p.show_full_history and len(y)==150
     assert x[0]==2950 and y[-1]==3099
     p.show_full_history=True
-    x,y=p.chart_samples('overhead_approach')
+    x,y=p.chart_samples('table_clearance')
     assert x[0]==0 and len(y)==3100 and y[0]==0 and y[-1]==3099
     p.clear_history()
-    assert not p.full_history['overhead_approach']
+    assert not p.full_history['table_clearance']
 
 
 def test_full_history_preserves_isolated_penalty_spikes_when_reduced():

@@ -37,6 +37,20 @@ from isaac_vision_rl.utils.demonstrations import DemonstrationDataset, find_elig
 from isaac_vision_rl.utils.rl_agent import ExplorationPPO
 
 
+def weighted_bc_loss(predicted, target, policy):
+    """Emphasize finger control while the actor is in the Grasp phase."""
+    per_action = torch.nn.functional.smooth_l1_loss(
+        predicted, target, beta=0.05, reduction="none"
+    )
+    weights = torch.ones_like(per_action)
+    weights[:, 5] = 2.0
+    # policy layout: 25 robot/controller values, followed by four stage flags.
+    # The Grasp flag is index 26. It doubles gripper-action weight in that stage.
+    grasp_phase = policy[:, 26].clamp(0.0, 1.0)
+    weights[:, 5] *= 1.0 + grasp_phase
+    return (per_action * weights).mean()
+
+
 def train_bc(
     demo_dirs,
     output_path,
@@ -62,21 +76,33 @@ def train_bc(
     os.environ.setdefault("SO101_TRAINING_GOAL", "place")
     os.environ.setdefault("SO101_RGB_FPS", "30")
 
+    demo_dirs = [Path(d) for d in demo_dirs]
+    if len(demo_dirs) < 2:
+        raise ValueError("Behavior cloning needs at least two demonstration directories so validation can hold out a whole attempt")
+    if not 0.0 < val_split < 1.0:
+        raise ValueError("val_split must be between 0 and 1")
+    # Hold out complete attempts. A random frame split leaks nearly identical
+    # neighboring images/actions into both sets and overstates new-rollout quality.
+    split_rng = torch.Generator().manual_seed(seed)
+    order = torch.randperm(len(demo_dirs), generator=split_rng).tolist()
+    n_val_demos = min(len(demo_dirs) - 1, max(1, int(round(len(demo_dirs) * val_split))))
+    val_indices = set(order[:n_val_demos])
+    val_demo_dirs = [d for i, d in enumerate(demo_dirs) if i in val_indices]
+    train_demo_dirs = [d for i, d in enumerate(demo_dirs) if i not in val_indices]
+
     if not quiet:
         print(f"[INFO] Using device: {device}")
-        print(f"[INFO] Loading demonstrations from {len(demo_dirs)} directories...")
+        print(f"[INFO] Loading {len(train_demo_dirs)} training attempts and holding out {len(val_demo_dirs)} complete validation attempt(s)...")
 
-    dataset = DemonstrationDataset(demo_dirs)
-    n_total = len(dataset)
+    dataset = torch.utils.data.ConcatDataset([DemonstrationDataset([d]) for d in train_demo_dirs])
+    val_set = torch.utils.data.ConcatDataset([DemonstrationDataset([d]) for d in val_demo_dirs])
+    n_train = len(dataset)
+    n_val = len(val_set)
+    n_total = n_train + n_val
     if not quiet:
         print(f"[INFO] Total demonstration transitions loaded: {n_total}")
 
-    n_val = max(1, int(n_total * val_split))
-    n_train = n_total - n_val
-    generator = torch.Generator().manual_seed(seed)
-    train_set, val_set = torch.utils.data.random_split(dataset, [n_train, n_val], generator=generator)
-
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, drop_last=False)
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=False)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False, drop_last=False)
 
     # Instantiate InitialPoseCNN actor and MLPModel critic using standard PPORunnerCfg
@@ -95,8 +121,6 @@ def train_bc(
 
     optimizer = torch.optim.AdamW(actor.parameters(), lr=lr, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(1, epochs), eta_min=1e-5)
-    loss_fn = torch.nn.SmoothL1Loss(beta=0.05)
-
     history = {"train_loss": [], "val_loss": []}
 
     for epoch in range(1, epochs + 1):
@@ -116,7 +140,7 @@ def train_bc(
             actor.update_normalization(obs)
 
             pred_action = actor(obs, stochastic_output=False)
-            loss = loss_fn(pred_action, target_action)
+            loss = weighted_bc_loss(pred_action, target_action, policy)
 
             optimizer.zero_grad()
             loss.backward()
@@ -141,7 +165,7 @@ def train_bc(
 
                 obs = TensorDict({"policy": policy, "image": image}, batch_size=[bs])
                 pred_action = actor(obs, stochastic_output=False)
-                loss = loss_fn(pred_action, target_action)
+                loss = weighted_bc_loss(pred_action, target_action, policy)
 
                 running_val_loss += loss.item() * bs
                 val_samples += bs
@@ -180,6 +204,9 @@ def train_bc(
             "train_samples": n_train,
             "val_samples": n_val,
             "demos": [str(d) for d in demo_dirs],
+            "train_demos": [str(d) for d in train_demo_dirs],
+            "validation_demos": [str(d) for d in val_demo_dirs],
+            "validation_strategy": "hold_out_complete_demonstration_directories",
         },
         "is_bc_checkpoint": True,
         "so101_agent_schema": "four_stage_v2_bounded",
@@ -187,6 +214,10 @@ def train_bc(
         "so101_reward_profile": "four-stage",
         "so101_reward_style": "continuous",
         "so101_control_hz": int(os.environ.get("SO101_RGB_FPS", "30")),
+        "so101_training_goal": os.environ.get("SO101_TRAINING_GOAL", "place"),
+        "so101_lift_rise_min": float(os.environ.get("SO101_LIFT_RISE_MIN", "0.10")),
+        "so101_lift_rise_max": float(os.environ.get("SO101_LIFT_RISE_MAX", "0.12")),
+        "so101_lift_hold_seconds": float(os.environ.get("SO101_LIFT_HOLD_SECONDS", "0.5")),
         "so101_rgb_profile": f"{cam_w}x{cam_h}_letterbox128_v1",
         "exploration_entropy_coef": 0.01,
     }
@@ -216,7 +247,7 @@ def main():
     parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
     parser.add_argument("--lr", type=float, default=3e-4, help="Initial learning rate")
     parser.add_argument("--weight-decay", type=float, default=1e-4, help="Weight decay")
-    parser.add_argument("--val-split", type=float, default=0.1, help="Validation data split fraction")
+    parser.add_argument("--val-split", type=float, default=0.1, help="Fraction of complete demonstration attempts held out for validation")
     parser.add_argument("--device", default="cuda:0", help="Computation device (cuda:0 or cpu)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--quiet", action="store_true", help="Quiet mode (suppress periodic progress prints)")

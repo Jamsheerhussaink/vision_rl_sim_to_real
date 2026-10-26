@@ -122,7 +122,7 @@ def configure_curriculum(cfg, stage):
     cfg.rewards.dense_alignment = RewardTermCfg(func=dense_rgb_approach, weight=3.0, params={"component": "align"})
     cfg.rewards.approach_open = RewardTermCfg(func=dense_rgb_approach, weight=0.5, params={"component": "open"})
     cfg.rewards.stable_support = RewardTermCfg(func=dense_rgb_approach, weight=10.0, params={"component": "support"})
-    cfg.rewards.displacement_penalty.weight = float(os.environ.get("SO101_DISPLACEMENT_PENALTY", "-12.0"))
+    cfg.rewards.displacement_penalty.weight = float(os.environ.get("SO101_DISPLACEMENT_PENALTY", "-0.25"))
     cfg.rewards.action_rate.weight = float(os.environ.get("SO101_ACTION_RATE_PENALTY", "-0.06"))
 
     cam_w = int(os.environ.get("SO101_CAMERA_WIDTH", "1280"))
@@ -147,14 +147,16 @@ def configure_curriculum(cfg, stage):
     # Actual photo-reference home, captured from all six real encoders.
     from isaac_vision_rl.utils.home_pose import home_joint_positions
     cfg.scene.robot.init_state.joint_pos.update(home_joint_positions())
-    cfg.scene.robot.init_state.joint_pos["gripper"] = 1.20
-    # Axis-align the base; compensate shoulder pan to retain arm heading.
-    from isaac_vision_rl.utils.cube_material import spawn_grain_material, spawn_cardboard_material
-    cfg.scene.cube.spawn.visual_material.func = spawn_grain_material
-    cfg.scene.box.spawn.visual_material.func = spawn_cardboard_material
-    cfg.scene.cube.spawn.visual_material.diffuse_color_constant = (0.85, 0.70, 0.35)
-    cfg.scene.box.spawn.visual_material.diffuse_color_constant = (0.75, 0.55, 0.40)
-    cfg.scene.cube.spawn.visual_material.reflection_roughness_constant = 0.55
+    cfg.scene.robot.init_state.joint_pos["gripper"] = 1.55
+    cfg.scene.robot.init_state.joint_pos["wrist_roll"] = float(os.environ.get("SO101_INITIAL_WRIST_ROLL", "0.0"))
+    # Plain-color materials: PbrMdlCfg already defaults to Isaac Lab's MDL
+    # spawner. Keep that as its lazy string reference so constructing this
+    # config does not import USD/PXR before SimulationApp starts.
+    # Plain-material values are linear reflectance, not screenshot RGB values.
+    # Lower, saturated tones retain golden yellow / warm cardboard under lights.
+    cfg.scene.cube.spawn.visual_material.diffuse_color_constant = (0.48, 0.26, 0.018)
+    cfg.scene.box.spawn.visual_material.diffuse_color_constant = (0.30, 0.095, 0.038)
+    cfg.scene.cube.spawn.visual_material.reflection_roughness_constant = 0.80
     cfg.scene.box.spawn.visual_material.reflection_roughness_constant = 0.85
     cfg.scene.table.spawn.usd_path = str(ROOT / "usd/table_real_rgb.usda")
     cfg.scene.table.spawn.scale = (3.5, 3.5, 1.0)
@@ -180,9 +182,10 @@ def configure_curriculum(cfg, stage):
     cfg.sim.default_visualizer_cfg.eye = cfg.scene.camera.offset.pos
     cfg.sim.default_visualizer_cfg.lookat = (-0.08, 0.10, 0.33)
     cfg.scene.camera.spawn.vertical_aperture = cfg.scene.camera.spawn.horizontal_aperture * cam_h / cam_w
-    # Symmetric mapping: -1 closed, 0 half open, +1 fully open.
-    cfg.actions.gripper_action.scale = 0.6
-    cfg.actions.gripper_action.offset = 0.6
+    # Symmetric mapping: -1 closed (0.0 rad), 0 half open (0.775 rad), +1 fully open (1.55 rad).
+    cfg.actions.gripper_action.scale = 0.775
+    cfg.actions.gripper_action.offset = 0.775
+    cfg.actions.gripper_action.clip = {"gripper": (0.0, 1.55)}
     if stage == "grasp":
         report = read_physical_report()
         if any(abs(a - b) > 1e-6 for a, b in zip(report["base_pos"], cfg.scene.robot.init_state.pos, strict=True)) or any(

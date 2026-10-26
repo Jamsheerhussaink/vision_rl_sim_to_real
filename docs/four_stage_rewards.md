@@ -1,21 +1,19 @@
 # Four-stage reward laboratory (Reach distance and gripper readiness are separate)
 
-Continuous approach scores (`--reward-style continuous`) are dense current-state
-rewards: every step is scored, and the value changes smoothly with distance only.
-During Reach, the distance target is the overhead point 8 cm above the cube center. During Grasp, it is the cube center.
-The box position is never used as a Reach target. Getting closer earns a higher
-distance score; getting farther lowers it. Wrist angle, jaw opening, and other
-pose signals do not alter this distance curve. A separate Gripper Readiness
-chart rewards a downward wrist and open jaws during Reach; in Grasp, it rewards
-the wrist angle only so closing the jaws is not discouraged. During Reach the
-distance target is the cube-derived overhead waypoint, so the box cannot attract
-this reward. Both scores are multiplied by control-step duration and their
-weights. Because they are dense state rewards, a stationary robot keeps
-receiving its current per-step scores; stage transition and evaluation must
-confirm actual grasping.
-Revision v7 was introduced after model 300 completed zero of three fixed-scene
-evaluations: it hovered about 14 cm from the overhead target with closed jaws.
-Reward-ranking and static simulator tests do not establish learned task success.
+The current `--reward-style continuous` profile is **v28**. It uses the user's
+twelve listed reward terms and weights, with the latest requested change:
+successful placement earns **+1 once**, and an unsuccessful ending earns
+**-0.1 once**. Approach, hand readiness and pregrasp enclosure reward signed
+improvements instead of paying for a stationary pose. A safe stationary arm
+without a valid grasp earns zero; contact/clearance and dragging penalties
+remain active. A verified grasp, supported lift and placement retain continuous
+feedback. The approach, readiness and enclosure charts show per-episode running totals:
+they rise on improvement, fall on regression and stay at their current values
+while stationary. RGB actor observations and physical contact requirements
+remain the same. Reward improvement alone does not prove task success.
+
+The chronological sections below contain older experiments; the latest v28
+section at the end supersedes older reward specifications.
 
 This is an opt-in, separately versioned full task. Old rewards and checkpoints remain available through the legacy profile. Start the new profile with a fresh policy: its actor additionally observes the four-element task-phase indicator, and its new checkpoint schema is `four_stage_v2_bounded` (the value network also observes grasp-bonus history). It remains RGB plus joint/controller observations; the actor does not receive cube coordinates. Stage indicators are task context derived by the simulator, not a learned visual detector.
 
@@ -258,6 +256,8 @@ The terminal task result and synchronized imitation samples stop at the original
 
 Revision v16: overlap checkpoint schema and reward style are independent. Explicit continuous style uses the existing continuous weights and distance curve with the v1 critic shape. Reach readiness combines 50% downward wrist quality, 25% gated jaw opening, and 25% height quality times downward wrist quality. Height quality peaks 8 cm above the cube and falls away on either side. This is soft orientation guidance, not a locked wrist or guaranteed top-down path. Stable cube rise of 15-20 cm advances to Place, where positive grasp shaping stops. Explicit progress remains available. Resuming old optimizer/critic state under changed rewards is fine-tuning, not exact replay of old training.
 
+Current camera guidance adds a separate `Camera margin` penalty to Reach. It measures the wrist and calibrated inner finger-pad centers in the actual camera projection. The penalty is zero while all three points remain at least 8% inside the frame, then grows smoothly toward the edge. The existing out-of-view termination remains as a hard safety stop. This shaping uses simulator camera geometry for reward calculation; it does not add coordinates to the RGB actor input and does not prove that a learned policy will keep the gripper visible.
+
 
 ## Confirmed continuous reward specification (2026-10-20)
 
@@ -329,3 +329,131 @@ Checkpoint 1150 evaluation opened its jaws (93% of samples >1.10 rad) and pointe
 The descent target now matches IKTeacher._goal: cube center + fixed gripper_link local X axis times 0.016 m, plus 0.0095 m world Z. Overhead reaching still targets 8 cm above cube center. Closing shaping uses target-relative XY and height error (<2 cm each) instead of error from the cube center. Actual contact/enclosure checks remain unchanged. Reward-derived target coordinates do not enter actor observations or override actions. The live target rotates with the measured fixed-finger frame; teacher planning computes its bias from a solved neutral pose, so this is the same geometric offset rule rather than exact trajectory replay.
 
 Offline audit outputs/evaluation/ik_target_geometry_audit.json checked all 19 recorded bilateral grasp samples across teacher_demo_004.json and ik_teacher_trial06.json. Every sample fits the closing region, with maximum target error below 0.40 cm. This validates target consistency with saved successful demonstrations; it does not establish that PPO has learned the motion or that dynamics still succeed. Fresh policy evaluation remains required. Diagnostic logs add target distance/XY/height errors, open-jaw fraction, and descent-unlocked fraction.
+
+
+### v26: signed distance progress and an easy-to-read live graph
+
+The continuous **Approach distance** reward now pays only for change in distance to the current waypoint: `+0.30 * (previous_distance - current_distance) / 0.05 m`. Moving closer is positive, standing still is zero, and moving farther is negative with no zero clamp. The raise-to-overhead route and overhead-to-pinch target switches reset their distance baselines, so switching goals cannot create a fake reward. This removes the old positive reward for simply remaining near the cube, the time-based hover penalty, and the separate best-so-far descent bonus from this distance term. Alignment remains a separate reward term.
+
+The Newton **Net approach progress** chart sums these exact weighted distance rewards within the visible environment's episode. It starts at zero, climbs while net movement is toward the active waypoint, falls while backing away, remains flat while stationary, and can go below zero after retreating farther than the episode's progress. It resets to zero when that environment starts a new episode. The graph is a running total for readability; PPO still receives the signed per-step reward. This change alone does not force descent or prove the policy sees the cube; evaluate the recorded arm motion and RGB observations.
+
+### v27: listed rewards with no pregrasp hovering income and small outcomes
+
+All twelve continuous-profile terms retain the user's listed weights, except that
+successful placement now earns **+1 once**, replacing +40. An unsuccessful ending
+still earns **-0.1 once**, in the same outcome slot. The historical `progress`
+profile keeps its previous outcome scale. Existing checkpoints are preserved.
+
+- **Approach distance (+0.30):** signed distance improvement divided by 0.05 m.
+  Waiting contributes zero. The raise, overhead and IK pinch targets remain in
+  sequence; target changes reset only their relevant score baselines.
+- **Hand and gripper readiness (+0.10):** signed improvement of a bounded posture
+  score. The score is `centered * down * (0.5 + 0.25 * height_quality + 0.25 * jaw_quality)`.
+  `centered = exp(-(XY_error/0.05 m)^2)`, `down = max(downward_cosine, 0)` and
+  `height_quality = exp(-(height_error/0.04 m)^2)`. Height error refers to the
+  4.5 cm overhead clearance before descent, then the teacher pinch target.
+  `jaw_quality` is aligned/downward open-jaw quality until descent unlocks;
+  afterward it is fixed at one so correct closing is not penalized.
+- **Cube enclosure (+0.10):** signed enclosure improvement in Reach/Grasp.
+  Partial enclosure without real contact cannot earn reward while waiting.
+  During Lift the existing enclosure rate remains available alongside valid
+  two-finger contact. Positive grasp rewards stop in Place as before.
+- Other grasp, lift, hold, carrying, lowering and safety formulas retain their
+  listed weights and continuous feedback. Lift advances only after a supported,
+  slow 15-20 cm rise held for 0.5 seconds. Unsafe clearance/drag penalties still
+  apply even when the robot is stationary; the no-hover exception does not
+  disable safety feedback.
+
+No extra opening event, near-cube closing bonus, or idle-time reward/penalty is
+included. Approach, readiness and enclosure charts show the running total of
+their actual weighted rewards, starting at zero each episode. Zero additional
+reward leaves the existing plotted total unchanged. Regression can take a total
+below zero. Smoothed lines remain display-only.
+
+The changed formulas use the same actor/critic observation schemas; they are a
+new objective, not exact continuation of v26 rewards. A running v26 process
+continues its loaded settings until restarted. The +1 completion signal is much
+smaller than +40; an independent checkpoint evaluation must check whether the
+policy finishes placing rather than remaining in earlier rewarded phases.
+
+### v28: transfer the learned approach into Lift and Place
+
+The saved -5 mm X evaluation of model 1550 already passed Grasp and entered
+Lift. Its eligible 15-20 cm hold lasted 0.30 seconds, short of the previous
+0.50-second rule. It then tilted while retaining opposing contact; the world
+alignment/enclosure gate rejected that supported grip. The old camera guard
+also used wrist body origins, which could leave the image before the gripping
+area did. Increasing reward alone would not change these transition checks.
+
+- Acquisition still requires enclosed, closed, opposing finger-pad contacts for
+  0.20 seconds. Once acquired, a tilted grasp can remain valid while both pad
+  contacts persist, jaws remain closed and tool/cube centers stay within 6 cm.
+  One-finger lifting, distant contact and loss of support cannot promote stages.
+- `--lift-hold-seconds 0.25` is the easier fine-tuning setting. Default remains
+  0.50 seconds for compatibility. The cube must still rise 15-20 cm, remain
+  supported and move slower than 0.25 m/s throughout the dwell. Height and hold
+  settings are saved in checkpoint metadata and restored by evaluation.
+- The RGB camera and its images are unchanged. Visibility checks use both actual
+  finger-pad centers and the cube rather than wrist body origins. Actual loss of
+  these task points still terminates an attempt. Table/force/drop guards remain.
+- Both reward modes now permit intentional slow release only near the actual
+  box floor/interior, without granting automatic placement. Box-floor motion is
+  excluded from tabletop dragging. Settling, release and withdrawal are still
+  required for the +1 outcome; failure remains -0.1 once.
+- `--actor-warmstart --checkpoint .../model_1550.pt --grasp-reward-mode overlap`
+  keeps the old actor and its observation normalizer, with a fresh critic,
+  optimizer and update counter. This is PPO fine-tuning of a learned policy,
+  using the old `four_stage_v1` schema. It does not use IK, cloning or relabel
+  the checkpoint as the incompatible bounded schema. The original is preserved.
+
+Bounded before/after check (seed 101, cube X -5 mm): the unchanged 1550 actor
+reached Place at step 208 with the new rules; the old test stopped in Lift.
+The new attempt still failed at step 257 because of the camera boundary. This
+is evidence of improved phase progression, not successful placement or broad
+reliability. Video: `outputs/evaluation/v28_model1550_case02_20261021.mp4`.
+
+Earlier headless fine-tuning command (superseded by the v37 settings below):
+
+```bash
+OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 \
+python scripts/train.py \
+  --task place --policy rgb --curriculum place \
+  --reward-profile four-stage --reward-style continuous \
+  --grasp-reward-mode overlap --training-goal place \
+  --lift-rise-min 0.10 --lift-rise-max 0.12 --lift-hold-seconds 0.5 \
+  --lr-schedule adaptive --cube-jitter 0 \
+  --envs 16 --iterations 6000 --device cuda:0 \
+  --headless --reward-window \
+  --checkpoint logs/rsl_rl/so101_pickplace_rgb_four_stage_v3_overlap/2026-10-17_18-50-28/model_1550.pt \
+  --actor-warmstart
+```
+
+For one visible Newton environment, replace `--headless --reward-window` with
+`--viz newton --max_visible_envs 1 --live-reward-graphs`. Video recording across
+all training environments can be enabled with `--record-successes`; it adds CPU
+and disk overhead. Sequential checkpoint evaluations are cheaper to record.
+
+### v37: higher straight-down approach and stronger lift-height limit
+
+Reach now follows three clear motions: rise to 8 cm above the cube, center over
+the IK pinch target while still high, then descend toward the pinch point. The
+descent target stays active only while the jaws are fully open, target XY error
+is below 2 cm, and the wrist points down with cosine above 0.90. Losing those
+checks sends guidance back to the overhead target. This is meant to reduce the
+low sideways sweep visible in the October 20 Reach clip; it still needs a fresh
+policy recording to confirm the arm follows it.
+
+In continuous reward mode, the existing Lift-height term now becomes negative
+once the cube rises above 12 cm; the cost grows faster and caps after 4 cm of
+overshoot. Its graph and weight stay the same. Place still requires a valid
+grasp, cube rise within 10–12 cm, speed below 0.25 m/s, and a continuous 0.5 s
+hold. No stage is forced forward. Start from `model_1550.pt` with actor warmstart
+to retain its earlier descent behavior, while PPO resets the critic and
+optimizer for the changed rewards.
+
+The current training command should set `--lift-rise-min 0.10`,
+`--lift-rise-max 0.12`, and `--lift-hold-seconds 0.5`. For Newton, use
+`--viz newton --max_visible_envs 1 --live-reward-graphs`; for headless monitoring,
+use `--headless --reward-window`. Both variants can train 16 environments.
+
+Camera tuning (2026-10-23): Reach camera-margin weight is now -1.0 and the warning starts within 12% of an image edge. The hard out-of-view stop remains active. This targets camera escapes observed in model_50; improved task success has not yet been measured. Start from ik_overhead_bc_v3_dagger.pt and evaluate before extending training.

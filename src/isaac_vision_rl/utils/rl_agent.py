@@ -106,6 +106,17 @@ class ExplorationPPO(PPO):
 
     def update(self):
         metrics = super().update()
+        replay = getattr(self, '_teacher_replay', None)
+        if replay is not None:
+            from isaac_vision_rl.utils.teacher_replay import rehearsal_loss
+            obs, target = replay.sample(next(self._raw_actor.parameters()).device)
+            predicted = self._raw_actor(obs, stochastic_output=False)
+            teacher_loss = rehearsal_loss(predicted, target)
+            self.optimizer.zero_grad()
+            (self._teacher_replay_weight * teacher_loss).backward()
+            torch.nn.utils.clip_grad_norm_(self._raw_actor.parameters(), self.max_grad_norm)
+            self.optimizer.step()
+            metrics['teacher_rehearsal_loss'] = teacher_loss.item()
         distribution = self.exploration_distribution()
         distribution.project_noise()
         with torch.no_grad():
@@ -132,6 +143,9 @@ class ExplorationPPO(PPO):
             saved["so101_agent_schema"] = "four_stage_v2_bounded" if os.environ.get("SO101_GRASP_REWARD_MODE","bounded")=="bounded" else "four_stage_v1"
             saved["so101_training_goal"]=os.environ.get("SO101_TRAINING_GOAL","place")
             saved["so101_motion_profile"] = "four_stage_smooth_v1"
+            saved['so101_lift_rise_min']=float(os.environ.get('SO101_LIFT_RISE_MIN','.10'))
+            saved['so101_lift_rise_max']=float(os.environ.get('SO101_LIFT_RISE_MAX','.12'))
+            saved['so101_lift_hold_seconds']=float(os.environ.get('SO101_LIFT_HOLD_SECONDS','.5'))
         saved["so101_gripper_controller"] = "policy_joint_target"
         saved["so101_cube_observation"] = "none"
         saved["so101_control_hz"] = int(os.environ.get("SO101_RGB_FPS", "30"))
@@ -164,10 +178,18 @@ class ExplorationPPO(PPO):
                         f"Checkpoint was trained at {saved_hz} Hz. Set SO101_RGB_FPS={saved_hz} to reproduce it, "
                         "pass --adapt-checkpoint to fine-tune at the new frequency, or start fresh without --checkpoint."
                     )
+        actor_warmstart = bool(
+            loaded_dict.get("is_bc_checkpoint", False)
+            or os.environ.get("SO101_ACTOR_WARMSTART") == "1"
+        )
         expected_schema = "rgb_policy_gripper_v1"
         if os.environ.get("SO101_REWARD_PROFILE", "legacy") == "four-stage":
             expected_schema = "four_stage_v2_bounded" if os.environ.get("SO101_GRASP_REWARD_MODE","bounded")=="bounded" else "four_stage_v1"
-        if loaded_dict.get("so101_agent_schema") != expected_schema:
+        # A full PPO resume must use the same reward/policy schema. An explicit
+        # actor-only warm start can transfer the actor across reward versions:
+        # the critic and optimizer are reset below, and strict actor loading
+        # still checks that the network weights have the exact expected shape.
+        if loaded_dict.get("so101_agent_schema") != expected_schema and not actor_warmstart:
             raise ValueError(
                 "This checkpoint uses an unsupported policy schema; "
                 "Start a fresh run for bounded rewards, or use --grasp-reward-mode overlap to evaluate/resume an old four_stage_v1 checkpoint."
@@ -177,8 +199,8 @@ class ExplorationPPO(PPO):
             raise ValueError(
                 f"Checkpoint policy does not match --policy {expected}; use a matching checkpoint or start fresh."
             )
-        if loaded_dict.get("is_bc_checkpoint", False):
-            # Behavior Cloning Warm-Start:
+        if actor_warmstart:
+            # Actor-only warm-start from an RL policy or a cloning checkpoint:
             # 1. Strictly load actor weights only.
             # 2. Critic remains fresh (randomly initialized for PPO to learn state values from scratch).
             # 3. PPO optimizer remains fresh (zero momentum).
@@ -188,9 +210,20 @@ class ExplorationPPO(PPO):
                 max(self.entropy_coef_min, float(loaded_dict.get("exploration_entropy_coef", 0.01))),
             )
             self.exploration_distribution().project_noise()
+            replay_checkpoint = os.environ.get('SO101_TEACHER_REPLAY_CHECKPOINT')
+            if replay_checkpoint:
+                from isaac_vision_rl.utils.teacher_replay import TeacherReplay
+                self._teacher_replay = TeacherReplay(replay_checkpoint)
+                self._teacher_replay_weight = float(os.environ.get('SO101_TEACHER_REPLAY_WEIGHT', '1.0'))
+                initial_std = float(os.environ.get('SO101_WARMSTART_STD', '0.15'))
+                if self._teacher_replay_weight <= 0 or initial_std <= 0:
+                    raise ValueError('Teacher replay weight and warm-start noise must be positive')
+                with torch.no_grad():
+                    self.exploration_distribution().log_std_param.fill_(math.log(initial_std))
+                self.exploration_distribution().project_noise()
             import logging
             logging.getLogger(__name__).info(
-                "[BC-WARMSTART] Loaded actor weights from Behavior Cloning checkpoint. "
+                "[ACTOR-WARMSTART] Loaded learned actor weights from checkpoint. "
                 "Critic network and PPO optimizer remain freshly initialized; training iteration set to 0."
             )
             return False

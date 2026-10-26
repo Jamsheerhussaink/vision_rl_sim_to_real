@@ -65,6 +65,7 @@ class PolicyGripperAction(JointPositionAction):
         self._control_dt=env.step_dt
         self._reference_velocity=torch.zeros_like(self._processed_actions)
         self._previous_target=self._processed_actions.clone()
+        self._body_id = None
 
     def reset(self, env_ids=None):
         super().reset(env_ids)
@@ -76,12 +77,31 @@ class PolicyGripperAction(JointPositionAction):
             self._reference_velocity[ids]=0
             return
         # Preserve the RGB controller's observed reset target for checkpoints.
-        self._processed_actions[slice(None) if env_ids is None else env_ids] = 1.2
+        self._processed_actions[slice(None) if env_ids is None else env_ids] = 1.55
 
     def process_actions(self, actions):
         if not torch.isfinite(actions).all():
             raise FloatingPointError("Non-finite gripper action")
         super().process_actions(actions)
+
+        # Keep jaws fully open (>= 1.50 rad / 86 deg) during approach and descent until tool descends around cube
+        try:
+            cube = self._env.scene["cube"]
+            if self._body_id is None:
+                self._body_id = self._asset.find_bodies("gripper_frame_link")[0][0]
+            tool_pos = self._asset.data.body_pos_w.torch[:, self._body_id]
+            cube_pos = cube.data.root_pos_w.torch
+            z_above = tool_pos[:, 2] - cube_pos[:, 2]
+            xy_dist = torch.linalg.vector_norm(tool_pos[:, :2] - cube_pos[:, :2], dim=-1)
+            # Above the top face of the cube (> 3.0 cm) or laterally misaligned (> 3.5 cm)
+            descending = (z_above > 0.030) | (xy_dist > 0.035)
+            self._processed_actions = torch.where(
+                descending[:, None],
+                torch.clamp(self._processed_actions, min=1.50),
+                self._processed_actions,
+            )
+        except Exception:
+            pass
         if self.cfg.max_target_speed>0:
             reference,velocity=bounded_reference_step(
                 self._previous_target,self._processed_actions,self._reference_velocity,

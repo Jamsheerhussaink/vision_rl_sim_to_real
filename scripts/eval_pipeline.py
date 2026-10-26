@@ -14,6 +14,22 @@ from typing import TYPE_CHECKING, Any, cast
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
+
+FOUR_STAGE_NAMES = ("REACH", "GRASP", "LIFT", "PLACE")
+
+
+def active_four_stage(log):
+    """Read the active stage from the reward manager's diagnostic log, if present."""
+    if not isinstance(log, dict):
+        return None
+    for index, name in enumerate(FOUR_STAGE_NAMES):
+        try:
+            if float(log.get(f"FourStage/{name}_fraction", 0.0)) >= 0.5:
+                return name
+        except (TypeError, ValueError):
+            continue
+    return None
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -104,6 +120,8 @@ def main():
     if args.viz == "newton":
         cfg.sim.default_visualizer_cfg.streaming_view = True
         cfg.sim.default_visualizer_cfg.streaming_envs = [0]
+        cfg.sim.default_visualizer_cfg.visible_env_indices = [0]
+        cfg.sim.default_visualizer_cfg.randomly_sample_visible_envs = False
     cfg.compute_final_obs = True
     agent = handle_deprecated_rsl_rl_cfg(PPORunnerCfg(), importlib.metadata.version("rsl-rl-lib"))
     agent.device = args.device
@@ -122,6 +140,11 @@ def main():
             runner.load(str(checkpoint))
             policy = runner.get_inference_policy()
             base = cast("ManagerBasedRLEnv", env.unwrapped)
+            viewer_binding=[
+                {"type":type(v).__name__,"visible_env_ids":v.get_visualized_env_ids()}
+                for v in base.sim.visualizers if hasattr(v,'get_visualized_env_ids')
+            ]
+            print(f'[VIEWER CHECK] reward environment=0; visualizers={viewer_binding}',flush=True)
             if args.record_video:
                 import cv2
                 import numpy as np
@@ -136,6 +159,8 @@ def main():
                     raise RuntimeError("Could not open MP4 video encoder")
             obs = env.get_observations()
             reward_sum, steps, peak, drag = 0.0, 0, 0.0, 0.0
+            stage_step_counts = {name: 0 for name in FOUR_STAGE_NAMES}
+            observed_stages = []
             manager = cast("ManagerBasedRLEnv", env.unwrapped).observation_manager
             task_index = manager.active_terms["critic"].index("task_state")
             task_start = sum(math.prod(dim) for dim in manager.group_obs_term_dim["critic"][:task_index])
@@ -216,6 +241,25 @@ def main():
                                 "trace_phase": "before_action_application",
                             }
                         )
+                        state=getattr(base,'_four_stage',None)
+                        panel=getattr(base,'_training_reward_panel',None)
+                        sample=getattr(panel,'snapshot',None) or {}
+                        if state is not None:
+                            measurements=getattr(state,'measurements',{})
+                            trace[-1].update(
+                                task_stage=int(state.stage[0]),
+                                graph_stage=sample.get('stage'),
+                                episode_step=int(base.episode_length_buf[0]),
+                                graph_episode_step=sample.get('episode_step'),
+                                grasp_confirmed=sample.get('grasp_confirmed'),
+                                stage_measurements={k:float(v[0]) for k,v in measurements.items()
+                                    if k in ('pregrasp_distance','grasp_pose_distance','downward_cosine',
+                                             'tool_height_above_cube','clearance','table_force','jaw',
+                                             'reach_ready','cube_between_fingers','bilateral','enclosed',
+                                             'fixed_contact_in_pad','moving_contact_in_pad',
+                                             'fixed_contact_force_N','moving_contact_force_N','opposing_contact_forces')},
+                                descent_unlocked=bool(state.descent_ready[0]),
+                            )
                         if video is not None:
                             frame = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
                             cv2.putText(
@@ -227,11 +271,39 @@ def main():
                                 (255, 255, 255),
                                 1,
                             )
+                            if state is not None:
+                                graph_index=sample.get('stage')
+                                graph_label=FOUR_STAGE_NAMES[graph_index] if isinstance(graph_index,int) and 0<=graph_index<4 else 'waiting'
+                                cv2.putText(frame,
+                                    f'ENV 0 | task {FOUR_STAGE_NAMES[int(state.stage[0])]} | graph {graph_label} | grip {sample.get("grasp_confirmed")}',
+                                    (8,42),cv2.FONT_HERSHEY_SIMPLEX,.48,(255,255,255),1)
                             if overlay is not None:
                                 trace[-1]["collision_pads"] = overlay.draw(frame, robot, base.scene["camera"], forces, base.scene)
                             video.write(frame)
                     obs, reward, done, extras = env.step(action)
+                    panel=getattr(base,'_training_reward_panel',None)
+                    displayed=getattr(panel,'snapshot',None) or {}
+                    if trace and not bool(done[0]) and 'step_reward' in displayed:
+                        trace[-1]['ppo_reward_after_action']=float(reward[0])
+                        trace[-1]['graph_reward_after_action']=float(displayed['step_reward'])
+                    log = extras.get("log", {}) if isinstance(extras, dict) else {}
+                    current_stage = active_four_stage(log)
+                    if current_stage is not None:
+                        stage_step_counts[current_stage] += 1
+                        if not observed_stages or observed_stages[-1] != current_stage:
+                            observed_stages.append(current_stage)
                     terminal = bool(done[0].item())
+                    # Four-stage measurements retain the terminal physical
+                    # reading even after same-step autoreset moves home.
+                    terminal_measurements=getattr(getattr(base,'_four_stage',None),'measurements',{}) if terminal else {}
+                    if 'clearance' in terminal_measurements:
+                        minimum_clearance=min(minimum_clearance,float(terminal_measurements['clearance'][0]))
+                        peak_table_force=max(peak_table_force,float(terminal_measurements['table_force'][0]))
+                        if trace:
+                            trace[-1]['terminal_after_action']={
+                                'hand_table_clearance_m':float(terminal_measurements['clearance'][0]),
+                                'hand_table_force_n':float(terminal_measurements['table_force'][0]),
+                            }
                     # Same-step autoreset: use terminal state, not the next episode's cube.
                     measured = extras["final_obs"] if terminal else obs
                     current = measured["critic"][0, task_start : task_start + 3]
@@ -269,6 +341,8 @@ def main():
                                 "peak_sampled_hand_table_force_n": peak_table_force,
                                 "unsafe_table_termination": bool(base.termination_manager.get_term("unsafe_table_contact")[0]),
                                 "termination_reasons": termination_reasons,
+                                "observed_stages": list(observed_stages),
+                                "stage_step_counts": dict(stage_step_counts),
                             }
                         )
                         if video is not None or args.trace_only:
@@ -292,6 +366,8 @@ def main():
                             })
                         print(f"Episode {len(results)}/{args.episodes}: {results[-1]}")
                         reward_sum, steps, peak, drag = 0.0, 0, 0.0, 0.0
+                        stage_step_counts = {name: 0 for name in FOUR_STAGE_NAMES}
+                        observed_stages = []
                         minimum_clearance, peak_table_force = float("inf"), 0.0
                         previous = obs["critic"][0, task_start : task_start + 3].clone()
                         initial_distance = float(
@@ -314,6 +390,10 @@ def main():
                 "sample_actions": args.sample_actions,
                 "seed": args.seed,
                 "episodes": len(results),
+                "viewer_binding":viewer_binding,
+                "graph_task_stage_mismatches":sum(v.get('graph_stage') is not None and v.get('graph_stage')!=v.get('task_stage') for v in trace),
+                "graph_ppo_reward_mismatches":sum(abs(v['ppo_reward_after_action']-v['graph_reward_after_action'])>1e-6
+                    for v in trace if 'ppo_reward_after_action' in v),
                 "success_rate": sum(r["success"] for r in results) / len(results),
                 **{
                     f"mean_{key}": sum(r[key] for r in results) / len(results)

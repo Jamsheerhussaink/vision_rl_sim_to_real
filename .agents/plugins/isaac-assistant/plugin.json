@@ -1,0 +1,5 @@
+{
+  "name": "isaac-vision-rl-assistant",
+  "description": "Custom MCP assistant for inspecting RL training runs, evaluations, robot calibration, and hardware."
+}
+

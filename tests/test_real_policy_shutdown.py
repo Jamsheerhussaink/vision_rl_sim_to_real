@@ -8,7 +8,10 @@ import numpy as np
 
 from isaac_vision_rl.utils.calibration import FollowerArmCalibration, JOINT_ORDER
 from isaac_vision_rl.utils.home_pose import HOME_TICKS
-from isaac_vision_rl.utils.real_policy import RealPolicy, camera_profile_dimensions, deployed_policy_home
+from isaac_vision_rl.utils.real_policy import (
+    RealPolicy, camera_profile_dimensions, deployed_policy_home,
+    validate_actor_state_dict, validate_real_checkpoint_metadata,
+)
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/hardware/real_camera_policy.py'
 spec = importlib.util.spec_from_file_location('real_camera_shutdown_under_test', SCRIPT)
@@ -71,6 +74,26 @@ def test_saved_rgb_profile_selects_matching_native_camera_dimensions():
     assert camera_profile_dimensions("1280x720_letterbox128_v1") == (1280, 720)
     with np.testing.assert_raises_regex(ValueError, "Unsupported RGB profile"):
         camera_profile_dimensions("unknown")
+
+
+def test_real_policy_accepts_rgb_four_stage_schema_with_matching_actor_inputs():
+    validate_real_checkpoint_metadata({
+        "so101_agent_schema": "four_stage_v1",
+        "so101_policy_variant": "rgb",
+    })
+    validate_real_checkpoint_metadata({
+        "so101_agent_schema": "four_stage_v2_bounded",
+        "so101_policy_variant": "rgb",
+    })
+
+
+def test_real_policy_rejects_privileged_actor_stage_input_shape():
+    expected = {"mlp.0.weight": np.zeros((256, 9241), dtype=np.float32)}
+    compatible = {"mlp.0.weight": np.zeros((256, 9241), dtype=np.float32)}
+    validate_actor_state_dict(expected, compatible)
+    incompatible = {"mlp.0.weight": np.zeros((256, 9245), dtype=np.float32)}
+    with np.testing.assert_raises_regex(ValueError, "simulator-only actor stage input"):
+        validate_actor_state_dict(expected, incompatible)
 
 
 def test_deployed_policy_home_matches_runtime_photo_home_and_open_gripper():

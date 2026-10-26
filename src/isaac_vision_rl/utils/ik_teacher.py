@@ -62,21 +62,31 @@ class IKTeacher:
         if self.position is not None:ready &= np.linalg.norm(tool-self.position)<.008
         duration=.2
         if name=='open':ready=abs(actual[5]-1.2)<.04
-        elif name=='reach':ready=bool(m['reach_ready'])
+        elif name=='reach':
+            # The teacher's overhead waypoint precedes its separate descent.
+            # RL's reach_ready now means cube BETWEEN fingers at pinch height;
+            # using it here would deadlock the teacher above the cube.
+            ready &= (actual[5]>1.10 and m.get('clearance',0.)>=.005
+                      and m.get('downward_cosine',0.)>.95)
         elif name=='descend':
             # Passing near the target during motion is not a settled grasp pose.
             # Keep jaws open until both reference and measured arm have arrived.
             ready=(np.max(np.abs(self.target[:5]-self.goal[:5]))<.001
-                   and np.max(np.abs(actual[:5]-self.goal[:5]))<.01
+                   # This model tracks a settled target with a small residual.
+                   # Requiring 1 cm-rad precision caused safe descents to time out
+                   # while the measured tool was already within about 4.5 mm.
+                   and np.max(np.abs(actual[:5]-self.goal[:5]))<.02
                    and self.position is not None
-                   and np.linalg.norm(tool-self.position)<.003
+                   # Allow the measured 4-5 mm settled IK residual while still
+                   # requiring the gripper to be near the requested pinch pose.
+                   and np.linalg.norm(tool-self.position)<.006
                    and joint_speed<.03)
             duration=.3
-        elif name=='grasp':ready=bool(m['bilateral']) and bool(m['enclosed']) and actual[5]<1.1
-        elif name=='lift':ready=bool(m['bilateral']) and .53<=m['height']<=.55 and m['speed']<.25;duration=.6
-        elif name=='carry':ready &= bool(m['bilateral']) and m['speed']<.15
-        elif name=='release':ready=actual[5]>1.1 and not bool(m['bilateral']);duration=.4
-        elif name=='withdraw':ready &= bool(m['placed']);duration=.5
+        elif name=='grasp':ready=bool(m.get('bilateral',False)) and bool(m.get('enclosed',False)) and actual[5]<1.1
+        elif name=='lift':ready=bool(m.get('bilateral',False)) and .53<=m.get('height',-float('inf'))<=.55 and m.get('speed',float('inf'))<.25;duration=.6
+        elif name=='carry':ready &= bool(m.get('bilateral',False)) and m.get('speed',float('inf'))<.15
+        elif name=='release':ready=actual[5]>1.1 and not bool(m.get('bilateral',False));duration=.4
+        elif name=='withdraw':ready &= bool(m.get('placed',False));duration=.5
         self.dwell=self.dwell+self.dt if ready else 0.
         if self.dwell>=duration:
             if name=='grasp':self.offset=tool-cube

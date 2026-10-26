@@ -17,12 +17,13 @@ Usage:
 """
 
 import argparse
+import math
 import os
 import socket
 import subprocess
 import sys
 
-# Auto-detect and switch to env_isaaclab Python if executed in another conda environment (e.g. vision_rl)
+# Auto-detect and stwitch to env_isaaclab Python if executed in another conda environment (e.g. vision_rl)
 try:
     import isaaclab  # noqa: F401
 except ImportError:
@@ -39,6 +40,23 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 
+
+
+def newton_visualizer_overrides(max_visible_envs):
+    """Match the visible robot to the environment-zero RGB and reward panel."""
+    options=[
+        'env.sim.default_visualizer_cfg.streaming_view=true',
+        'env.sim.default_visualizer_cfg.streaming_envs=[0]',
+        'env.sim.default_visualizer_cfg.background_color=[0.04,0.06,0.04]',
+    ]
+    if max_visible_envs == 1:
+        # A cap alone randomly selects a world in Isaac Lab. An explicit ID
+        # takes precedence over that sampling, keeping scene and graph aligned.
+        options.extend([
+            'env.sim.default_visualizer_cfg.visible_env_indices=[0]',
+            'env.sim.default_visualizer_cfg.randomly_sample_visible_envs=false',
+        ])
+    return options
 
 
 def launch_tensorboard(log_dir: str):
@@ -116,13 +134,24 @@ def main():
         help="Maximum number of environments rendered in GUI visualizer (default: show all)",
     )
     parser.add_argument("--checkpoint", type=str, default=None, help="Resume training from a model checkpoint (.pt)")
+    parser.add_argument('--actor-warmstart',action='store_true',help='Keep learned actor from --checkpoint; reset critic, optimizer and update count for changed rewards')
     parser.add_argument(
         "--adapt-checkpoint",
         action="store_true",
         help="Allow resuming/fine-tuning a checkpoint trained at a different control frequency (e.g. 60 Hz -> 30 Hz)",
     )
     parser.add_argument(
-        "--dashboard", action="store_true", help="Launch background TensorBoard web dashboard (http://localhost:6006)"
+        "--dashboard", action="store_true", default=False, help="Launch background TensorBoard web dashboard (http://localhost:6006)"
+    )
+    parser.add_argument(
+        "--wandb",
+        action="store_true",
+        help="Also log training metrics to Weights & Biases (view live at wandb.ai)",
+    )
+    parser.add_argument(
+        "--wandb-project",
+        default="so101-isaaclab-rl",
+        help="W&B project name used with --wandb (default: so101-isaaclab-rl)",
     )
     parser.add_argument("--device", type=str, default="cuda:0", help="Simulation device (e.g. cuda:0 or cpu)")
     parser.add_argument(
@@ -146,11 +175,12 @@ def main():
     parser.add_argument("--approach-ramp-updates", type=int, default=1000, help="Updates over which approach reset difficulty grows")
     parser.add_argument("--lr-schedule", choices=["fixed", "adaptive"], default="fixed", help="PPO learning-rate schedule; adaptive targets KL divergence 0.01")
     parser.add_argument("--reward-profile", choices=["legacy", "four-stage"], default="legacy", help="Versioned four-stage full task; requires task/curriculum place")
-    parser.add_argument("--reward-style", choices=["continuous","progress"], default="continuous", help="Current-state reward every step, or historical new-best progress shaping")
-    parser.add_argument("--grasp-reward-mode", choices=["bounded","overlap"], default="bounded", help="Bounded grasp rewards for new policies; overlap reproduces old checkpoints")
+    parser.add_argument("--reward-style", choices=["continuous","progress"], default="continuous", help="Signed pregrasp improvements plus continuous grasp/lift/place feedback, or historical new-best progress shaping")
+    parser.add_argument("--grasp-reward-mode", choices=["bounded","overlap"], default="bounded", help="Bounded uses the newer critic schema; overlap keeps the older checkpoint schema")
     parser.add_argument("--training-goal", choices=["lift","place"], default="place", help="Stop successfully after stable held lift, or continue through placement")
-    parser.add_argument("--lift-rise-min", type=float, default=0.15, help="Minimum cube rise above its reset height to complete Lift, in metres (default: 0.15)")
-    parser.add_argument("--lift-rise-max", type=float, default=0.20, help="Upper safe cube rise above its reset height, in metres (default: 0.20)")
+    parser.add_argument("--lift-rise-min", type=float, default=0.10, help="Minimum cube rise above its reset height to complete Lift, in metres (default: 0.10)")
+    parser.add_argument("--lift-rise-max", type=float, default=0.12, help="Upper safe cube rise above its reset height, in metres (default: 0.12)")
+    parser.add_argument('--lift-hold-seconds',type=float,default=.5,help='Supported low-speed hold needed before Place; use 0.25 for the easier transfer fine-tune')
     parser.add_argument("--record-successes", action="store_true", help="Record full successes, every completed stage and major failures across all environments")
     parser.add_argument("--reward-window", action="store_true", help="Standalone reward charts for environment 0; supports headless simulation")
     parser.add_argument("--live-reward-graphs", action="store_true", help="Read-only individual reward charts for environment 0 in Newton; four-stage profile only")
@@ -159,8 +189,11 @@ def main():
     parser.add_argument("--width", type=int, default=1280, help="Camera width in pixels (default: 1280)")
     parser.add_argument("--height", type=int, default=720, help="Camera height in pixels (default: 720)")
     args = parser.parse_args()
-    if args.lift_rise_min <= 0 or args.lift_rise_max <= args.lift_rise_min:
+    if not all(math.isfinite(v) for v in (args.lift_rise_min,args.lift_rise_max,args.lift_hold_seconds)) or args.lift_rise_min <= 0 or args.lift_rise_max <= args.lift_rise_min:
         parser.error("--lift-rise-min and --lift-rise-max must be positive and max must be greater than min")
+    if args.lift_hold_seconds<=0:parser.error('--lift-hold-seconds must be positive')
+    if args.actor_warmstart and not args.checkpoint:parser.error('--actor-warmstart requires --checkpoint')
+    os.environ['SO101_ACTOR_WARMSTART']='1' if args.actor_warmstart else '0'
     if args.record_successes and args.reward_profile != "four-stage":
         parser.error("--record-successes requires --reward-profile four-stage")
     os.environ["SO101_REWARD_STYLE"]=args.reward_style
@@ -168,6 +201,7 @@ def main():
     os.environ["SO101_TRAINING_GOAL"]=args.training_goal
     os.environ["SO101_LIFT_RISE_MIN"]=str(args.lift_rise_min)
     os.environ["SO101_LIFT_RISE_MAX"]=str(args.lift_rise_max)
+    os.environ['SO101_LIFT_HOLD_SECONDS']=str(args.lift_hold_seconds)
     os.environ["SO101_STAGE_VIDEOS"] = "1" if args.record_successes else "0"
     os.environ["SO101_RECORD_SUCCESSES"] = "1" if args.record_successes else "0"
     if args.reward_window and args.reward_profile != "four-stage":
@@ -273,18 +307,19 @@ def main():
             train_args.extend(["--max_visible_envs", str(args.max_visible_envs)])
         if viz_backend in ("newton", "newton_gl"):
             # Show the actual policy RGB in Newton's camera panel, beside its GL scene.
-            train_args.extend(
-                [
-                    "env.sim.default_visualizer_cfg.streaming_view=true",
-                    "env.sim.default_visualizer_cfg.streaming_envs=[0]",
-                    "env.sim.default_visualizer_cfg.background_color=[0.04,0.06,0.04]",
-                ]
-            )
+            train_args.extend(newton_visualizer_overrides(args.max_visible_envs))
     # Isaac Lab infers headless execution when no Kit visualizer is selected.
     # Camera rendering is selected automatically because this task contains CameraCfg.
 
     if args.checkpoint:
         train_args.extend(["--checkpoint", args.checkpoint])
+
+    if args.wandb:
+        from isaac_vision_rl.experiments.simple_rewards.wandb_writer import MetricsOnlyWandbLogWriter
+        import rsl_rl.utils
+
+        rsl_rl.utils.WandbLogWriter = MetricsOnlyWandbLogWriter
+        train_args.extend(["--logger", "wandb", "--log_project_name", args.wandb_project])
 
     # Run training using Isaac Lab CLI dispatcher
     from isaaclab.cli import cli

@@ -73,6 +73,16 @@ class AgentTests(unittest.TestCase):
         other.load(saved)
         self.assertEqual(other.entropy_coef, alg.entropy_coef)
         self.assertTrue(torch.equal(alg.actor(obs), other.actor(obs)))
+        # Changing rewards must preserve the learned policy without inheriting
+        # the old value estimates or Adam momentum.
+        warm = ExplorationPPO.construct_algorithm(obs, env, copy.deepcopy(config), "cpu")
+        critic_before=copy.deepcopy(warm._raw_critic.state_dict())
+        with patch.dict(os.environ,{'SO101_ACTOR_WARMSTART':'1'}):
+            self.assertFalse(warm.load(saved))
+        self.assertTrue(torch.equal(alg.actor(obs),warm.actor(obs)))
+        self.assertFalse(warm.optimizer.state)
+        for key,value in critic_before.items():
+            torch.testing.assert_close(warm._raw_critic.state_dict()[key],value)
         saved.pop("so101_agent_schema")
         with self.assertRaisesRegex(ValueError, "fresh run"):
             other.load(saved)
@@ -93,6 +103,37 @@ class AgentTests(unittest.TestCase):
             with patch.dict('os.environ',{'SO101_REWARD_PROFILE':'four-stage',
                                          'SO101_GRASP_REWARD_MODE':mode,'SO101_TRAINING_GOAL':'lift'}):
                 self.test_actual_cnn_ppo_update_and_checkpoint()
+
+    def test_actor_warmstart_can_cross_reward_schema_but_full_resume_cannot(self):
+        torch.set_num_threads(1)
+        cfg = handle_deprecated_rsl_rl_cfg(PPORunnerCfg(), importlib.metadata.version("rsl-rl-lib"))
+        cfg.num_steps_per_env = 2
+        config = cfg.to_dict()
+        config["multi_gpu"] = None
+        obs = TensorDict(
+            {"policy": torch.randn(2, 25), "critic": torch.randn(2, 51), "image": torch.rand(2, 3, 128, 128)},
+            batch_size=[2],
+        )
+        env = NS(num_envs=2, num_actions=6)
+        source = ExplorationPPO.construct_algorithm(obs, env, copy.deepcopy(config), "cpu")
+        target = ExplorationPPO.construct_algorithm(obs, env, copy.deepcopy(config), "cpu")
+        source_cfg = {
+            "SO101_REWARD_PROFILE": "four-stage", "SO101_GRASP_REWARD_MODE": "bounded",
+            "SO101_POLICY": "rgb", "SO101_CAMERA_WIDTH": "1280", "SO101_CAMERA_HEIGHT": "720",
+            "SO101_RGB_FPS": "30", "SO101_TRAINING_GOAL": "place", "SO101_ACTOR_WARMSTART": "0",
+        }
+        with patch.dict(os.environ, source_cfg):
+            saved = source.save()
+
+        overlap_cfg = {**source_cfg, "SO101_GRASP_REWARD_MODE": "overlap"}
+        with patch.dict(os.environ, {**overlap_cfg, "SO101_ACTOR_WARMSTART": "1"}):
+            self.assertFalse(target.load(saved))
+            self.assertTrue(torch.equal(source.actor(obs), target.actor(obs)))
+            self.assertFalse(target.optimizer.state)
+
+        with patch.dict(os.environ, {**overlap_cfg, "SO101_ACTOR_WARMSTART": "0"}):
+            with self.assertRaisesRegex(ValueError, "unsupported policy schema"):
+                target.load(saved)
 
     def test_td_gae_terminal_and_bootstrap_returns(self):
         alg = ExplorationPPO.__new__(ExplorationPPO)

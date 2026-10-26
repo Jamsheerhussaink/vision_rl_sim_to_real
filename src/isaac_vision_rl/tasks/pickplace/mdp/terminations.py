@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, Sequence
 import torch
 
@@ -8,14 +9,16 @@ if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
 from isaaclab.managers import SceneEntityCfg
-from isaaclab.utils.math import quat_apply_inverse
+from isaaclab.utils.math import quat_apply_inverse, quat_apply
 
 
 def unsafe_hand_table_contact(env):
     """End a failed episode before continued scraping can earn task reward."""
     from isaac_vision_rl.utils.hand_table import hand_table_metrics
     clearance, force = hand_table_metrics(env)
-    return (clearance < 0.003) | (force > 0.1)
+    min_clearance = float(os.environ.get("SO101_TABLE_CLEARANCE_MIN", "0.0015"))
+    max_force = float(os.environ.get("SO101_TABLE_FORCE_MAX", "0.5"))
+    return (clearance < min_clearance) | (force > max_force)
 
 
 def get_camera_projection_params(env: ManagerBasedRLEnv):
@@ -100,21 +103,51 @@ def gripper_outside_camera_view(
     margin: float = 0.02,
     min_depth: float = 0.05,
     max_depth: float = 2.0,
-    body_names: Sequence[str] = ("gripper_frame_link", "gripper_link", "moving_jaw_so101_v1_link"),
     robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
-    """Terminate when the robot's gripper (TCP and fingers) leaves the camera's field of view."""
+    """Terminate when the robot's finger-pad centers leave the camera's field of view.
+
+    Uses the actual fingertip contact regions (like four_stage) rather than wrist origin,
+    so the policy isn't terminated when fingers are visible but wrist origin exits FOV.
+    """
+    from .rewards import FINGER_CONTACT_REGIONS
     robot: Articulation = env.scene[robot_cfg.name]
-    body_positions = []
-    for name in body_names:
-        body_id = robot.find_bodies(name)[0][0]
-        body_positions.append(robot.data.body_pos_w.torch[:, body_id])
-    pts_w = torch.stack(body_positions, dim=1)  # (N, len(body_names), 3)
+    points = []
+    for _, body_name, lower, upper in FINGER_CONTACT_REGIONS:
+        body_id = robot.find_bodies(body_name)[0][0]
+        position = robot.data.body_pos_w.torch[:, body_id]
+        rotation = robot.data.body_quat_w.torch[:, body_id]
+        center = torch.tensor([(lo + hi) * 0.5 for lo, hi in zip(lower, upper)],
+                              device=position.device, dtype=position.dtype)
+        points.append(position + quat_apply(rotation, center.expand_as(position)))
+    pts_w = torch.stack(points, dim=1)  # (N, 2, 3) - fixed and moving finger pad centers
 
     cam_pos, cam_quat, K, img_w, img_h = get_camera_projection_params(env)
-    return points_outside_camera_view(
+    res = points_outside_camera_view(
         pts_w, cam_pos, cam_quat, K, img_w, img_h, margin=margin, min_depth=min_depth, max_depth=max_depth
     )
+    if hasattr(env, 'episode_length_buf'):
+        res = torch.where(env.episode_length_buf < 13, torch.zeros_like(res), res)
+    return res
+
+
+def gripping_area_outside_camera_view(env,margin=0.02,min_depth=0.05,max_depth=2.0):
+    """Four-stage RGB guard: both real finger-pad centers must remain visible."""
+    from .rewards import FINGER_CONTACT_REGIONS
+    robot=env.scene['robot']
+    points=[]
+    for _,body_name,lower,upper in FINGER_CONTACT_REGIONS:
+        body_id=robot.find_bodies(body_name)[0][0]
+        position=robot.data.body_pos_w.torch[:,body_id]
+        rotation=robot.data.body_quat_w.torch[:,body_id]
+        center=torch.tensor([(lo+hi)*.5 for lo,hi in zip(lower,upper)],device=position.device,dtype=position.dtype)
+        points.append(position+quat_apply(rotation,center.expand_as(position)))
+    cam_pos,cam_quat,K,img_w,img_h=get_camera_projection_params(env)
+    res = points_outside_camera_view(torch.stack(points,dim=1),cam_pos,cam_quat,K,img_w,img_h,
+                                      margin=margin,min_depth=min_depth,max_depth=max_depth)
+    if hasattr(env, 'episode_length_buf'):
+        res = torch.where(env.episode_length_buf < 13, torch.zeros_like(res), res)
+    return res
 
 
 def object_outside_camera_view(
@@ -128,6 +161,9 @@ def object_outside_camera_view(
     asset: RigidObject = env.scene[asset_cfg.name]
     pts_w = asset.data.root_pos_w.torch.unsqueeze(1)  # (N, 1, 3)
     cam_pos, cam_quat, K, img_w, img_h = get_camera_projection_params(env)
-    return points_outside_camera_view(
+    res = points_outside_camera_view(
         pts_w, cam_pos, cam_quat, K, img_w, img_h, margin=margin, min_depth=min_depth, max_depth=max_depth
     )
+    if hasattr(env, 'episode_length_buf'):
+        res = torch.where(env.episode_length_buf < 8, torch.zeros_like(res), res)
+    return res

@@ -19,16 +19,16 @@ from isaaclab_rl.rsl_rl import (
 @configclass
 class ExplorationDistributionCfg(RslRlCNNModelCfg.GaussianDistributionCfg):
     class_name = "isaac_vision_rl.utils.rl_agent:ExplorationGaussian"
-    init_std = 0.4
+    init_std = 0.25
     std_type = "log"
     min_std = 0.1
-    max_std = 0.8
+    max_std = 0.28
 
 
 @configclass
 class ExplorationAlgorithmCfg(RslRlPpoAlgorithmCfg):
     class_name = "isaac_vision_rl.utils.rl_agent:ExplorationPPO"
-    target_std = 0.2
+    target_std = 0.22
     entropy_adaptation_rate = 0.05
     entropy_coef_min = 0.001
     entropy_coef_max = 0.05
@@ -95,7 +95,8 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
             raise ValueError(f"Unknown SO101_POLICY: {variant}")
         if variant == "rgb":
             fps = int(os.environ.get("SO101_RGB_FPS", "60"))
-            self.num_steps_per_env = round(32 * fps / 25)
+            # 64-step rollout horizon (~2.13s at 30 Hz) covers the full Reach -> Enclose -> Lift cycle
+            self.num_steps_per_env = int(os.environ.get("SO101_ROLLOUT_STEPS", "64"))
             self.algorithm.gamma = 0.99 ** (25.0 / fps)
             self.algorithm.lam = 0.95 ** (25.0 / fps)
         if os.environ.get("SO101_CURRICULUM") == "grasp":

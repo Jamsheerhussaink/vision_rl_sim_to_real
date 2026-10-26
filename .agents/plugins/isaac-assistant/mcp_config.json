@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "isaac-vision-rl": {
+      "command": "/home/ai/miniconda3/bin/python",
+      "args": [
+        "/home/ai/jamshi/isaac_vision_rl/scripts/mcp_server.py"
+      ],
+      "env": {
+        "WORKSPACE_ROOT": "/home/ai/jamshi/isaac_vision_rl"
+      }
+    }
+  }
+}
+

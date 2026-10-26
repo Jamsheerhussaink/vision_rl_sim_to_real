@@ -129,6 +129,11 @@ def main():
     parser.add_argument("--output", default=None)
     args = parser.parse_args()
     policy = RealPolicy(args.checkpoint, args.device)
+    if args.execute and policy.motion_profile == "four_stage_smooth_v1":
+        parser.error(
+            "This experimental checkpoint is supported for read-only shadow runs only. "
+            "Its simulator gripper visibility/alignment gate is not yet matched on hardware."
+        )
     if not 0 < args.seconds <= policy.duration:
         parser.error(f"--seconds must be positive and <= trained episode length {policy.duration}s")
     if args.episodes < 1:

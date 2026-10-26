@@ -265,11 +265,17 @@ def setup_clean_terminal_ui() -> None:
                     "Reach Cube": (
                         parsed_extras.get("Episode_Reward/reach_cube", 0.0)
                         + parsed_extras.get("Episode_Reward/reach_progress", 0.0)
+                        + parsed_extras.get("FourStageReward/reach_distance", 0.0)
                     ),
-                    "Lift Cube": parsed_extras.get("Episode_Reward/lift_cube", 0.0),
+                    "Lift Cube": (
+                        parsed_extras.get("Episode_Reward/lift_cube", 0.0)
+                        + parsed_extras.get("FourStageReward/lift_height", 0.0)
+                    ),
                     "Grasp Cube": (
                         parsed_extras.get("Episode_Reward/grasp_cube", 0.0)
                         + parsed_extras.get("Episode_Reward/pinch_force", 0.0)
+                        + parsed_extras.get("FourStageReward/fixed_finger_near_side", 0.0)
+                        + parsed_extras.get("FourStageReward/moving_finger_near_opposite_side", 0.0)
                     ),
                     "Drag": parsed_extras.get("Episode_Reward/drag_penalty", 0.0),
                     "Displacement": parsed_extras.get("Episode_Reward/displacement_penalty", 0.0),

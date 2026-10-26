@@ -24,7 +24,15 @@ def run():
             sample=json.loads(line)
             panel.snapshot=sample
             panel.record(sample)
-        if panel.snapshot:panel.draw_charts(imgui,standalone=True)
+        if panel.snapshot:
+            if getattr(panel, "sample_count", 0) % 15 == 0:
+                try:
+                    snap_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../logs/live_observatory.json"))
+                    with open(snap_path, "w") as f:
+                        json.dump(panel.snapshot, f)
+                except Exception:
+                    pass
+            panel.draw_charts(imgui,standalone=True)
         else:
             imgui.begin('Reward charts')
             imgui.text('Waiting for training reward samples...')

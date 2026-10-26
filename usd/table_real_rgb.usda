@@ -18,8 +18,8 @@ def Xform "green_table" (
                 uniform token info:implementationSource = "sourceAsset"
                 uniform asset info:mdl:sourceAsset = @OmniPBR.mdl@
                 uniform token info:mdl:sourceAsset:subIdentifier = "OmniPBR"
-                float inputs:albedo_brightness = 0.32
-                color3f inputs:diffuse_color_constant = (0.06, 0.22, 0.12)
+                float inputs:albedo_brightness = 0.18
+                color3f inputs:diffuse_color_constant = (0.025, 0.12, 0.05)
                 asset inputs:diffuse_texture = @table_green_texture.png@
                 bool inputs:project_uvw = 1
                 float inputs:reflection_roughness_constant = 0.52

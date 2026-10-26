@@ -6,7 +6,8 @@ def values(**changes):
     d=dict(bilateral=False,enclosed=True,jaw=1.2,height=.425,cube_start_height=.425,speed=0.,unsafe=False,
            reach_ready=True,pregrasp_distance=.01,alignment=1.,enclosure=0.,clearance=.01,
            slide_speed=0.,box_distance=.15,lowering=0.,inside_box=False,placed=False,
-           tool_height_above_cube=.02,xy_distance=.20,grasp_pose_distance=.20)
+           tool_height_above_cube=.02,xy_distance=.20,grasp_pose_distance=.20,
+           top_push=False,top_approach_push=False,side_push=False)
     d.update(changes)
     return {k:torch.tensor([v]) for k,v in d.items()}
 
@@ -24,9 +25,9 @@ def test_pregrasp_waypoint_is_above_cube_and_alignment_rewards_open_jaws():
     )
     cube=torch.tensor([[.2,-.1,.43]])
     target=pregrasp_target(cube)
-    assert torch.allclose(target,torch.tensor([[.2,-.1,.475]]))
+    assert torch.allclose(target,torch.tensor([[.2,-.1,.51]]))
     xy=torch.tensor([0.]);down=torch.tensor([1.])
-    overhead=approach_from_above_quality(xy,torch.tensor([.045]))
+    overhead=approach_from_above_quality(xy,torch.tensor([.08]))
     side=approach_from_above_quality(torch.tensor([.10]),torch.tensor([.02]))
     assert overhead>side
     assert side.item()==0.
@@ -43,12 +44,71 @@ def test_all_stages_require_dwell_then_single_success_bonus():
     m=values(jaw=.97,bilateral=True,enclosure=1.)
     for _ in range(4): s.update(m,.05)
     assert s.stage.item()==2
-    for _ in range(11): s.update(values(jaw=.97,bilateral=True,height=.575,enclosure=1.),.05)
+    for _ in range(11): s.update(values(jaw=.97,bilateral=True,height=.535,enclosure=1.),.05)
     assert s.stage.item()==3 and not s.success.item()
     for _ in range(9): s.update(values(placed=True,inside_box=True),.05)
     assert s.success.item()
     assert s.update(values(placed=True,inside_box=True),.05).item()==0
     s.reset(); assert s.stage.item()==0 and not s.success.item()
+
+
+def test_verified_lift_remains_valid_after_cube_is_lowered_for_placement():
+    s=StageMachine(1,'cpu',reward_style='continuous',lift_hold_seconds=.5)
+    s.stage[:]=2
+    s.cube_start_height[:]=.425
+    s.cube_start_height_valid[:]=True
+    lifted=values(jaw=.97,bilateral=True,height=.535,enclosure=1.)
+    for _ in range(11):s.update(lifted,.05)
+    assert s.stage.item()==3 and s.lift_verified.item()
+    lowered=values(jaw=1.2,bilateral=False,height=.43,placed=True,inside_box=True)
+    for _ in range(8):s.update(lowered,.05)
+    assert s.success.item()
+    s.reset()
+    assert not s.lift_verified.item()
+
+
+def test_top_push_and_dragging_are_penalties_not_reward():
+    s=StageMachine(1,'cpu',reward_style='continuous')
+    s.stage[:]=1
+    s.update(values(top_push=True),.05)
+    assert s.group_raw[0,1,4] > 0
+    assert s.group_contribution[0,1,4] < 0
+    s.reset();s.stage[:]=1
+    s.update(values(slide_speed=.05),.05)
+    assert s.group_contribution[0,1,4] < 0
+
+
+def test_downward_top_push_requires_closing_jaws_and_real_tool_descent():
+    from isaac_vision_rl.utils.four_stage import top_descent_push
+    result=top_descent_push(
+        torch.tensor([.05,.05,.05]),
+        torch.tensor([.04,.00,.04]),
+        torch.tensor([.04,.04,.12]),
+        torch.tensor([.80,.80,.80]),
+    )
+    assert result.tolist()==[True,False,False]
+
+
+def test_clearance_shaping_encourages_safe_raise_but_allows_aligned_descent():
+    s=StageMachine(1,'cpu',reward_style='continuous')
+    s.stage[:]=0
+    s.update(values(clearance=.005),.05)
+    assert s.group_contribution[0,0,1] < 0
+    s.descent_ready[:]=True
+    s.update(values(clearance=.005),.05)
+    assert s.group_contribution[0,0,1] == 0
+
+
+def test_camera_margin_is_a_separate_reach_only_penalty():
+    assert TERMS[0][-1] == 'camera_visibility'
+    assert WEIGHTS[0][-1] < 0.
+    s=StageMachine(1,'cpu',reward_style='continuous')
+    s.update(values(camera_visibility_cost=.5),.05)
+    reach_cost=s.group_contribution[0,0,-1].item()
+    assert reach_cost < 0.
+    s.stage[:]=1
+    s.update(values(camera_visibility_cost=1.),.05)
+    assert s.group_contribution[0,1,-1].item() == 0.
 
 
 def test_one_finger_and_broken_contact_do_not_grasp_or_hold():
@@ -69,24 +129,24 @@ def test_unsafe_table_and_dropped_cube_cannot_advance():
 def test_reach_rewards_raise_first_then_3d_pregrasp_and_penalizes_overshoot():
     from isaac_vision_rl.utils.four_stage import approach_from_above_quality
     s=StageMachine(1,'cpu')
-    # While low, moving sideways earns nothing; raising toward the 4.5 cm
+    # While low, moving sideways earns nothing; raising toward the 8 cm
     # clearance earns progress.
     s.update(values(reach_ready=False,tool_height_above_cube=.01,pregrasp_distance=.15),.05)
     sideways=s.update(values(reach_ready=False,tool_height_above_cube=.01,xy_distance=.10,pregrasp_distance=.15),.05).item()
     assert sideways==0
-    raised=s.update(values(reach_ready=False,tool_height_above_cube=.045,
+    raised=s.update(values(reach_ready=False,tool_height_above_cube=.08,
                            pregrasp_distance=.12),.05).item()
     assert raised>0
-    s.update(values(reach_ready=False,tool_height_above_cube=.045,pregrasp_distance=.12),.05)
-    switched=s.update(values(reach_ready=False,tool_height_above_cube=.045,pregrasp_distance=.12),.05)
+    s.update(values(reach_ready=False,tool_height_above_cube=.08,pregrasp_distance=.12),.05)
+    switched=s.update(values(reach_ready=False,tool_height_above_cube=.08,pregrasp_distance=.12),.05)
     assert torch.isfinite(switched).all()
-    closer=s.update(values(reach_ready=False,tool_height_above_cube=.045,
+    closer=s.update(values(reach_ready=False,tool_height_above_cube=.08,
                            pregrasp_distance=.05),.05).item()
     assert closer>0
-    farther=s.update(values(reach_ready=False,tool_height_above_cube=.045,
+    farther=s.update(values(reach_ready=False,tool_height_above_cube=.08,
                             pregrasp_distance=.12),.05).item()
     assert farther<0
-    assert s.update(values(reach_ready=False,tool_height_above_cube=.045,
+    assert s.update(values(reach_ready=False,tool_height_above_cube=.08,
                            pregrasp_distance=.12),.05).item()==0
     # Losing overhead clearance while misaligned restarts the raise objective
     # and suppresses sideways reward until the gripper rises again.
@@ -95,13 +155,13 @@ def test_reach_rewards_raise_first_then_3d_pregrasp_and_penalizes_overshoot():
     assert approach_from_above_quality(torch.tensor([.10]),torch.tensor([.02])).item()==0.
 
 
-def test_continuous_reach_reward_is_dense_and_depends_only_on_distance():
+def test_continuous_reach_reward_is_signed_distance_change_and_pose_independent():
     s=StageMachine(1,'cpu',reward_style='continuous')
     s.reach_route[:]=1  # test the overhead-centering subgoal
     good=dict(approach_from_above=.95,downward_cosine=1.,jaw=1.1,
               tool_height_above_cube=.08,reach_ready=False)
     s.update(values(pregrasp_distance=.05,**good),.05)
-    near=s.group_contribution[0,0,0].item()
+    initial=s.group_contribution[0,0,0].item()
     readiness_good=s.group_contribution[0,0,2].item()
     s.update(values(pregrasp_distance=.05,**good),.05)
     same=s.group_contribution[0,0,0].item()
@@ -113,10 +173,16 @@ def test_continuous_reach_reward_is_dense_and_depends_only_on_distance():
         reach_ready=False),.05)
     same_distance_different_pose=s.group_contribution[0,0,0].item()
     readiness_bad=s.group_contribution[0,0,2].item()
-    assert near>0
-    assert same==near  # dense per-step score remains steady while the pose is steady
-    assert farther<near  # moving farther lowers the state reward
-    assert same_distance_different_pose==near  # restored distance score is independent of pose
+    s.update(values(
+        pregrasp_distance=.05,approach_from_above=.05,
+        downward_cosine=-.5,jaw=0.,tool_height_above_cube=.08,
+        reach_ready=False),.05)
+    stationary_bad_pose=s.group_contribution[0,0,0].item()
+    assert initial==0
+    assert same==0  # waiting produces no approach reward
+    assert farther<0  # backing away produces negative reward
+    assert same_distance_different_pose>0  # distance change counts regardless of pose
+    assert stationary_bad_pose==0  # pose alone gives no distance reward
     assert readiness_good>readiness_bad  # independent centered/downward alignment
 
 
@@ -133,23 +199,26 @@ def test_open_jaw_reward_requires_downward_wrist_and_cube_overhead_alignment():
     assert torch.isclose(correctly_aligned,torch.tensor([1.]))
 
 
-def test_restored_continuous_distance_increases_as_target_gets_closer():
+def test_continuous_distance_progress_tracks_raise_then_overhead_route():
     s=StageMachine(1,'cpu',reward_style='continuous')
-    # First waypoint rewards raising to safe height independent of horizontal motion.
-    s.update(values(reach_ready=False,tool_height_above_cube=.02,pregrasp_distance=.20),.05)
-    low=s.group_contribution[0,0,0].item()
-    s.update(values(reach_ready=False,tool_height_above_cube=.07,pregrasp_distance=.10),.05)
+    # First waypoint: reward only movement toward the safe-height target.
+    s.update(values(reach_ready=False,tool_height_above_cube=0.),.05)
+    initial=s.group_contribution[0,0,0].item()
+    s.update(values(reach_ready=False,tool_height_above_cube=.02),.05)
     raised=s.group_contribution[0,0,0].item()
-    assert raised>low
-    # Second waypoint rewards centering while high, and suppresses a side dive.
-    s.reach_route[:]=1
-    s.update(values(reach_ready=False,tool_height_above_cube=.08,pregrasp_distance=.10,
+    assert initial==0 and raised>0
+    # Reaching overhead changes the target without a fake reward jump.
+    s.update(values(reach_ready=False,tool_height_above_cube=.08,pregrasp_distance=.10),.05)
+    s.update(values(reach_ready=False,tool_height_above_cube=.08,pregrasp_distance=.10),.05)
+    assert s.reach_route.item()==1
+    assert s.group_contribution[0,0,0].item()==0
+    s.update(values(reach_ready=False,tool_height_above_cube=.08,pregrasp_distance=.05,
                     approach_from_above=.8),.05)
     above=s.group_contribution[0,0,0].item()
-    s.update(values(reach_ready=False,tool_height_above_cube=.06,pregrasp_distance=.05,
+    s.update(values(reach_ready=False,tool_height_above_cube=.08,pregrasp_distance=.10,
                     approach_from_above=0.),.05)
-    side_dive=s.group_contribution[0,0,0].item()
-    assert side_dive>above  # closer distance scores higher; readiness checks pose separately.
+    retreat=s.group_contribution[0,0,0].item()
+    assert above>0 and retreat<0  # alignment is separate from distance progress.
 
 
 def test_reach_distance_readiness_and_table_safety_have_separate_terms():
@@ -341,11 +410,11 @@ def test_bounded_critic_sees_remaining_reward_history_and_partial_reset():
 
 def test_lift_height_reward_peaks_in_band_and_falls_above_it():
     from isaac_vision_rl.utils.four_stage import lift_height_quality
-    h=torch.tensor([0.,.075,.15,.175,.20,.22,.25])
+    h=torch.tensor([0.,.075,.10,.12,.13,.15,.20])
     q=lift_height_quality(h)
     assert q[0]==0 and 0<q[1]<q[2]
-    assert torch.allclose(q[2:5],torch.ones(3))
-    assert q[5]<q[4] and q[6]<q[5]
+    assert torch.allclose(q[2:4],torch.ones(2))
+    assert q[4]<q[3] and q[5]<q[4] and q[6]<q[5]
     s=StageMachine(1,'cpu',reward_mode='bounded');s.stage[:]=2
     for _ in range(15):s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.675),.05)
     assert s.stage.item()==2 and not s.success.item()
@@ -354,10 +423,10 @@ def test_lift_height_reward_peaks_in_band_and_falls_above_it():
 def test_over_lifting_is_negative_even_after_maximum_lift_credit():
     s=StageMachine(1,'cpu',reward_mode='bounded');s.stage[:]=2
     s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.425),.05)
-    s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.575),.05)
+    s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.535),.05)
     assert s.group_contribution[0,2,0]>0
-    s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.600),.05)
-    s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.635),.05)
+    s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.560),.05)
+    s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.575),.05)
     assert s.group_contribution[0,2,0]<0 and s.dwell.item()==0
     s.stage[:]=3;s.started[:]=False
     s.update(values(jaw=.97,bilateral=True,enclosure=1.,height=.635),.05)
