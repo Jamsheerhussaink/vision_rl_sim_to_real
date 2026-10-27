@@ -218,7 +218,7 @@ class PickplaceSceneCfg(InteractiveSceneCfg):
             rigid_props=PhysxRigidBodyPropertiesCfg(kinematic_enabled=True),
             collision_props=PhysxCollisionPropertiesCfg(collision_enabled=True),
             visual_material=sim_utils.PbrMdlCfg(
-                diffuse_color_constant=(0.35, 0.12, 0.055),
+                diffuse_color_constant=(0.55, 0.38, 0.20),
                 reflection_roughness_constant=0.85,
             ),
         ),
@@ -269,7 +269,7 @@ class PickLiftSceneCfg(PickplaceSceneCfg):
             rigid_props=PhysxRigidBodyPropertiesCfg(kinematic_enabled=True),
             collision_props=PhysxCollisionPropertiesCfg(collision_enabled=True),
             visual_material=sim_utils.PbrMdlCfg(
-                diffuse_color_constant=(0.35, 0.12, 0.055),
+                diffuse_color_constant=(0.55, 0.38, 0.20),
                 reflection_roughness_constant=0.85,
             ),
         ),
@@ -434,6 +434,13 @@ class EventCfg:
     )
 
 
+# Final lift goal, learned directly (no height stages). The cube rests with its centre at z = 0.426 m, so
+# 10 cm up is 0.526 m. The dense lift reward keeps growing up to 12 cm (0.546 m) so the policy is pulled upward.
+LIFT_SUCCESS_HEIGHT_M = 0.526
+LIFT_TARGET_HEIGHT_M = 0.546
+LIFT_HOLD_TIME_S = 0.5
+
+
 @configclass
 class PickLiftRewardsCfg:
     """Reward terms focused purely on picking and lifting the cube vertically (anti-drag prioritized)."""
@@ -451,17 +458,34 @@ class PickLiftRewardsCfg:
     contact_grade = RewTerm(func=mdp.contact_grade_shaped, weight=2.0)
 
     # 4. Grasping: Reward closing fingers when cube is centered between fingertips
-    grasp_cube = RewTerm(func=cast(Any, mdp.GraspCubeProgress), weight=4.0)
+    grasp_cube = RewTerm(func=cast(Any, mdp.GraspCubeProgress), weight=6.0)
 
     # 5. Vertical lifting, gated on cube proximity and gripper closure:
     # Continuous elevation progress + lift-off bonus + target height hold bonus
-    lift_cube = RewTerm(func=cast(Any, mdp.LiftCubeProgress), weight=8.0)
+    lift_cube = RewTerm(
+        func=cast(Any, mdp.LiftCubeProgress), weight=14.0, params={"target_height": LIFT_TARGET_HEIGHT_M}
+    )
     # Scaled terminal completion bonus (+25.0 episodic return at dt=0.033),
     # matching the dense reward scale to avoid GAE advantage shock with clipped value loss.
     lift_completed = RewTerm(
         func=cast(Any, mdp.LiftSuccess),
         weight=750.0,
-        params={"minimal_height": 0.46, "hold_time_s": 0.25, "velocity_cap": 0.45},
+        params={
+            "minimal_height": LIFT_SUCCESS_HEIGHT_M,
+            "hold_time_s": LIFT_HOLD_TIME_S,
+            "velocity_cap": 0.45,
+        },
+    )
+
+    # Small pay for every step the cube stays held above the success height (the hold is otherwise paid only at the end).
+    lift_hold = RewTerm(
+        func=cast(Any, mdp.LiftHoldBonus),
+        weight=10.0,
+        params={
+            "minimal_height": LIFT_SUCCESS_HEIGHT_M,
+            "hold_time_s": LIFT_HOLD_TIME_S,
+            "velocity_cap": 0.45,
+        },
     )
 
     # 6. Anti-Dragging Penalty: Moderately penalize sliding or shoving the cube across the table
@@ -481,10 +505,17 @@ class PickLiftRewardsCfg:
     joint_limits = RewTerm(func=mdp.joint_pos_limits, weight=-0.05)
 
     # 11. Pinch force bonus: reward maximum pinch force when cube is held between finger pads
-    pinch_force = RewTerm(func=mdp.pinch_force_bonus, weight=4.0)
+    pinch_force = RewTerm(func=mdp.pinch_force_bonus, weight=8.0)
 
     # 12. Camera boundary penalty: smoothly repel gripper from camera frame edges
-    camera_boundary = RewTerm(func=mdp.gripper_camera_boundary_penalty, weight=-2.0)
+    camera_boundary = RewTerm(
+        func=mdp.gripper_camera_boundary_penalty, weight=-4.0, params={"safe_margin": 0.15}
+    )
+    # One-time penalty matching the lift success bonus (-25.0 episodic return at dt=0.033)
+    # when the fingers leave the camera view
+    out_of_view = RewTerm(
+        func=mdp.is_terminated_term, weight=-750.0, params={"term_keys": "gripper_out_of_view"}
+    )
 
     # 13. Cube tilt penalty: penalize tilting/toppling on table
     cube_tilt = RewTerm(func=mdp.cube_tilt_penalty, weight=-1.0)
@@ -498,11 +529,17 @@ class PickplaceRewardsCfg(PickLiftRewardsCfg):
     lift_cube = RewTerm(func=cast(Any, mdp.LiftCubeProgress), weight=3.0)
 
     # 11. Placing: Transport cube to target box once securely lifted (> 0.440m) off table
-    place_cube = RewTerm(func=mdp.object_goal_distance, weight=12.0, params={"minimal_height": 0.440})
+    # object_goal_distance tops out at 5. New-best-only progress × 12 therefore
+    # caps carry reward at about 60 points per attempt; hovering cannot farm it.
+    place_cube = RewTerm(func=mdp.PlaceCubeProgress, weight=12.0, params={"minimal_height": 0.440})
     release_cube = RewTerm(func=mdp.release_cube_in_box, weight=12.0)
-    place_completed = RewTerm(func=cast(Any, mdp.PlaceSuccess), weight=6000.0)
+    # Verified placement is one event and should be worth more than the full
+    # 60-point carry budget.
+    place_completed = RewTerm(func=cast(Any, mdp.PlaceSuccess), weight=200.0)
     # Placement must proceed past the lift milestone without repeated lift bonuses.
     lift_completed = None
+    # The place stage does not end at the lift, so a per-step hold bonus could be farmed there.
+    lift_hold = None
 
 
 # Backward compatibility alias
@@ -567,7 +604,11 @@ class TerminationsCfg:
 class PickLiftTerminationsCfg(TerminationsCfg):
     lift_success = DoneTerm(
         func=cast(Any, mdp.LiftSuccess),
-        params={"minimal_height": 0.46, "hold_time_s": 0.25, "velocity_cap": 0.45},
+        params={
+            "minimal_height": LIFT_SUCCESS_HEIGHT_M,
+            "hold_time_s": LIFT_HOLD_TIME_S,
+            "velocity_cap": 0.45,
+        },
     )
 
 

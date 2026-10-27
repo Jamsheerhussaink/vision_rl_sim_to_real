@@ -1,6 +1,6 @@
 """Flat fallback colors on Newton's display model only; never modify USD/camera materials."""
 # Existing scene diffuse colors, used when Newton cannot display the textures.
-PALETTE={'table':(.09,.18,.12),'robot':(.08,.08,.08),'cube':(.85,.70,.35),'box':(.30,.16,.08)}
+PALETTE={'table':(.12,.45,.22),'robot':(.08,.08,.08),'cube':(.85,.70,.35),'box':(.55,.38,.20)}
 
 def apply_newton_colors(viewer):
     model=viewer.model

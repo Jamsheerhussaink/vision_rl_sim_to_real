@@ -1,5 +1,6 @@
 """CPU regressions for approach reward and sustained lift success."""
 
+import math
 import unittest
 from types import SimpleNamespace
 
@@ -11,14 +12,20 @@ from isaac_vision_rl.tasks.pickplace.mdp.rewards import (
     CubeTableDisplacementPenalty,
     GraspCubeProgress,
     LiftCubeProgress,
+    LiftHoldBonus,
     LiftSuccess,
     ReachCubeProgress,
     bilateral_cube_contact,
     camera_margin_cost,
     compute_cube_upright,
+    compute_cube_upright_cosine,
     compute_fixed_pad_pos,
+    compute_grasp_height_gate,
     compute_pinch_midpoint,
+    compute_reward_upright,
     compute_sidewall_depth_gate,
+    compute_table_camping_discount,
+    compute_wrist_vertical_gate,
     contact_grade_shaped,
     cube_tilt_penalty,
     dense_rgb_approach,
@@ -291,6 +298,49 @@ class PickLiftLogicTests(unittest.TestCase):
         success.reset(torch.tensor([0]))
         self.assertFalse(success(env).any())
 
+    def test_hold_bonus_pays_only_for_a_new_longest_hold_and_not_in_place_stage(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
+
+        env = make_env()
+        env.scene["robot"].data.joint_pos.torch[0, 0] = 0.97
+        bonus = LiftHoldBonus(SimpleNamespace(), env)
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.52
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.53
+        kw = dict(minimal_height=0.50, hold_time_s=10.0)
+        # A growing hold pays one step each time it reaches a new longest count
+        self.assertEqual(bonus(env, **kw).tolist(), [1.0, 0.0])
+        self.assertEqual(bonus(env, **kw).tolist(), [1.0, 0.0])
+        # Break the hold and restore it: the count climbs back but never beats the best, so nothing is paid
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.43
+        self.assertEqual(bonus(env, **kw).tolist(), [0.0, 0.0])
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.52
+        self.assertEqual(bonus(env, **kw).tolist(), [0.0, 0.0])
+        # A new try starts again from zero
+        bonus.reset(torch.tensor([0]))
+        self.assertEqual(bonus(env, **kw).tolist(), [1.0, 0.0])
+        # The place stage must not carry the bonus (it does not end at the lift)
+        self.assertIsNotNone(env_cfg.PickLiftRewardsCfg().lift_hold)
+        self.assertIsNone(env_cfg.PickplaceRewardsCfg().lift_hold)
+
+    def test_lift_success_logs_which_hold_condition_fails(self):
+        env = make_env()
+        env.extras = {}
+        # Env 0 has the jaws closed on the cube; env 1 has them open
+        env.scene["robot"].data.joint_pos.torch[0, 0] = 0.97
+        env.scene["robot"].data.joint_pos.torch[1, 0] = 1.3
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.52
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.53
+        LiftSuccess(SimpleNamespace(), env)(env, minimal_height=0.50)
+        log = env.extras["log"]
+        self.assertEqual(float(log["Hold/above_height_fraction"]), 1.0)
+        self.assertEqual(float(log["Hold/jaw_closed"]), 0.5)
+        self.assertEqual(float(log["Hold/cube_upright"]), 1.0)
+        # Cube below the success height: no env is counted, and the log stays finite
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.43
+        LiftSuccess(SimpleNamespace(), env)(env, minimal_height=0.50)
+        self.assertEqual(float(env.extras["log"]["Hold/above_height_fraction"]), 0.0)
+        self.assertEqual(float(env.extras["log"]["Hold/all"]), 0.0)
+
     def test_resting_cube_on_table_earns_zero_lift_reward(self):
         env = make_env()
         # Gripper centered and clamped around cube resting at table level (0.425m)
@@ -298,6 +348,195 @@ class PickLiftLogicTests(unittest.TestCase):
         env.scene["robot"].data.joint_pos.torch[:] = 0.95
         # Even with wrist elevated or stationary clamp, resting table cube earns zero lift reward
         self.assertTrue(torch.equal(lift_cube_upward(env), torch.zeros(2)))
+
+    def test_tilted_cube_corner_rocking_earns_only_a_small_lift_reward(self):
+        env = make_env()
+        # Gripper clamped around cube tilted 35 deg on table (z_cube = 0.434m)
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.0, 0.0, 0.434])
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.434
+        # 35 deg rotation around Y in xyzw: sin(17.5deg)=0.3007058, cos(17.5deg)=0.953717 -> rot[2, 2]=0.8192
+        env.scene["cube"].data.root_quat_w.torch[:] = torch.tensor([0.0, 0.3007058, 0.0, 0.953717])
+        self.assertAlmostEqual(float(compute_cube_upright_cosine(env)[0]), 0.8192, places=3)
+        self.assertEqual(float(compute_cube_upright(env)[0]), 0.0)
+        rocking = lift_cube_upward(env)
+
+        # The same grip really lifted 7 cm pays far more than rocking the tipped cube on the table
+        env.scene["robot"].data.body_pos_w.torch[:, 0] = torch.tensor([0.0, 0.0, 0.50])
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.50
+        env.scene["cube"].data.root_quat_w.torch[:] = torch.tensor([0.0, 0.0, 0.0, 1.0])
+        lifted = lift_cube_upward(env)
+        self.assertTrue(torch.all(lifted > 0.0))
+        self.assertTrue(torch.all(lifted > 5.0 * rocking))
+
+    def test_wrist_vertical_gate_and_table_camping_discount(self):
+        env = make_env()
+        # 1. Vertical wrist pointing straight down earns full wrist gate
+        self.assertEqual(float(compute_wrist_vertical_gate(env)[0]), 1.0)
+        # 2. Stationary table camping (z < 0.438m, vz = 0) is discounted by 80% (scale 0.20)
+        self.assertAlmostEqual(float(compute_table_camping_discount(env)[0]), 0.20, places=2)
+        # 3. Active upward pulling (vz > 0.02 m/s) earns 100% full scale
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.03
+        self.assertEqual(float(compute_table_camping_discount(env)[0]), 1.0)
+        # 4. Elevated cube (z >= 0.440m) earns 100% full scale
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.0
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.460
+        self.assertEqual(float(compute_table_camping_discount(env)[0]), 1.0)
+
+    def test_rebalanced_grasp_height_gate_and_upward_pull_shaping(self):
+        env = make_env()
+        # Configure bilateral contact and centered gripper around cube at sidewall depth
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.420
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95  # closed gripper
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.426  # table rest height
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.05  # active upward pull
+
+        # Grasp reward at table rest (z=0.426) has height_gate = 0.60 (grasp_cube pays only new bests, so this is safe)
+        table_grasp = float(grasp_cube(env)[0])
+        self.assertGreater(table_grasp, 0.0)
+
+        # Grasp reward elevated at target (z=0.465) has height_gate = 1.00 (1 / 0.60 times higher)
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.465 - 0.006
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.465
+        elevated_grasp = float(grasp_cube(env)[0])
+        self.assertAlmostEqual(elevated_grasp / table_grasp, 1.0 / 0.60, places=3)
+
+        # Lift reward with upward pull vs downward pull
+        if not hasattr(env.scene["robot"].data, "body_lin_vel_w"):
+            env.scene["robot"].data.body_lin_vel_w = SimpleNamespace(torch=torch.zeros(2, 3, 3))
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.440
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.434  # centered at sidewall depth
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.10
+        env.scene["robot"].data.body_lin_vel_w.torch[:, 0, 2] = 0.10
+        pulling_up_reward = float(lift_cube_upward(env)[0])
+
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = -0.05
+        env.scene["robot"].data.body_lin_vel_w.torch[:, 0, 2] = -0.05
+        pulling_down_reward = float(lift_cube_upward(env)[0])
+        self.assertGreater(pulling_up_reward, pulling_down_reward)
+
+    def test_grasp_height_gate_floor_is_configurable_and_defaults_to_old_value(self):
+        env = make_env()
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.426
+        self.assertAlmostEqual(float(compute_grasp_height_gate(env)[0]), 0.20, places=5)
+        self.assertAlmostEqual(float(compute_grasp_height_gate(env, floor=0.60)[0]), 0.60, places=5)
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.465
+        self.assertAlmostEqual(float(compute_grasp_height_gate(env, floor=0.60)[0]), 1.0, places=5)
+
+    def test_grasp_cube_judges_hand_angle_once_through_wrist_gate(self):
+        from unittest import mock
+
+        from isaac_vision_rl.tasks.pickplace.mdp import rewards
+
+        env = make_env()
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.420
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.426
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.05
+        baseline = grasp_cube(env)
+        self.assertTrue(torch.all(baseline > 0.0))
+        # The strict exp() alignment check must no longer multiply into grasp_cube
+        with mock.patch.object(rewards, "_tool_downward_alignment", return_value=torch.zeros(2)):
+            self.assertTrue(torch.equal(grasp_cube(env), baseline))
+
+    def test_lift_goal_is_one_setting_shared_by_reward_and_termination(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
+
+        rewards = env_cfg.PickLiftRewardsCfg()
+        done = env_cfg.PickLiftTerminationsCfg()
+        # The success bonus and the "try ends on success" check must never disagree
+        for params in (rewards.lift_completed.params, done.lift_success.params):
+            self.assertEqual(params["minimal_height"], env_cfg.LIFT_SUCCESS_HEIGHT_M)
+            self.assertEqual(params["hold_time_s"], env_cfg.LIFT_HOLD_TIME_S)
+        self.assertEqual(rewards.lift_cube.params["target_height"], env_cfg.LIFT_TARGET_HEIGHT_M)
+        # Goal: cube 10 cm above its 0.426 m resting height held 0.5 s; dense reward aims at 12 cm
+        self.assertAlmostEqual(env_cfg.LIFT_SUCCESS_HEIGHT_M - 0.426, 0.10, places=6)
+        self.assertAlmostEqual(env_cfg.LIFT_TARGET_HEIGHT_M - 0.426, 0.12, places=6)
+        self.assertEqual(env_cfg.LIFT_HOLD_TIME_S, 0.5)
+
+    def test_lift_reward_keeps_growing_up_to_the_configured_target_height(self):
+        env = make_env()
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95
+
+        def reward_at(z, **kwargs):
+            env.scene["cube"].data.root_pos_w.torch[:, 2] = z
+            env.scene["robot"].data.body_pos_w.torch[:, :, 2] = z - 0.006
+            return float(lift_cube_upward(env, **kwargs)[0])
+
+        # Default target (0.48 m): the reward has already stopped growing by 0.48 m
+        self.assertAlmostEqual(reward_at(0.505), reward_at(0.480), places=5)
+        # 12 cm target (0.546 m): the policy is still paid more for every extra centimetre
+        self.assertGreater(reward_at(0.505, target_height=0.546), reward_at(0.480, target_height=0.546))
+        self.assertGreater(reward_at(0.526, target_height=0.546), reward_at(0.505, target_height=0.546))
+
+    def test_rewards_pay_less_for_a_tipped_cube_but_still_pay_for_a_tilted_lift(self):
+        def tilt(env, degrees):
+            half = math.radians(degrees) / 2
+            env.scene["cube"].data.root_quat_w.torch[:] = torch.tensor([math.sin(half), 0.0, 0.0, math.cos(half)])
+
+        env = make_env()
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.420
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.426
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.05
+
+        # Reward ramp: 1 at 18 deg or less, about 0.66 at 30 deg, almost 0 at 45 deg, 0 at 60 deg
+        for degrees, expected in ((0, 1.0), (18, 1.0), (30, 0.6641), (45, 0.0284), (60, 0.0)):
+            tilt(env, degrees)
+            self.assertAlmostEqual(float(compute_reward_upright(env)[0]), expected, places=3)
+
+        # A tilted cube still pays (a corner lift is accepted), but less than an upright one
+        tilt(env, 0)
+        upright_grasp = grasp_cube(env)
+        self.assertTrue(torch.all(upright_grasp > 0.0))
+        self.assertTrue(torch.all(pinch_force_bonus(env) > 0.0))
+        tilt(env, 30)
+        self.assertTrue(torch.all(grasp_cube(env) > 0.0))
+        self.assertTrue(torch.all(grasp_cube(env) < upright_grasp))
+        # A cube lying nearly on its side (60 deg) earns no grab, squeeze or contact points
+        tilt(env, 60)
+        self.assertTrue(torch.equal(grasp_cube(env), torch.zeros(2)))
+        self.assertTrue(torch.equal(pinch_force_bonus(env), torch.zeros(2)))
+        self.assertTrue(torch.equal(contact_grade_shaped(env), torch.zeros(2)))
+
+    def test_touch_score_grows_with_finger_force(self):
+        from isaac_vision_rl.tasks.pickplace.mdp.rewards import _touch_ramp
+
+        forces = torch.tensor([0.0, 0.005, 0.025, 0.05, 1.0])
+        expected = torch.tensor([0.0, 0.1, 0.5, 1.0, 1.0])
+        self.assertTrue(torch.allclose(_touch_ramp(forces), expected, atol=1e-6))
+
+    def test_tipping_penalty_weight_is_one(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
+
+        self.assertEqual(env_cfg.PickLiftRewardsCfg().cube_tilt.weight, -1.0)
+
+    def test_wrist_yank_without_cube_motion_earns_no_extra_lift_reward(self):
+        env = make_env()
+        env.scene["robot"].data.body_lin_vel_w = SimpleNamespace(torch=torch.zeros(2, 3, 3))
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.440
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.434
+        still_reward = lift_cube_upward(env)
+        self.assertTrue(torch.all(still_reward > 0.0))
+
+        # Only the wrist shoots upward; the cube does not move -> no move-up credit
+        env.scene["robot"].data.body_lin_vel_w.torch[:, 0, 2] = 0.30
+        self.assertTrue(torch.allclose(lift_cube_upward(env), still_reward))
+
+    def test_table_camping_discount_is_applied_once_to_pinch_force(self):
+        env = make_env()
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.420
+        env.scene["robot"].data.joint_pos.torch[:] = 0.95
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.426
+
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.05  # rising: no discount
+        rising = float(pinch_force_bonus(env)[0])
+        env.scene["cube"].data.root_lin_vel_w.torch[:, 2] = 0.0  # stationary on table: 0.20 discount
+        camping = float(pinch_force_bonus(env)[0])
+        self.assertGreater(rising, 0.0)
+        # A single 0.20 cut, not 0.20 * 0.20 = 0.04
+        self.assertAlmostEqual(camping / rising, 0.20, places=3)
 
     def test_table_contact_disqualifies_an_otherwise_valid_lift(self):
         env = make_env()
@@ -500,9 +739,9 @@ class PickLiftLogicTests(unittest.TestCase):
         self.assertTrue(torch.all(depth_gate_deep > 0.85))
         self.assertEqual(float(premature_gripper_closure_penalty(env)[0]), 0.0)
 
-        # 5. Cube tilt check: tilting the cube by 30 degrees drops upright score and triggers penalty
-        # 30 deg rotation around X in xyzw: sin(15deg)=0.2588, cos(15deg)=0.9659
-        env.scene["cube"].data.root_quat_w.torch[:] = torch.tensor([0.2588, 0.0, 0.0, 0.9659])
+        # 5. Cube tilt check: a cube on its side (60 degrees) drops upright score to 0.0 and triggers penalty
+        # 60 deg rotation around X in xyzw: sin(30deg)=0.5, cos(30deg)=0.8660 -> cos(60deg)=0.5 < 0.70
+        env.scene["cube"].data.root_quat_w.torch[:] = torch.tensor([0.5, 0.0, 0.0, 0.8660])
         self.assertEqual(float(compute_cube_upright(env)[0]), 0.0)
         self.assertGreater(float(cube_tilt_penalty(env)[0]), 0.0)
         self.assertEqual(float(grasp_cube(env)[0]), 0.0)

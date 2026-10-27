@@ -115,6 +115,13 @@ def main():
         dest="max_iterations",
         help="Maximum PPO training iterations",
     )
+    parser.add_argument(
+        "--total-steps",
+        type=int,
+        default=None,
+        dest="total_steps",
+        help="Train for this many robot moves in total (all envs). Converted to iterations = steps / (envs x rollout length)",
+    )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument(
         "--viz",
@@ -215,6 +222,14 @@ def main():
     if args.approach_curriculum and (args.curriculum != "fixed" or args.cube_jitter != 0 or args.approach_ramp_updates < 1):
         parser.error("Approach curriculum requires --curriculum fixed, --cube-jitter 0 and a positive ramp")
     args.num_envs = args.num_envs if args.num_envs is not None else (64 if args.profile == "rgb64" else 32)
+    if args.total_steps is not None:
+        if args.max_iterations is not None:
+            parser.error("Use either --total-steps or --iterations, not both")
+        if args.total_steps < 1:
+            parser.error("--total-steps must be positive")
+        steps_per_iteration = args.num_envs * int(os.environ.get("SO101_ROLLOUT_STEPS", "64"))
+        args.max_iterations = max(1, -(-args.total_steps // steps_per_iteration))
+        print(f"[train] {args.total_steps} steps = {args.max_iterations} iterations ({steps_per_iteration} steps each)")
     args.max_iterations = args.max_iterations if args.max_iterations is not None else 2000
     if args.num_envs < 1 or args.max_iterations < 1:
         parser.error("--envs and --iterations must be positive")

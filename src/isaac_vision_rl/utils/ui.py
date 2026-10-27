@@ -64,8 +64,7 @@ class SingleLineTrainingBar:
         # Basic monochrome progress bar
         bar_width = max(min(term_width - 120, 30), 12)
         filled = int(bar_width * it / total_it) if total_it > 0 else 0
-        bar_str = "=" * filled + (">" if filled < bar_width else "")
-        bar_str = bar_str.ljust(bar_width, "-")
+        bar_str = "\033[97;1m" + "\u2588" * filled + "\033[0m" + "\033[90m" + "\u2591" * (bar_width - filled) + "\033[0m"
 
         prefix = f"[{it:4d}/{total_it}]"
 

@@ -319,9 +319,11 @@ def main():
                             "unsafe_table_contact", "physics_health", "time_out", "cube_dropped",
                             "robot_dropped", "gripper_out_of_view", "cube_out_of_view", success_term,
                         )
+                        # A term that is switched off in the env config (for example unsafe_table_contact) is skipped.
+                        active_terms = set(base.termination_manager.active_terms)
                         termination_reasons = [
                             name for name in termination_terms
-                            if bool(base.termination_manager.get_term(name)[0])
+                            if name in active_terms and bool(base.termination_manager.get_term(name)[0])
                         ]
                         results.append(
                             {
@@ -339,7 +341,8 @@ def main():
                                 "camera_visible_fraction": None,
                                 "minimum_sampled_hand_table_clearance_mm": 1000 * minimum_clearance,
                                 "peak_sampled_hand_table_force_n": peak_table_force,
-                                "unsafe_table_termination": bool(base.termination_manager.get_term("unsafe_table_contact")[0]),
+                                "unsafe_table_termination": "unsafe_table_contact" in active_terms
+                                and bool(base.termination_manager.get_term("unsafe_table_contact")[0]),
                                 "termination_reasons": termination_reasons,
                                 "observed_stages": list(observed_stages),
                                 "stage_step_counts": dict(stage_step_counts),

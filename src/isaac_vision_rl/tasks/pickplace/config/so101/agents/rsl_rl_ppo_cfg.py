@@ -38,7 +38,7 @@ class ExplorationAlgorithmCfg(RslRlPpoAlgorithmCfg):
 class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 32
     max_iterations = 2000
-    save_interval = 50
+    save_interval = 25
     clip_actions = 1.0
     experiment_name = "so101_pickplace_rgb"
 

@@ -19,3 +19,8 @@ wandb/
 pyrightconfig.json
 imgui.ini
 *.bak
+
+# Local AI assistant configuration.
+/.agents/
+/.claude/
+/.kilo/

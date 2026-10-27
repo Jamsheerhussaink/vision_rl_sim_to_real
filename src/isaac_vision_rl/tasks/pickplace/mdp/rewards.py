@@ -164,6 +164,11 @@ def bilateral_cube_contact_diagnostics(env, min_force=0.02):
     }
 
 
+def _touch_ramp(force_n: torch.Tensor, full_force_n: float = 0.05) -> torch.Tensor:
+    """Touch score in [0, 1] that grows with the weaker finger's force: 0 at no force, 1 at 0.05 N or more."""
+    return torch.clamp(force_n / full_force_n, min=0.0, max=1.0)
+
+
 def bilateral_cube_contact(env, min_force=0.02):
     """Require opposing cube contact inside both CAD fingertip regions."""
     return bilateral_cube_contact_diagnostics(env, min_force)["bilateral"]
@@ -189,10 +194,60 @@ class GraspCubeProgress(ManagerTermBase):
 class LiftCubeProgress(GraspCubeProgress):
     """Pay only new best contact-gated lift quality, not repeated hovering."""
 
-    def __call__(self, env):
-        score = lift_cube_upward(env)
+    def __call__(self, env, target_height: float = 0.48):
+        score = lift_cube_upward(env, target_height=target_height)
         progress = (score - self._best_score).clamp_min(0)
         self._best_score[:] = torch.maximum(score, self._best_score)
+        return progress / env.step_dt
+
+
+class PlaceCubeProgress(ManagerTermBase):
+    """Pay only for each new best carry score; waiting near the box earns nothing.
+
+    ``object_goal_distance`` returns a grasp-gated score from 0 to 5. With a
+    reward weight of 12, its lifetime carry reward is capped at 60 points.
+    The score tracker resets with each episode and never pays twice for the
+    same box-distance improvement.
+    """
+
+    MAX_SCORE = 5.0
+
+    def __init__(self, cfg, env):
+        super().__init__(cfg, env)
+        self._best_score = torch.zeros(env.num_envs, device=env.device)
+
+    def reset(self, env_ids=None) -> None:
+        ids = slice(None) if env_ids is None else env_ids
+        self._best_score[ids] = 0.0
+
+    def __call__(
+        self,
+        env: ManagerBasedRLEnv,
+        minimal_height: float = 0.440,
+        object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+        goal_cfg: SceneEntityCfg = SceneEntityCfg("box"),
+        ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+        ee_body_name: str = "gripper_frame_link",
+    ) -> torch.Tensor:
+        score = object_goal_distance(
+            env,
+            minimal_height=minimal_height,
+            object_cfg=object_cfg,
+            goal_cfg=goal_cfg,
+            ee_cfg=ee_cfg,
+            ee_body_name=ee_body_name,
+        )
+        progress = (score - self._best_score).clamp_min(0.0)
+        self._best_score[:] = torch.maximum(score, self._best_score)
+
+        # A separate 0-100 W&B/TensorBoard metric makes placement progress
+        # easy to read without changing the policy reward.
+        if hasattr(env, "extras"):
+            env.extras.setdefault("log", {})["Place/best_carry_progress_percent"] = (
+                100.0 * self._best_score / self.MAX_SCORE
+            ).mean()
+        # RewardManager multiplies ordinary rewards by step_dt. Dividing here
+        # preserves the 60-point total regardless of control frequency.
         return progress / env.step_dt
 
 
@@ -227,34 +282,83 @@ class LiftSuccess(ManagerTermBase):
         z_dist = torch.abs(offset[:, 2])
         from isaac_vision_rl.utils.hand_table import hand_table_metrics
         clearance, table_force = hand_table_metrics(env)
-        is_upright = compute_cube_upright(env, object_cfg)
+        is_upright = compute_cube_upright(env, object_cfg, SUCCESS_UPRIGHT_LOW, SUCCESS_UPRIGHT_HIGH)
         contact_grade = contact_grade_shaped(env)
         cube_speed = torch.norm(cube.data.root_lin_vel_w.torch, dim=-1)
 
         # Secure bilateral grasp between fingertips
-        is_grasped = (
-            bilateral_cube_contact(env)
-            & (xy_dist < 0.040)
-            & (z_dist < 0.050)
-            # Loaded grasp with 5cm cube settles near 0.95-1.05 rad; open jaw is > 1.30 rad
-            & (robot.data.joint_pos.torch[:, gripper_idx] < 1.15)
-        )
+        both_fingers = bilateral_cube_contact(env)
+        between_fingers = (xy_dist < 0.040) & (z_dist < 0.050)
+        # Loaded grasp with 5cm cube settles near 0.95-1.05 rad; open jaw is > 1.30 rad
+        jaw_closed = robot.data.joint_pos.torch[:, gripper_idx] < 1.15
+        is_grasped = both_fingers & between_fingers & jaw_closed
         # Bypass table_force veto when cube is elevated (>= 0.455m, >5.5cm above table),
         # or require normal force <= 0.5 N during transition
         elevated_grasp = is_grasped & (cube_pos[:, 2] >= 0.455)
         table_ok = (table_force <= 0.5) | elevated_grasp
 
-        held = (
-            is_grasped
-            & (clearance >= 0.003)
-            & table_ok
-            & (cube_pos[:, 2] >= minimal_height)
-            & (cube_speed < velocity_cap)
-            & (is_upright > 0.5)
-        )
+        hand_clear = clearance >= 0.003
+        above_height = cube_pos[:, 2] >= minimal_height
+        cube_slow = cube_speed < velocity_cap
+        cube_upright = is_upright > 0.5
+        held = is_grasped & hand_clear & table_ok & above_height & cube_slow & cube_upright
+
+        # Read-only diagnostics: among tries whose cube is above the success height, how often is each hold
+        # condition true? The lowest one is the one blocking success. Nothing here changes training.
+        if hasattr(env, "extras"):
+            log = env.extras.setdefault("log", {})
+            log["Hold/above_height_fraction"] = above_height.float().mean()
+            n_above = above_height.sum().clamp(min=1)
+            for name, condition in (
+                ("both_fingers", both_fingers),
+                ("between_fingers", between_fingers),
+                ("jaw_closed", jaw_closed),
+                ("hand_clear", hand_clear),
+                ("table_ok", table_ok),
+                ("cube_slow", cube_slow),
+                ("cube_upright", cube_upright),
+                ("all", held),
+            ):
+                log[f"Hold/{name}"] = (condition & above_height).sum().float() / n_above
         # Forgiving hold counter: leaky accumulator instead of harsh instant reset to 0
         self._held_steps[:] = torch.where(held, self._held_steps + 1, torch.clamp(self._held_steps - 1, min=0))
+        self.last_held = held
+        if hasattr(env, "extras"):
+            env.extras.setdefault("log", {})["Hold/mean_hold_count"] = self._held_steps.float().mean()
         return self._held_steps >= math.ceil(hold_time_s / env.step_dt)
+
+
+class LiftHoldBonus(ManagerTermBase):
+    """Small reward for a NEW longest hold in this try, so a longer hold pays and flickering cannot repeat it.
+
+    The first version paid every held step. The hold counter loses one step for each step not held, so the robot
+    could stay just under the hold time and collect the bonus until the time ran out instead of finishing
+    (success fell from 15 to 10 percent while this bonus rose). Paying only for a new best count makes the
+    total at most one step of pay per hold step (hold_time_s / step_dt steps), however often the hold breaks.
+    Lift stage only: the place stage does not end at the lift, so it must not use this term.
+    """
+
+    def __init__(self, cfg, env):
+        super().__init__(cfg, env)
+        self._tracker = LiftSuccess(cfg, env)
+        self._best_count = torch.zeros(env.num_envs, device=env.device)
+
+    def reset(self, env_ids=None) -> None:
+        self._tracker.reset(env_ids)
+        self._best_count[slice(None) if env_ids is None else env_ids] = 0
+
+    def __call__(
+        self,
+        env: ManagerBasedRLEnv,
+        minimal_height: float = 0.46,
+        hold_time_s: float = 0.25,
+        velocity_cap: float = 0.45,
+    ) -> torch.Tensor:
+        self._tracker(env, minimal_height=minimal_height, hold_time_s=hold_time_s, velocity_cap=velocity_cap)
+        count = self._tracker._held_steps.float()
+        progress = (count - self._best_count).clamp_min(0)
+        self._best_count[:] = torch.maximum(count, self._best_count)
+        return progress
 
 
 def _tool_downward_alignment(robot: Articulation, body_idx: int, env) -> torch.Tensor:
@@ -262,7 +366,9 @@ def _tool_downward_alignment(robot: Articulation, body_idx: int, env) -> torch.T
         tool_quat = robot.data.body_quat_w.torch if hasattr(robot.data.body_quat_w, "torch") else robot.data.body_quat_w
         tool_quat = tool_quat[:, body_idx]
         tool_rot = matrix_from_quat(tool_quat)
-        return torch.clamp(-tool_rot[:, 2, 2], min=0.0, max=1.0).pow(4)
+        cos_theta = torch.clamp(-tool_rot[:, 2, 2], min=0.0, max=1.0)
+        # Strict exponential falloff: eliminates 45-deg slant (cos=0.707 -> 0.05)
+        return torch.exp(-10.0 * (1.0 - cos_theta))
     return torch.ones(env.num_envs, device=env.device)
 
 
@@ -425,18 +531,103 @@ def compute_sidewall_depth_gate(
     return torch.clamp(((cube_pos[:, 2] + 0.005) - z_fixed) / 0.015, min=0.0, max=1.0)
 
 
-def compute_cube_upright(
+def compute_cube_upright_cosine(
     env: ManagerBasedRLEnv,
     object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
 ) -> torch.Tensor:
-    """Return 1.0 if cube is flat/upright on the table, 0.0 if tilted/toppled."""
+    """Return dot product of cube vertical axis with world Z."""
     cube: RigidObject = env.scene[object_cfg.name]
     if hasattr(cube.data, "root_quat_w"):
         quat = cube.data.root_quat_w.torch if hasattr(cube.data.root_quat_w, "torch") else cube.data.root_quat_w
         cube_rot = matrix_from_quat(quat)
-        cube_upright = cube_rot[:, 2, 2]
-        return (cube_upright >= 0.90).float()
+        return cube_rot[:, 2, 2]
     return torch.ones(env.num_envs, device=env.device)
+
+
+def compute_cube_upright(
+    env: ManagerBasedRLEnv,
+    object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+    low: float = 0.85,
+    high: float = 0.98,
+) -> torch.Tensor:
+    """Continuous upright gate in [0, 1]: 0 at cosine <= low, 1 at cosine >= high.
+
+    Defaults give 0.0 when tilted > 31 degrees (cosine < 0.85). This loose ramp is used by the success check.
+    """
+    cosine = compute_cube_upright_cosine(env, object_cfg)
+    return torch.clamp((cosine - low) / (high - low), min=0.0, max=1.0)
+
+
+# Reward terms pay full for a cube tilted up to 18 degrees (cosine 0.95), less as it tips more, and nothing at
+# 45 degrees (cosine 0.70). A lift on a tipped corner is accepted: the goal is to place the cube in the box,
+# and the strict ramp (0 at 20 degrees) paid nothing for the only grip that lifted.
+REWARD_UPRIGHT_LOW = 0.70
+REWARD_UPRIGHT_HIGH = 0.95
+# The success check counts a lift while the cube is tilted less than about 43 degrees (ramp value above 0.5 at
+# cosine 0.725). The first goal is a cube dropped inside the box, so a tipped lift is fine; the old ramp
+# (0.85 to 0.98) refused anything past 24 degrees and Hold/cube_upright was only 28 to 35 percent.
+SUCCESS_UPRIGHT_LOW = 0.50
+SUCCESS_UPRIGHT_HIGH = 0.95
+
+
+def compute_reward_upright(
+    env: ManagerBasedRLEnv,
+    object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+) -> torch.Tensor:
+    """Strict upright gate in [0, 1] used by reward terms (the success check keeps the loose ramp)."""
+    return compute_cube_upright(env, object_cfg, REWARD_UPRIGHT_LOW, REWARD_UPRIGHT_HIGH)
+
+
+def compute_wrist_vertical_gate(
+    env: ManagerBasedRLEnv,
+    ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    ee_body_name: str = "gripper_frame_link",
+) -> torch.Tensor:
+    """Gate in [0, 1] requiring vertical wrist orientation (suppresses 45-deg slant approaches)."""
+    robot: Articulation = env.scene[ee_cfg.name]
+    if hasattr(robot.data, "body_quat_w"):
+        body_idx = robot.find_bodies(ee_body_name)[0][0]
+        tool_quat = robot.data.body_quat_w.torch if hasattr(robot.data.body_quat_w, "torch") else robot.data.body_quat_w
+        tool_rot = matrix_from_quat(tool_quat[:, body_idx])
+        cos_theta = torch.clamp(-tool_rot[:, 2, 2], min=-1.0, max=1.0)
+        return torch.clamp((cos_theta - 0.82) / (0.96 - 0.82), min=0.0, max=1.0)
+    return torch.ones(env.num_envs, device=env.device)
+
+
+def compute_table_camping_discount(
+    env: ManagerBasedRLEnv,
+    object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+) -> torch.Tensor:
+    """Scale down table grasp rewards by 80% (multiplier 0.20) if camping stationary on table."""
+    cube: RigidObject = env.scene[object_cfg.name]
+    cube_pos = cube.data.root_pos_w.torch if hasattr(cube.data.root_pos_w, "torch") else cube.data.root_pos_w
+    cube_z = cube_pos[:, 2]
+
+    if hasattr(cube.data, "root_lin_vel_w"):
+        cube_lin_vel = cube.data.root_lin_vel_w.torch if hasattr(cube.data.root_lin_vel_w, "torch") else cube.data.root_lin_vel_w
+        cube_vz = cube_lin_vel[:, 2]
+    else:
+        cube_vz = torch.zeros_like(cube_z)
+
+    cube_upright = compute_cube_upright_cosine(env, object_cfg)
+    already_lifted = (cube_z >= 0.440) & (cube_upright > 0.90)
+
+    # Active upward motion discount ramp between 0.01 m/s and 0.02 m/s
+    upward_motion_factor = torch.clamp((cube_vz - 0.01) / (0.02 - 0.01), min=0.0, max=1.0)
+    table_scale = 0.20 + 0.80 * upward_motion_factor
+
+    on_table = cube_z < 0.438
+    return torch.where(on_table & ~already_lifted, table_scale, torch.ones_like(cube_z))
+
+
+def compute_grasp_height_gate(
+    env: ManagerBasedRLEnv,
+    object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+    floor: float = 0.20,
+) -> torch.Tensor:
+    """Elevation gate for grasp rewards: `floor` at z <= 0.432m, ramping to 1.0 at z >= 0.465m."""
+    cube_z = env.scene[object_cfg.name].data.root_pos_w.torch[:, 2]
+    return floor + (1.0 - floor) * torch.clamp((cube_z - 0.432) / (0.465 - 0.432), min=0.0, max=1.0)
 
 
 def cube_tilt_penalty(
@@ -491,7 +682,10 @@ def pinch_force_bonus(
 
     contact_grade = contact_grade_shaped(env)
     at_sidewall = compute_sidewall_depth_gate(env, ee_cfg, object_cfg)
-    is_upright = compute_cube_upright(env, object_cfg)
+    is_upright = compute_reward_upright(env, object_cfg)
+    wrist_gate = compute_wrist_vertical_gate(env, ee_cfg)
+    # Table-camping discount is already applied inside contact_grade_shaped
+    height_gate = compute_grasp_height_gate(env, object_cfg)
 
     forces_fixed = env.scene["fixed_finger_contact"].data.normal_force_matrix_w
     forces_moving = env.scene["moving_finger_contact"].data.normal_force_matrix_w
@@ -504,9 +698,17 @@ def pinch_force_bonus(
 
     force_signal = torch.tanh(bilateral_force / max_force)
     firm_closure = torch.clamp((1.25 - gripper_pos) / 0.35, min=0.0, max=1.0)
-    both_touch = (bilateral_force > 0.005).float()
+    both_touch = _touch_ramp(bilateral_force)
 
-    return contact_grade * both_touch * (0.6 * force_signal + 0.4 * firm_closure) * at_sidewall * is_upright
+    return (
+        contact_grade
+        * both_touch
+        * (0.6 * force_signal + 0.4 * firm_closure)
+        * at_sidewall
+        * is_upright
+        * wrist_gate
+        * height_gate
+    )
 
 
 def grasp_cube(
@@ -533,16 +735,28 @@ def grasp_cube(
         1.0 - z_dist / 0.025, min=0.0, max=1.0
     )
 
-    body_idx = robot.find_bodies(ee_body_name)[0][0]
-    downward = _tool_downward_alignment(robot, body_idx, env)
     diag = bilateral_cube_contact_diagnostics(env, min_force=0.005)
-    both_touch = ((diag["fixed_force_N"] > 0.005) & (diag["moving_force_N"] > 0.005)).float()
+    both_touch = _touch_ramp(torch.minimum(diag["fixed_force_N"], diag["moving_force_N"]))
     contact_grade = contact_grade_shaped(env)
     at_sidewall = compute_sidewall_depth_gate(env, ee_cfg, object_cfg)
-    is_upright = compute_cube_upright(env, object_cfg)
+    is_upright = compute_reward_upright(env, object_cfg)
+    # Hand angle is judged once, by wrist_gate (the strict exp() alignment check counted it a second time)
+    wrist_gate = compute_wrist_vertical_gate(env, ee_cfg)
+    # Table-camping discount is already applied inside contact_grade_shaped.
+    # This reward pays only for a new best score (GraspCubeProgress), so a high table floor cannot be farmed.
+    height_gate = compute_grasp_height_gate(env, object_cfg, floor=0.60)
 
     # Smooth continuous product: bilateral touch immediately rewards closing tighter at sidewall depth
-    return near_cube * close_amount * downward * both_touch * (0.5 + 0.5 * contact_grade) * at_sidewall * is_upright
+    return (
+        near_cube
+        * close_amount
+        * both_touch
+        * (0.5 + 0.5 * contact_grade)
+        * at_sidewall
+        * is_upright
+        * wrist_gate
+        * height_gate
+    )
 
 
 def grasp_approach_shaped(
@@ -595,10 +809,19 @@ def grasp_close_shaped(
     close_amt = torch.clamp((1.30 - jaw_pos) / 0.35, 0.0, 1.0)
 
     at_sidewall = compute_sidewall_depth_gate(env, ee_cfg, object_cfg)
-    is_upright = compute_cube_upright(env, object_cfg)
+    is_upright = compute_reward_upright(env, object_cfg)
+    wrist_gate = compute_wrist_vertical_gate(env, ee_cfg)
+    table_discount = compute_table_camping_discount(env, object_cfg)
 
-    # Gate: only reward closing when properly positioned alongside vertical side walls
-    positioned = (xy_dist < 0.035).float() * (z_offset < 0.030).float() * at_sidewall * is_upright
+    # Gate: only reward closing when properly positioned alongside vertical side walls with vertical wrist
+    positioned = (
+        (xy_dist < 0.035).float()
+        * (z_offset < 0.030).float()
+        * at_sidewall
+        * is_upright
+        * wrist_gate
+        * table_discount
+    )
 
     # Anti-release penalty on opening jaw velocity once contact & enclosure are achieved
     enclosure = compute_jaw_enclosure(env, ee_cfg, object_cfg)
@@ -623,8 +846,9 @@ def contact_grade_shaped(
     opposition = diag["opposing_forces"].float()
     grade = (fixed + moving) / 2.0 * (0.5 + 0.5 * opposition)
     at_sidewall = compute_sidewall_depth_gate(env, ee_cfg, object_cfg)
-    is_upright = compute_cube_upright(env, object_cfg)
-    return grade * at_sidewall * is_upright
+    is_upright = compute_reward_upright(env, object_cfg)
+    table_discount = compute_table_camping_discount(env, object_cfg)
+    return grade * at_sidewall * is_upright * table_discount
 
 
 def cube_table_drag_penalty(
@@ -737,23 +961,45 @@ def lift_cube_upward(
 
     cube_z = cube_pos[:, 2]
 
+    # Defeat corner-rocking fake lift: subtract tilt-induced height inflation from cube_z
+    cube_upright = compute_cube_upright_cosine(env, object_cfg)
+    tilt_inflation = torch.clamp(1.0 - cube_upright, min=0.0) * 0.025
+    z_effective = cube_z - tilt_inflation
+
     # Credit begins strictly when the cube ascends off tabletop (> 0.428m, 2mm above rest)
-    lift_progress = torch.clamp((cube_z - minimal_height) / (target_height - minimal_height), min=0.0, max=1.0)
-    is_lifted = (cube_z > minimal_height).float()
-    is_target_height = (cube_z > (target_height - 0.02)).float()
+    lift_progress = torch.clamp((z_effective - minimal_height) / (target_height - minimal_height), min=0.0, max=1.0)
+    # Ramp over the first 2 cm instead of a flat jump at 2 mm, so the first millimetres of lift are paid too
+    is_lifted = torch.clamp((z_effective - minimal_height) / 0.02, min=0.0, max=1.0)
+    is_target_height = (z_effective > (target_height - 0.02)).float()
 
     cube_vz = cube.data.root_lin_vel_w.torch[:, 2]
-    upward_vel = torch.clamp(cube_vz, min=0.0, max=0.5) * (1.0 - is_target_height)
+    body_idx = robot.find_bodies(ee_body_name)[0][0]
+
+    # When firmly grasped and below the target height (just under it), reward the cube's own upward velocity.
+    # Wrist velocity is deliberately excluded: rewarding it taught the policy to yank the arm out of view.
+    contact_grade = contact_grade_shaped(env)
+    needs_lift = (contact_grade > 0.30) & (z_effective < target_height - 0.015)
+    upward_pull = torch.clamp(cube_vz / 0.10, min=-0.5, max=1.0) * needs_lift.float()
+
+    # Penalize relative horizontal slip of cube relative to pinch_mid ("watermelon-seed" slip prevention)
+    if hasattr(robot.data, "body_lin_vel_w") and hasattr(cube.data, "root_lin_vel_w"):
+        pinch_vel_xy = robot.data.body_lin_vel_w.torch[:, body_idx, :2]
+        cube_vel_xy = cube.data.root_lin_vel_w.torch[:, :2]
+        rel_slip_xy = torch.norm(cube_vel_xy - pinch_vel_xy, dim=-1)
+        slip_penalty = torch.clamp((rel_slip_xy - 0.02) / 0.10, min=0.0, max=2.0) * (contact_grade > 0.05).float()
+    else:
+        slip_penalty = torch.zeros_like(cube_vz)
 
     lift_total = (
         lift_progress * 5.0
         + is_lifted * 3.0
         + is_target_height * 5.0
-        + upward_vel * 2.0
+        + upward_pull * 1.5
+        - slip_penalty * 1.5
     )
 
-    contact_grade = contact_grade_shaped(env)
-    return grasp_envelopment * lift_total * torch.clamp(contact_grade, min=0.0, max=1.0)
+    # The upright check is already inside contact_grade_shaped, so it is counted once here, not twice.
+    return grasp_envelopment * torch.clamp(lift_total, min=0.0) * torch.clamp(contact_grade, min=0.0, max=1.0)
 
 
 def cube_box_ground_proximity_penalty(
@@ -943,7 +1189,7 @@ def dense_rgb_approach(env, component: str = "reach"):
         return (1.0 - alignment) * opening * torch.exp(-distance / 0.15) * gate
     if component == "support":
         speed = torch.linalg.vector_norm(cube.data.root_lin_vel_w.torch, dim=-1)
-        is_upright = compute_cube_upright(env)
+        is_upright = compute_reward_upright(env)
         supported = bilateral_cube_contact(env).float() * alignment * is_upright
         elevation = ((cube.data.root_pos_w.torch[:, 2] - 0.428) / 0.045).clamp(0, 1)
         return supported * (0.25 + 0.75 * elevation) * torch.exp(-torch.square(speed / 0.15))
