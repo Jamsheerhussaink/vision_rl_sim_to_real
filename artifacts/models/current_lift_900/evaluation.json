@@ -1,0 +1,486 @@
+{
+  "robot_asset": "/home/ai/jamshi/isaac_vision_rl/usd/robot_grasp_surface_v3.usda",
+  "robot_asset_sha256": "e0f93d7ee749c9cde0ff9201d315f75b983a15c2f8b95cd9463fdec2647956de",
+  "task": "lift",
+  "curriculum": "fixed",
+  "policy": "rgb",
+  "smooth_control": false,
+  "wrist_only_control": false,
+  "cube_jitter_m": 0.0,
+  "num_rerenders_on_reset": 1,
+  "checkpoint": "/home/ai/jamshi/isaac_vision_rl/logs/rsl_rl/so101_picklift_rgb/2026-10-27_17-14-43/model_900.pt",
+  "sample_actions": false,
+  "seed": 123,
+  "episodes": 20,
+  "viewer_binding": [],
+  "graph_task_stage_mismatches": 0,
+  "graph_ppo_reward_mismatches": 0,
+  "success_rate": 0.35,
+  "mean_reward": 167.22507003012288,
+  "mean_steps": 151.6,
+  "mean_peak_lift_cm": 13.102955967187885,
+  "mean_table_slide_cm": 4.3047731276383105,
+  "episode_results": [
+    {
+      "success": true,
+      "reward": 169.16312573384494,
+      "steps": 67,
+      "peak_lift_cm": 13.507623672485353,
+      "table_slide_cm": 1.141248366809089,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.5671722814440727,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 6.001144647598267,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "lift_success"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": true,
+      "reward": 195.04788938723505,
+      "steps": 136,
+      "peak_lift_cm": 14.852566719055178,
+      "table_slide_cm": 5.824162534451682,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 1.094247866421938,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.24119019508361816,
+      "peak_sampled_hand_table_force_n": 42.550411224365234,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "lift_success"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 169.0192332305014,
+      "steps": 180,
+      "peak_lift_cm": 14.717299938201906,
+      "table_slide_cm": 0.21625329089780543,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.29922924004495144,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 4.2687952518463135,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 17.09725055191666,
+      "steps": 180,
+      "peak_lift_cm": 1.2822669744491588,
+      "table_slide_cm": 11.102352716167063,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 2.8236089274287224,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.27555227279663086,
+      "peak_sampled_hand_table_force_n": 38.12328338623047,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": true,
+      "reward": 235.7101784599945,
+      "steps": 100,
+      "peak_lift_cm": 13.059515953063967,
+      "table_slide_cm": 1.04433594086637,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 1.172978337854147,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 7.7349841594696045,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "lift_success"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 125.54274724237621,
+      "steps": 180,
+      "peak_lift_cm": 16.17096781730652,
+      "table_slide_cm": 0.3439597813548634,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.3270404180511832,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 2.300053834915161,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 253.64027891214937,
+      "steps": 180,
+      "peak_lift_cm": 15.384836196899416,
+      "table_slide_cm": 2.2913328400017807,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 1.0874733328819275,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 0.27811527252197266,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": true,
+      "reward": 182.58126378804445,
+      "steps": 59,
+      "peak_lift_cm": 13.632829189300539,
+      "table_slide_cm": 2.3602763451771924,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 1.809593290090561,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 4.9256980419158936,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "lift_success"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 310.6548310276121,
+      "steps": 180,
+      "peak_lift_cm": 14.23583745956421,
+      "table_slide_cm": 0.9286991814287493,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.4910788033157587,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 1.0830163955688477,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 314.33227622974664,
+      "steps": 180,
+      "peak_lift_cm": 13.135517835617067,
+      "table_slide_cm": 4.6692489790866265,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 1.390708889812231,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.34987926483154297,
+      "peak_sampled_hand_table_force_n": 30.69173240661621,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 59.37094115652144,
+      "steps": 180,
+      "peak_lift_cm": 14.490289688110353,
+      "table_slide_cm": 4.824734845794376,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.22614509798586369,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.13872981071472168,
+      "peak_sampled_hand_table_force_n": 19.146041870117188,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 41.26183030568063,
+      "steps": 180,
+      "peak_lift_cm": 11.908836364746096,
+      "table_slide_cm": 2.5624440983674113,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.40487702935934067,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 1.1410415172576904,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": true,
+      "reward": 197.62934103049338,
+      "steps": 115,
+      "peak_lift_cm": 13.74247193336487,
+      "table_slide_cm": 3.9445486529866347,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 1.6753869131207466,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 4.9040913581848145,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "lift_success"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 16.28842746745795,
+      "steps": 180,
+      "peak_lift_cm": 10.747261047363283,
+      "table_slide_cm": 12.889176593070095,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.3333569737151265,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.04997849464416504,
+      "peak_sampled_hand_table_force_n": 1.2032718658447266,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 130.43960065528518,
+      "steps": 180,
+      "peak_lift_cm": 11.500771045684816,
+      "table_slide_cm": 11.952117324847034,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 1.8898684531450272,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.31256675720214844,
+      "peak_sampled_hand_table_force_n": 27.81196403503418,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 118.2111361110583,
+      "steps": 180,
+      "peak_lift_cm": 13.020355701446535,
+      "table_slide_cm": 0.986030432874907,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.6124478299170732,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 1.3033151626586914,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 261.2379521308467,
+      "steps": 180,
+      "peak_lift_cm": 14.937634468078615,
+      "table_slide_cm": 3.118595571037952,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.9071081876754761,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.045865774154663086,
+      "peak_sampled_hand_table_force_n": 33.81950378417969,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": true,
+      "reward": 77.92081298492849,
+      "steps": 62,
+      "peak_lift_cm": 14.900476932525637,
+      "table_slide_cm": 3.166574207613815,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 2.7916043996810913,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": 7.7349841594696045,
+      "peak_sampled_hand_table_force_n": 0.0,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "lift_success"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": false,
+      "reward": 198.01472631748766,
+      "steps": 180,
+      "peak_lift_cm": 13.224269151687624,
+      "table_slide_cm": 5.850792492753465,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.7460829801857471,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.13011693954467773,
+      "peak_sampled_hand_table_force_n": 22.610675811767578,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "time_out"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    },
+    {
+      "success": true,
+      "reward": 271.3375578792766,
+      "steps": 153,
+      "peak_lift_cm": 13.60749125480652,
+      "table_slide_cm": 6.878578357179288,
+      "initial_tool_distance_cm": 9.996158629655838,
+      "closest_tool_distance_cm": 0.4845558200031519,
+      "camera_visible_fraction": null,
+      "minimum_sampled_hand_table_clearance_mm": -0.28955936431884766,
+      "peak_sampled_hand_table_force_n": 20.94319725036621,
+      "unsafe_table_termination": false,
+      "termination_reasons": [
+        "lift_success"
+      ],
+      "observed_stages": [],
+      "stage_step_counts": {
+        "REACH": 0,
+        "GRASP": 0,
+        "LIFT": 0,
+        "PLACE": 0
+      }
+    }
+  ],
+  "success_definition": "Two-sided cube contact and geometric sustained lift for 0.5 seconds"
+}

@@ -1,0 +1,170 @@
+{
+  "selection_basis": "Recorded learned-policy evaluations, not training reward, update count, or file modification time. Different task settings prevent a direct ranking. No new simulation evaluation performed.",
+  "local_checkpoints_preserved": true,
+  "git_history_rewritten": false,
+  "models": [
+    {
+      "id": "historical_lift_1250",
+      "checkpoint": "artifacts/models/historical_lift_1250/model_1250.pt",
+      "original_checkpoint": "/home/ai/jamshi/isaac_vision_rl/logs/rsl_rl/so101_picklift_rgb_tuned64/2026-10-14_09-57-08/model_1250.pt",
+      "original_report": "outputs/evaluations/rgb_model1250_surface_v3_10ep_seed202.json",
+      "limitation": "Historical fixed-scene lift baseline; older task criteria; 10 episodes on one seed only.",
+      "recorded_metrics": {
+        "task": "lift",
+        "episodes": 10,
+        "seed": 202,
+        "success_rate": 1.0,
+        "mean_peak_lift_cm": 9.66066896915436,
+        "mean_table_slide_cm": 0.9484476810212072,
+        "success_definition": "Two-sided cube contact and geometric sustained lift for 0.5 seconds"
+      },
+      "sha256": {
+        "artifacts/models/historical_lift_1250/model_1250.pt": "7acae1a14d876b5f6d250267a0f49a92f908ec8c598074188cced0a222752380",
+        "artifacts/models/historical_lift_1250/evaluation.json": "c8cbe919e7f7b62a3d59873f5505628f6a3d2485a6937de06cb6818c1cf265b3",
+        "artifacts/models/historical_lift_1250/params/agent.yaml": "561062e2e2e808eeeb66543c5a6273360b08d641c1bdd6b7d8938f7b3fb8e4d1",
+        "artifacts/models/historical_lift_1250/params/env.yaml": "f3aecb3ac7f75ca15ac587a27f9393b235115b74ed2bb6f3e460bb829a345799",
+        "artifacts/models/historical_lift_1250/run.json": "4bbec642a87e39796c2e34b1e1aacae79679452a8eed36fca1b3996121ed72e7"
+      }
+    },
+    {
+      "id": "current_lift_900",
+      "checkpoint": "artifacts/models/current_lift_900/model_900.pt",
+      "original_checkpoint": "/home/ai/jamshi/isaac_vision_rl/logs/rsl_rl/so101_picklift_rgb/2026-10-27_17-14-43/model_900.pt",
+      "original_report": "outputs/evaluation/eval_model_900.json",
+      "limitation": "Newer lift candidate; 35 percent recorded success; average slide 4.30 cm; not reliable placement or deployment certification.",
+      "recorded_metrics": {
+        "task": "lift",
+        "episodes": 20,
+        "seed": 123,
+        "success_rate": 0.35,
+        "mean_peak_lift_cm": 13.102955967187885,
+        "mean_table_slide_cm": 4.3047731276383105,
+        "success_definition": "Two-sided cube contact and geometric sustained lift for 0.5 seconds"
+      },
+      "sha256": {
+        "artifacts/models/current_lift_900/model_900.pt": "30815a9a35d9793e11aad953b3a84a66b81063f135ce4e67fd40b5863ebbc2ae",
+        "artifacts/models/current_lift_900/evaluation.json": "a9348809097a309da34b4edcd364427e26777575bd37ed677d5b0e45b06558bb",
+        "artifacts/models/current_lift_900/params/agent.yaml": "0654f1036a7d4fd35e8fb6f20e7d8b11aecac56d7a947ebc9195cfd2021b0183",
+        "artifacts/models/current_lift_900/params/env.yaml": "b0e3d9b8b4642ac9e6c08f61ae932729ad6a4c56277cd834fb44356c8af5e8ad",
+        "artifacts/models/current_lift_900/run.json": "2959710e4429cf0ac10fa6c54047c7d422139f6903277a980e07e7794deb895d"
+      }
+    }
+  ],
+  "removed_from_git_tracking": [
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-26_11-56-21/model_600.pt",
+      "sha256": "8eab78d34e3d8d12790b307f37e7434c4219475e195a6207670e10e98922d6c0",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-26_11-56-21/model_650.pt",
+      "sha256": "419f7c4d02246a64cc578be6f2bc21ebf222d20661171487c2685ce5ba58abf5",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-26_11-56-21/model_700.pt",
+      "sha256": "96e37f92272883f93f23b7f3430b4c7eed28cda6340ae4134cad9286c27928dd",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-26_11-56-21/model_750.pt",
+      "sha256": "8c735595e1040bf3bc47263426e4aebee74e3bc1f66d62d59f65cc3002e1e215",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-26_11-56-21/params/agent.yaml",
+      "sha256": "da3abf2e084db23b738587d8cb95626f0d5471b7cc5044017ca66fe3f7b61dd6",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-26_11-56-21/params/env.yaml",
+      "sha256": "880dedcb8f00191c48bc8277c98b1b4ae7bfefd360f7ae00efc2cdd2fb61454a",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_picklift_rgb/2026-10-26_11-56-21/run.json",
+      "sha256": "fd5982759bc2cf341a031de3f2dac5250b654a62b5ef5164eec0c0064a38de75",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb/2026-10-27_18-04-16/model_50.pt",
+      "sha256": "4997e2fc60bbd2570ef34c865bd4a8db99aa9df0b39544e1630a80b1b51f61a3",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb/2026-10-27_18-04-16/params/agent.yaml",
+      "sha256": "e4c42e3c6bf1cf555c73179e28ee6712baf0b06b2e701d80108e321e1956a636",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb/2026-10-27_18-04-16/params/env.yaml",
+      "sha256": "6af2661e70cdc03e48902184a95c5589c74f65ba9522c3bb62794e0939a97fb0",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "logs/rsl_rl/so101_pickplace_rgb/2026-10-27_18-04-16/run.json",
+      "sha256": "a2990bd6b030b1877414a411a61e2aed75860cca4786bbe11d3e94f2e021972a",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/bc_policy.pt",
+      "sha256": "1f5a7c6fb06d5438ac9f1c65f58725de64c7c588e154d2940db1e633d91eb6ce",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/bc_policy_approach_v1.pt",
+      "sha256": "426bad6b0dcde49afd5d4ac964285e92c3a99c4653fb3b218ca8837faacaae74",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/bc_policy_deadline_candidate.pt",
+      "sha256": "f8da9a0e97ec73fcd9883fa2be5cf58a241599a43b33fab64c21e9aa1ff1204b",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/bc_policy_multidemo.pt",
+      "sha256": "a02c58ac09e7380dfbcf19aeb55806f71be79c2dd949a5805cc6e7ad25aeab6f",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/bc_policy_v2.pt",
+      "sha256": "12f69a85622b14961f83b0c8758c790fc27c8064f4bcec3bb190da6cb2b19c40",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/checkpoint_1550_actor_warmstart.pt",
+      "sha256": "703c64afdf4b8edb45d889d9deba19091a382c053fa01451104d41ed30d089ee",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/ik_overhead_bc.pt",
+      "sha256": "2679d26bbdf2e3cc067d3dea0e0446dd4bf63d3c04eae6b41a1ff498eeb1003d",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/ik_overhead_bc_graspweighted_v3.pt",
+      "sha256": "88c93967f8dcb9e4319ea7feae63036f3ad5013848c18b33e62a65365ae90489",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/ik_overhead_bc_graspweighted_v4.pt",
+      "sha256": "90b77ba96f430774314ccc51a6bdddd6bdbf6551deae9f46ce3d66da5e1c5e4f",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/ik_overhead_bc_latched_v2.pt",
+      "sha256": "39f0fc44a443bf65d962cadd86e8adebfbc8c3920bb80df605b6ac949ef11b02",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/ik_overhead_bc_v2.pt",
+      "sha256": "cc03243f2571e1258d02c0322b3c093c2cc28f2cc9de6d5fd2d86fc11188f3ff",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    },
+    {
+      "path": "outputs/four_stage/ik_overhead_bc_v3_dagger.pt",
+      "sha256": "4862363c959d97b40fba3b98596434c4cf2c384a4230b087189518f2ffe73790",
+      "reason": "Not selected for the curated published set; local file retained, not judged useless."
+    }
+  ]
+}
