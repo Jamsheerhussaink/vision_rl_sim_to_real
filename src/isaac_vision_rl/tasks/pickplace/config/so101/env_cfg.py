@@ -441,6 +441,7 @@ class EventCfg:
 # Final lift goal, learned directly (no height stages). The cube rests with its centre at z = 0.426 m, so
 # 10 cm up is 0.526 m. The dense lift reward keeps growing up to 12 cm (0.546 m) so the policy is pulled upward.
 BOX_WALL_TOP_M = 0.49
+WRIST_PAY_FLOOR = 0.6  # share of lift and carry pay kept when the hand is tilted
 LIFT_SUCCESS_HEIGHT_M = 0.526
 LIFT_TARGET_HEIGHT_M = 0.546
 LIFT_HOLD_TIME_S = 0.5
@@ -532,8 +533,11 @@ class PickplaceRewardsCfg(PickLiftRewardsCfg):
 
     # 5. Lower stationary lift hold weight so box transport dominates once lifted
     # Keep pulling the cube up past the box wall (0.49 m); the lift default of 0.48 m stops below it.
+    # A tilted hand still earns WRIST_PAY_FLOOR of the lift pay, a hand pointing straight down earns all of it.
     lift_cube = RewTerm(
-        func=cast(Any, mdp.LiftCubeProgress), weight=3.0, params={"target_height": LIFT_TARGET_HEIGHT_M}
+        func=cast(Any, mdp.LiftCubeProgress),
+        weight=3.0,
+        params={"target_height": LIFT_TARGET_HEIGHT_M, "wrist_floor": WRIST_PAY_FLOOR},
     )
 
     # 11. Placing: Transport cube to target box once securely lifted over the box wall.
@@ -546,13 +550,26 @@ class PickplaceRewardsCfg(PickLiftRewardsCfg):
         weight=12.0,
         params={"minimal_height": BOX_WALL_TOP_M, "full_height": LIFT_SUCCESS_HEIGHT_M},
     )
-    # Pay 50 points per metre the held cube moves toward the box (start-to-box is about 0.24 m, so about 12 points a try at most).
+    # Stage 1, carry at height: pay 150 points per metre the held cube moves toward the box, only at 10 cm lift or higher
+    # (start-to-box is about 0.24 m, so about 36 points a try at most).
     carry_closer = RewTerm(
         func=cast(Any, mdp.CarryCloserProgress),
-        weight=50.0,
-        params={"minimal_height": BOX_WALL_TOP_M, "full_height": LIFT_SUCCESS_HEIGHT_M},
+        weight=150.0,
+        params={
+            "minimal_height": LIFT_SUCCESS_HEIGHT_M - 0.01,
+            "full_height": LIFT_SUCCESS_HEIGHT_M,
+            "wrist_floor": WRIST_PAY_FLOOR,
+        },
     )
-    release_cube = RewTerm(func=mdp.release_cube_in_box, weight=12.0)
+    # Stage 1 goal: one-time +20 points (weight 600 x 0.0333 s) when the held cube stays above the box at 10 cm lift.
+    # It must come before release_cube so the stage 2 gate sees it in the same step.
+    carry_done = RewTerm(
+        func=cast(Any, mdp.AboveBoxBonus),
+        weight=600.0,
+        params={"min_height": LIFT_SUCCESS_HEIGHT_M, "xy_tolerance": 0.04, "hold_time_s": 0.2},
+    )
+    # Stage 2, descend and release: pays only after stage 1 is done in the same try.
+    release_cube = RewTerm(func=mdp.release_cube_in_box, weight=12.0, params={"require_carry_done": True})
     # Verified placement is one event: weight 6000 pays about +200 points (weight x 0.0333 s step), well above
     # the 60-point carry budget. Weight 200 would pay only about +6.7.
     place_completed = RewTerm(func=cast(Any, mdp.PlaceSuccess), weight=6000.0)
@@ -733,3 +750,16 @@ class PickplaceEnvCfg(ManagerBasedRLEnvCfg):
         from isaac_vision_rl.utils.pipeline import configure_curriculum
 
         configure_curriculum(self, os.environ.get("SO101_CURRICULUM", "place"))
+        # Optional practice: start this share of tries already holding the cube near the box (0 = off).
+        held_fraction = float(os.environ.get("SO101_HELD_START", "0"))
+        if held_fraction > 0:
+            self.events.held_start = EventTerm(
+                func=cast(Any, mdp.HeldStartReset),
+                mode="reset",
+                params={
+                    "states_path": os.environ.get("SO101_HELD_STATES", "outputs/held_states/place.npz"),
+                    "fraction": held_fraction,
+                    "min_distance": float(os.environ.get("SO101_HELD_MIN_DISTANCE", "0.07")),
+                    "max_distance": float(os.environ.get("SO101_HELD_MAX_DISTANCE", "0.17")),
+                },
+            )

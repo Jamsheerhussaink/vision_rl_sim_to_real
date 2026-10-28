@@ -194,8 +194,8 @@ class GraspCubeProgress(ManagerTermBase):
 class LiftCubeProgress(GraspCubeProgress):
     """Pay only new best contact-gated lift quality, not repeated hovering."""
 
-    def __call__(self, env, target_height: float = 0.48):
-        score = lift_cube_upward(env, target_height=target_height)
+    def __call__(self, env, target_height: float = 0.48, wrist_floor: float = 1.0):
+        score = lift_cube_upward(env, target_height=target_height, wrist_floor=wrist_floor)
         progress = (score - self._best_score).clamp_min(0)
         self._best_score[:] = torch.maximum(score, self._best_score)
         return progress / env.step_dt
@@ -310,6 +310,7 @@ class CarryCloserProgress(ManagerTermBase):
         goal_cfg: SceneEntityCfg = SceneEntityCfg("box"),
         ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
         ee_body_name: str = "gripper_frame_link",
+        wrist_floor: float = 1.0,
     ) -> torch.Tensor:
         robot: Articulation = env.scene[ee_cfg.name]
         cube: RigidObject = env.scene[object_cfg.name]
@@ -325,7 +326,7 @@ class CarryCloserProgress(ManagerTermBase):
             & (robot.data.joint_pos.torch[:, gripper_idx] < 1.10)
         ).float()
         is_lifted = torch.clamp((cube_pos[:, 2] - minimal_height) / (full_height - minimal_height), 0.0, 1.0)
-        gate = is_held * is_lifted
+        gate = is_held * is_lifted * _wrist_pay_factor(env, ee_cfg, ee_body_name, wrist_floor)
 
         dist = torch.norm(box.data.root_pos_w.torch[:, :2] - cube_pos[:, :2], dim=-1)
         closer = torch.where(self._has_prev, self._prev_dist - dist, torch.zeros_like(dist)) * gate
@@ -333,6 +334,59 @@ class CarryCloserProgress(ManagerTermBase):
         self._has_prev[:] = True
         # RewardManager multiplies ordinary rewards by step_dt. Dividing here keeps the weight in points per metre.
         return closer / env.step_dt
+
+
+class AboveBoxBonus(ManagerTermBase):
+    """Stage 1 of placing: pay once when the held cube stays above the box at lift height, and remember it.
+
+    The hold must be unbroken for ``hold_time_s``, so it cannot be farmed. The latch is shared as
+    ``env._carry_done`` so stage 2 (lowering and release) can pay only after this stage is done.
+    """
+
+    def __init__(self, cfg, env):
+        super().__init__(cfg, env)
+        self._steps = torch.zeros(env.num_envs, dtype=torch.long, device=env.device)
+        self._reached = torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+        env._carry_done = self._reached
+
+    def reset(self, env_ids=None) -> None:
+        ids = slice(None) if env_ids is None else env_ids
+        self._steps[ids] = 0
+        self._reached[ids] = False
+
+    def __call__(
+        self,
+        env: ManagerBasedRLEnv,
+        min_height: float = 0.526,
+        xy_tolerance: float = 0.04,
+        hold_time_s: float = 0.2,
+        object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+        goal_cfg: SceneEntityCfg = SceneEntityCfg("box"),
+        ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+        ee_body_name: str = "gripper_frame_link",
+    ) -> torch.Tensor:
+        robot: Articulation = env.scene[ee_cfg.name]
+        cube: RigidObject = env.scene[object_cfg.name]
+        box: RigidObject = env.scene[goal_cfg.name]
+
+        cube_pos = cube.data.root_pos_w.torch
+        body_idx = robot.find_bodies(ee_body_name)[0][0]
+        ee_cube_dist = torch.norm(cube_pos - robot.data.body_pos_w.torch[:, body_idx], dim=-1)
+        gripper_idx = robot.find_joints("gripper")[0][0]
+        is_held = (
+            bilateral_cube_contact(env)
+            & (ee_cube_dist < 0.052)
+            & (robot.data.joint_pos.torch[:, gripper_idx] < 1.10)
+        )
+        xy_dist = torch.norm(box.data.root_pos_w.torch[:, :2] - cube_pos[:, :2], dim=-1)
+        above_box = is_held & (cube_pos[:, 2] >= min_height) & (xy_dist < xy_tolerance)
+
+        self._steps[:] = torch.where(above_box, self._steps + 1, torch.zeros_like(self._steps))
+        newly = (self._steps >= math.ceil(hold_time_s / env.step_dt)) & ~self._reached
+        self._reached |= newly
+        if hasattr(env, "extras"):
+            env.extras.setdefault("log", {})["Place/carry_done_fraction"] = self._reached.float().mean()
+        return newly.float()
 
 
 class LiftSuccess(ManagerTermBase):
@@ -678,6 +732,13 @@ def compute_wrist_vertical_gate(
     return torch.ones(env.num_envs, device=env.device)
 
 
+def _wrist_pay_factor(env, ee_cfg, ee_body_name: str, wrist_floor: float) -> torch.Tensor:
+    """Share of a reward that is paid: ``wrist_floor`` for a tilted hand, 1 for a hand pointing straight down."""
+    if wrist_floor >= 1.0:
+        return torch.ones(env.num_envs, device=env.device)
+    return wrist_floor + (1.0 - wrist_floor) * compute_wrist_vertical_gate(env, ee_cfg, ee_body_name)
+
+
 def compute_table_camping_discount(
     env: ManagerBasedRLEnv,
     object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
@@ -1019,8 +1080,12 @@ def lift_cube_upward(
     object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
     ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     ee_body_name: str = "gripper_frame_link",
+    wrist_floor: float = 1.0,
 ) -> torch.Tensor:
     """Primary reward for picking and lifting the cube vertically off the tabletop.
+
+    ``wrist_floor`` below 1 pays only that share when the hand is tilted, and the full reward when it points
+    straight down. The default of 1 leaves the reward unchanged.
 
     Requires proximity, closure and contact confirmation. Strictly rewards cube
     elevation off the tabletop, with zero credit for stationary wrist height.
@@ -1083,7 +1148,8 @@ def lift_cube_upward(
     )
 
     # The upright check is already inside contact_grade_shaped, so it is counted once here, not twice.
-    return grasp_envelopment * torch.clamp(lift_total, min=0.0) * torch.clamp(contact_grade, min=0.0, max=1.0)
+    score = grasp_envelopment * torch.clamp(lift_total, min=0.0) * torch.clamp(contact_grade, min=0.0, max=1.0)
+    return score * _wrist_pay_factor(env, ee_cfg, ee_body_name, wrist_floor)
 
 
 def cube_box_ground_proximity_penalty(
@@ -1214,8 +1280,12 @@ def release_cube_in_box(
     goal_cfg: SceneEntityCfg = SceneEntityCfg("box"),
     ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     ee_body_name: str = "gripper_frame_link",
+    require_carry_done: bool = False,
 ) -> torch.Tensor:
-    """Dense placement shaping: lower a raised cube over the interior, then open."""
+    """Dense placement shaping: lower a raised cube over the interior, then open.
+
+    With ``require_carry_done`` it pays only after AboveBoxBonus has fired in the same try (stage 2 after stage 1).
+    """
     robot: Articulation = env.scene[ee_cfg.name]
     cube: RigidObject = env.scene[object_cfg.name]
     box: RigidObject = env.scene[goal_cfg.name]
@@ -1234,7 +1304,13 @@ def release_cube_in_box(
     close_xy = (xy_dist < 0.04).float()
     near_ee = (torch.norm(cube_pos - ee_pos, dim=-1) < 0.08).float()
     # An open gripper far from the cube must not earn a release reward.
-    return above_floor * close_xy * over_box * near_ee * lowering * (0.25 + released)
+    reward = above_floor * close_xy * over_box * near_ee * lowering * (0.25 + released)
+    if require_carry_done:
+        carry_done = getattr(env, "_carry_done", None)
+        if carry_done is None:
+            raise RuntimeError("require_carry_done needs the AboveBoxBonus reward term in the same task")
+        reward = reward * carry_done.float()
+    return reward
 
 
 def dense_rgb_approach(env, component: str = "reach"):

@@ -833,5 +833,105 @@ class PickLiftLogicTests(unittest.TestCase):
             self.assertEqual(val.dtype, torch.float32, f"Mismatched dtype for {name}: {val.dtype}")
 
 
+
+
+class WristPayFloorTests(unittest.TestCase):
+    def test_wrist_floor_applies_only_in_the_place_stage(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
+
+        self.assertNotIn("wrist_floor", env_cfg.PickLiftRewardsCfg().lift_cube.params)
+        place = env_cfg.PickplaceRewardsCfg()
+        self.assertEqual(place.lift_cube.params["wrist_floor"], env_cfg.WRIST_PAY_FLOOR)
+        self.assertEqual(place.carry_closer.params["wrist_floor"], env_cfg.WRIST_PAY_FLOOR)
+
+    def test_full_wrist_floor_leaves_reward_unchanged(self):
+        import torch
+        from types import SimpleNamespace
+
+        from isaac_vision_rl.tasks.pickplace.mdp import rewards
+
+        env = SimpleNamespace(num_envs=3, device="cpu")
+        self.assertEqual(rewards._wrist_pay_factor(env, None, "gripper_frame_link", 1.0).tolist(), [1.0] * 3)
+
+
+class TwoStagePlaceTests(unittest.TestCase):
+    def _box_env(self):
+        env = make_env()
+        env.scene["box"] = SimpleNamespace(
+            data=SimpleNamespace(root_pos_w=SimpleNamespace(torch=torch.tensor([[0.0, 0.0, 0.40], [0.0, 0.0, 0.40]])))
+        )
+        env.scene["robot"].data.joint_pos.torch[0, 0] = 0.97
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.53
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.54
+        return env
+
+    def test_release_pays_only_after_the_cube_was_held_above_the_box(self):
+        from isaac_vision_rl.tasks.pickplace.mdp import rewards
+
+        env = self._box_env()
+        bonus = rewards.AboveBoxBonus(SimpleNamespace(), env)
+        kw = dict(min_height=0.526, hold_time_s=0.2)  # 5 steps at 0.04 s
+        # Before stage 1 is done, release pays nothing even with the cube low in the box and the jaw open
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.43
+        env.scene["robot"].data.joint_pos.torch[:, 0] = 1.2
+        self.assertEqual(rewards.release_cube_in_box(env, require_carry_done=True).tolist(), [0.0, 0.0])
+        # Hold the cube above the box: one bonus on the fifth step, then never again
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.53
+        env.scene["robot"].data.joint_pos.torch[0, 0] = 0.97
+        env.scene["robot"].data.joint_pos.torch[1, 0] = 1.2
+        paid = [bonus(env, **kw).tolist() for _ in range(7)]
+        self.assertEqual([p[0] for p in paid], [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0])
+        self.assertEqual(sum(p[1] for p in paid), 0.0)
+        self.assertEqual(env._carry_done.tolist(), [True, False])
+        # After stage 1, the first try can earn the release shaping; the second still cannot
+        env.scene["cube"].data.root_pos_w.torch[:, 2] = 0.43
+        env.scene["robot"].data.joint_pos.torch[:, 0] = 1.2
+        env.scene["robot"].data.body_pos_w.torch[:, :, 2] = 0.44
+        result = rewards.release_cube_in_box(env, require_carry_done=True)
+        self.assertGreater(result[0].item(), 0.0)
+        self.assertEqual(result[1].item(), 0.0)
+        # A new try forgets stage 1
+        bonus.reset(torch.tensor([0]))
+        self.assertEqual(env._carry_done.tolist(), [False, False])
+
+    def test_place_config_has_two_stage_terms_in_order(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
+
+        cfg = env_cfg.PickplaceRewardsCfg()
+        names = list(vars(cfg))
+        self.assertLess(names.index("carry_done"), names.index("release_cube"))
+        self.assertTrue(cfg.release_cube.params["require_carry_done"])
+        self.assertEqual(cfg.carry_closer.params["full_height"], env_cfg.LIFT_SUCCESS_HEIGHT_M)
+
+
+class HeldStartTests(unittest.TestCase):
+    def test_pan_turn_puts_the_cube_at_the_asked_distance_from_the_box(self):
+        import math
+
+        from isaac_vision_rl.tasks.pickplace.mdp.events import solve_pan_offset
+
+        base = torch.zeros(1, 2)
+        cube = torch.tensor([[1.0, 0.0]])
+        box = torch.tensor([[math.cos(0.8), math.sin(0.8)]])
+        near = solve_pan_offset(base, cube, box, torch.tensor([0.0]), 1.0)
+        self.assertAlmostEqual(float(near), 0.8, delta=0.011)
+        flipped = solve_pan_offset(base, cube, box, torch.tensor([0.0]), -1.0)
+        self.assertAlmostEqual(float(flipped), -0.8, delta=0.011)
+        # A target distance of 0.2 m: the turned cube ends 0.2 m from the box, on the shorter side
+        turn = float(solve_pan_offset(base, cube, box, torch.tensor([0.2]), 1.0))
+        moved = torch.tensor([math.cos(turn), math.sin(turn)])
+        self.assertAlmostEqual(float(torch.norm(moved - box[0])), 0.2, delta=0.01)
+        self.assertGreater(turn, 0.0)
+
+    def test_held_start_is_off_unless_asked_for(self):
+        import os
+
+        from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
+
+        self.assertFalse(hasattr(env_cfg.EventCfg(), "held_start"))
+        self.assertIn("SO101_HELD_START", open(env_cfg.__file__).read())
+        self.assertNotIn("SO101_HELD_START", os.environ)
+
+
 if __name__ == "__main__":
     unittest.main()
