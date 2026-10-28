@@ -76,6 +76,8 @@ Decision: the policy is trained on the final goal from the start: **cube 10 cm u
 
 Train the place stage (`--task` for pick-and-place) from the best lift checkpoint. `place_cube` carry ramp (wall top 0.49 m → full at 0.526 m) from the height plan. Going home stays a fixed script (`utils/ik_return_home.py`), not a trained skill.
 
+Applied 2026-10-28 (place stage): `place_cube` carry pay now ramps from 0 at the box wall top (`BOX_WALL_TOP_M` 0.49 m) to full at 10 cm lift (0.526 m), so pushing the cube along the table earns nothing; place-stage `lift_cube` target raised from 0.48 m to 0.546 m so the lift pull no longer stops below the wall. `cube_tilt` stays at -1 (a test asserts it). Tests: 45/45 in `tests/test_picklift_logic.py`; full suite 59 old failures.
+
 ## Timing reality check
 
 Each round is about 1–2 hours (change, restart, 50+ steps, read numbers). Four rounds will not fit before a 1–2 day deadline with certainty. A safety net that costs no training: the scripted teacher already has recorded full pick-and-place videos. They can be shown as the working fixed-position demo while the learned policy is still improving.

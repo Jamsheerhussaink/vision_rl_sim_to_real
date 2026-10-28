@@ -109,6 +109,7 @@ class RealPolicy:
         jaw = env["actions"]["gripper_action"]
         self.grip_scale, self.grip_offset = float(jaw["scale"]), float(jaw["offset"])
         self.grip_speed = float(jaw.get("max_target_speed", 0))
+        self.grip_min_close = float(jaw.get("min_close_target", 0))
         self.grip_acceleration = float(jaw.get("max_target_acceleration", 0))
         self.grip_velocity = 0.0
         stage = Usd.Stage.Open(env["scene"]["robot"]["spawn"]["usd_path"])
@@ -190,7 +191,7 @@ class RealPolicy:
             self.arm_velocity[:] = np.where(np.isclose(arm, arm_unclipped, atol=1e-10), velocity, 0.0)
         else:
             arm = self.filtered[:5] + np.clip(ema - self.filtered[:5], -self.speed * dt, self.speed * dt)
-        jaw = np.clip(self.grip_scale * action[5] + self.grip_offset, 0, 1.55)
+        jaw = np.clip(self.grip_scale * action[5] + self.grip_offset, self.grip_min_close, 1.55)
         if self.motion_profile == "four_stage_smooth_v1" and self.grip_acceleration > 0 and self.grip_speed > 0:
             jaw_error = jaw - self.filtered[5]
             jaw_brake_speed = np.sqrt((self.grip_acceleration * dt) ** 2 + 2 * self.grip_acceleration * abs(jaw_error)) - self.grip_acceleration * dt

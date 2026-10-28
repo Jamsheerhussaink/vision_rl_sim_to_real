@@ -298,7 +298,7 @@ class PickLiftLogicTests(unittest.TestCase):
         success.reset(torch.tensor([0]))
         self.assertFalse(success(env).any())
 
-    def test_hold_bonus_pays_only_for_a_new_longest_hold_and_not_in_place_stage(self):
+    def test_hold_bonus_pays_only_for_a_new_longest_hold_in_both_stages(self):
         from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
 
         env = make_env()
@@ -320,7 +320,7 @@ class PickLiftLogicTests(unittest.TestCase):
         self.assertEqual(bonus(env, **kw).tolist(), [1.0, 0.0])
         # The place stage must not carry the bonus (it does not end at the lift)
         self.assertIsNotNone(env_cfg.PickLiftRewardsCfg().lift_hold)
-        self.assertIsNone(env_cfg.PickplaceRewardsCfg().lift_hold)
+        self.assertIsNotNone(env_cfg.PickplaceRewardsCfg().lift_hold)
 
     def test_lift_success_logs_which_hold_condition_fails(self):
         env = make_env()
@@ -577,6 +577,35 @@ class PickLiftLogicTests(unittest.TestCase):
         env.scene["cube"].data.root_pos_w.torch[0, 2] = 0.42
         self.assertEqual(float(object_goal_distance(env)[0]), 0.0)
 
+    def test_carry_pay_ramps_from_the_box_wall_to_ten_centimetres(self):
+        env = make_env()
+        box = SimpleNamespace(
+            data=SimpleNamespace(root_pos_w=SimpleNamespace(torch=torch.tensor([[0.05, 0.26, 0.401], [0.05, 0.26, 0.401]])))
+        )
+        env.scene["box"] = box
+        env.scene["robot"].data.joint_pos.torch[0, 0] = 0.97
+
+        def pay(z):
+            env.scene["cube"].data.root_pos_w.torch[0] = torch.tensor([0.05, 0.22, z])
+            env.scene["robot"].data.body_pos_w.torch[0, 0] = torch.tensor([0.05, 0.22, z])
+            return float(object_goal_distance(env, minimal_height=0.49, full_height=0.526)[0])
+
+        self.assertEqual(pay(0.45), 0.0)  # held low, pushing along the table
+        self.assertEqual(pay(0.49), 0.0)  # level with the wall top
+        full = pay(0.526)
+        self.assertGreater(full, 0.0)
+        self.assertAlmostEqual(pay(0.508), 0.5 * full, places=4)
+        self.assertAlmostEqual(pay(0.60), full, places=4)  # no extra pay above 10 cm
+
+    def test_place_stage_lift_pull_reaches_over_the_wall(self):
+        from isaac_vision_rl.tasks.pickplace.config.so101 import env_cfg
+
+        rewards = env_cfg.PickplaceRewardsCfg()
+        self.assertEqual(rewards.lift_cube.params["target_height"], env_cfg.LIFT_TARGET_HEIGHT_M)
+        place = rewards.place_cube.params
+        self.assertEqual(place["minimal_height"], env_cfg.BOX_WALL_TOP_M)
+        self.assertEqual(place["full_height"], env_cfg.LIFT_SUCCESS_HEIGHT_M)
+
     def test_premature_gripper_closure_penalty_penalizes_high_or_misaligned_closing(self):
         env = make_env()
         # TCP is placed 5 cm above cube center (too high)
@@ -703,7 +732,9 @@ class PickLiftLogicTests(unittest.TestCase):
         gripper.process_actions(torch.zeros(2, 1))
         torch.testing.assert_close(gripper.processed_actions, torch.full((2, 1), 0.775))
         gripper.process_actions(torch.tensor([[-100.0], [100.0]]))
-        torch.testing.assert_close(gripper.processed_actions, torch.tensor([[0.0], [1.55]]))
+        # Closed command stops at the configured jaw floor (0.0 = old behaviour; 0.7 = real cube-stall floor).
+        floor = cfg.gripper_action.min_close_target
+        torch.testing.assert_close(gripper.processed_actions, torch.tensor([[floor], [1.55]]))
 
     def test_fixed_finger_pad_z_height_and_sidewall_depth(self):
         env = make_env()

@@ -7,6 +7,7 @@ import time
 import numpy as np
 
 from isaac_vision_rl.utils.calibration import JOINT_ORDER, FollowerArmCalibration
+from isaac_vision_rl.utils.motor_limits import GRIPPER_MIN_CLOSE_RAD
 
 
 def _joint_diff(a, b):
@@ -43,7 +44,8 @@ def mirror_reference(sim_angles, gripper_target=None, calib=None):
     if gripper_target is not None:
         if not np.isfinite(gripper_target):
             raise ValueError("Gripper reference must be finite")
-        q[5] = float(np.clip(gripper_target, 0.0, 1.2))
+        # Never send the jaw below the shared floor: a cube-blocked jaw would be squeezed into servo overload.
+        q[5] = float(np.clip(gripper_target, GRIPPER_MIN_CLOSE_RAD, 1.2))
     return q
 
 

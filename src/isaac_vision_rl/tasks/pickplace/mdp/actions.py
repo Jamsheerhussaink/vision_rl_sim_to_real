@@ -102,6 +102,8 @@ class PolicyGripperAction(JointPositionAction):
             )
         except Exception:
             pass
+        if self.cfg.min_close_target>0:
+            self._processed_actions=torch.clamp(self._processed_actions,min=self.cfg.min_close_target)
         if self.cfg.max_target_speed>0:
             reference,velocity=bounded_reference_step(
                 self._previous_target,self._processed_actions,self._reference_velocity,

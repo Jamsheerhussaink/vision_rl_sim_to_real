@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT / "scripts/hardware"))
 
 from isaac_vision_rl.utils.calibration import CALIB_FILE_PATH, JOINT_ORDER, FollowerArmCalibration
 from isaac_vision_rl.utils.evaluation_mirror import MirrorWorker, mirror_reference
+from isaac_vision_rl.utils.motor_limits import GRIPPER_MIN_CLOSE_RAD
 
 
 def extract_checkpoint_metadata(path: Path | str) -> dict:
@@ -107,6 +108,9 @@ def main():
     parser.add_argument("--alignment-tolerance", type=int, default=12,
                         help="Startup error tolerance per joint in ticks, held for 0.2 seconds (default: 12)")
     parser.add_argument("--max-steps", type=int, default=0, help="Optional shorter run; 0 means full episodes")
+    parser.add_argument("--gripper-min-rad", type=float, default=GRIPPER_MIN_CLOSE_RAD,
+                        help="Never command the real jaw below this (0 closed, 1.2 open); stops a cube-blocked jaw "
+                             "from being squeezed into servo overload")
     parser.add_argument("--record-video", action="store_true",
                         help="Record sim RGB, real RealSense RGB and wall-clock comparison videos")
     parser.add_argument("--output", default=None, help="JSON report (default unique timestamped path)")
@@ -212,7 +216,14 @@ def main():
                     policy(obs)
                 calib = FollowerArmCalibration(args.calib)
                 from isaac_vision_rl.utils.evaluation_mirror import checked_ticks
-                checked_ticks(calib, angles())  # Reject unreachable first pose before opening serial.
+                # Sim starts the jaw wider (1.55) than the real jaw can open; clip only the gripper.
+                def clipped_start():
+                    q = angles()
+                    q[5] = float(min(q[5], calib.get_joint_limits_rad()[1][5]))
+                    return q
+
+                start = clipped_start()
+                checked_ticks(calib, start)  # Reject unreachable first pose before opening serial.
                 if stop:
                     report["stop_reason"] = "interrupted_before_motor_start"
                     return
@@ -223,7 +234,7 @@ def main():
                     recorder.start()  # Camera/encoder must work before opening the motor bus.
                     report["video_folder"] = str(video_folder)
                 bus = FeetechServoBus(args.port, args.baud, calib) if args.execute else MockServoBus(calib)
-                worker = MirrorWorker(bus, calib, angles(), rate_hz=1 / base.step_dt,
+                worker = MirrorWorker(bus, calib, start, rate_hz=1 / base.step_dt,
                                       speed=args.speed, watchdog=args.watchdog, tracking_limit=args.tracking_limit,
                                       alignment_tolerance=args.alignment_tolerance,
                                       gripper_speed=args.gripper_speed, allow_holding=args.allow_holding,
@@ -259,6 +270,7 @@ def main():
                             gripper_target = (float(base.action_manager.get_term("gripper_action").processed_actions[0, 0])
                                               if steps > 0 else sim_q[5])
                             q = mirror_reference(sim_q, gripper_target, calib=calib)
+                            q[5] = max(q[5], args.gripper_min_rad)
                             feedback = worker.publish(q)
                             report["trace"].append({"episode": ep_idx, "step": steps, "sim_time_s": steps * base.step_dt,
                                                     "wall_time": time.time(), "sim_joint_rad": sim_q,
@@ -304,7 +316,7 @@ def main():
                                 recorder.publish(phase="return_home (between episodes)")
                             worker.return_home(cancelled=lambda: stop)
                             time.sleep(1.0)
-                            checked_ticks(calib, angles())
+                            checked_ticks(calib, clipped_start())
 
                 if not stop:
                     print("\n[HOME] Evaluation completed. Returning to initial simulation pose...", flush=True)

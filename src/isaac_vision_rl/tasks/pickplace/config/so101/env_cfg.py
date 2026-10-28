@@ -27,6 +27,8 @@ from isaaclab_physx.sim.schemas import PhysxCollisionPropertiesCfg, PhysxRigidBo
 
 from isaaclab_tasks.utils import PresetCfg
 
+from isaac_vision_rl.utils.motor_limits import GRIPPER_MIN_CLOSE_RAD
+
 from ... import mdp
 
 # Paths to assets
@@ -308,6 +310,8 @@ class ActionsCfg:
         use_default_offset=False,
         preserve_order=True,
         clip={"gripper": (0.0, 1.55)},
+        # Same floor as the real arm (utils/motor_limits.py): the policy may not ask the jaw to squeeze to 0.
+        min_close_target=GRIPPER_MIN_CLOSE_RAD,
     )
 
 
@@ -436,6 +440,7 @@ class EventCfg:
 
 # Final lift goal, learned directly (no height stages). The cube rests with its centre at z = 0.426 m, so
 # 10 cm up is 0.526 m. The dense lift reward keeps growing up to 12 cm (0.546 m) so the policy is pulled upward.
+BOX_WALL_TOP_M = 0.49
 LIFT_SUCCESS_HEIGHT_M = 0.526
 LIFT_TARGET_HEIGHT_M = 0.546
 LIFT_HOLD_TIME_S = 0.5
@@ -493,7 +498,7 @@ class PickLiftRewardsCfg:
     displacement_penalty = RewTerm(func=cast(Any, mdp.CubeTableDisplacementPenalty), weight=-0.25)
 
     # 7. Table collision penalty: Penalize gripper pushing down or scraping into tabletop (soft penalty, not hard abort)
-    table_collision = RewTerm(func=mdp.gripper_table_collision_penalty, weight=-0.5)
+    table_collision = RewTerm(func=mdp.gripper_table_collision_penalty, weight=-5.0)
 
     # 8. Action smoothness and jerk penalty (enforces smooth, graceful trajectories)
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.06)
@@ -526,20 +531,43 @@ class PickplaceRewardsCfg(PickLiftRewardsCfg):
     """Full pick-and-place rewards with gated placement reward active only after verified vertical lift."""
 
     # 5. Lower stationary lift hold weight so box transport dominates once lifted
-    lift_cube = RewTerm(func=cast(Any, mdp.LiftCubeProgress), weight=3.0)
+    # Keep pulling the cube up past the box wall (0.49 m); the lift default of 0.48 m stops below it.
+    lift_cube = RewTerm(
+        func=cast(Any, mdp.LiftCubeProgress), weight=3.0, params={"target_height": LIFT_TARGET_HEIGHT_M}
+    )
 
-    # 11. Placing: Transport cube to target box once securely lifted (> 0.440m) off table
+    # 11. Placing: Transport cube to target box once securely lifted over the box wall.
     # object_goal_distance tops out at 5. New-best-only progress × 12 therefore
     # caps carry reward at about 60 points per attempt; hovering cannot farm it.
-    place_cube = RewTerm(func=mdp.PlaceCubeProgress, weight=12.0, params={"minimal_height": 0.440})
+    # Height only enables horizontal progress pay. First verified carry pose pays
+    # nothing; lifting in place and pushing along the table earn no carry credit.
+    place_cube = RewTerm(
+        func=mdp.PlaceCubeProgress,
+        weight=12.0,
+        params={"minimal_height": BOX_WALL_TOP_M, "full_height": LIFT_SUCCESS_HEIGHT_M},
+    )
+    # Pay 50 points per metre the held cube moves toward the box (start-to-box is about 0.24 m, so about 12 points a try at most).
+    carry_closer = RewTerm(
+        func=cast(Any, mdp.CarryCloserProgress),
+        weight=50.0,
+        params={"minimal_height": BOX_WALL_TOP_M, "full_height": LIFT_SUCCESS_HEIGHT_M},
+    )
     release_cube = RewTerm(func=mdp.release_cube_in_box, weight=12.0)
-    # Verified placement is one event and should be worth more than the full
-    # 60-point carry budget.
-    place_completed = RewTerm(func=cast(Any, mdp.PlaceSuccess), weight=200.0)
+    # Verified placement is one event: weight 6000 pays about +200 points (weight x 0.0333 s step), well above
+    # the 60-point carry budget. Weight 200 would pay only about +6.7.
+    place_completed = RewTerm(func=cast(Any, mdp.PlaceSuccess), weight=6000.0)
     # Placement must proceed past the lift milestone without repeated lift bonuses.
     lift_completed = None
-    # The place stage does not end at the lift, so a per-step hold bonus could be farmed there.
-    lift_hold = None
+    # Pay for each new longest steady hold above the success height, so dropping the cube stops the points.
+    lift_hold = RewTerm(
+        func=cast(Any, mdp.LiftHoldBonus),
+        weight=10.0,
+        params={
+            "minimal_height": LIFT_SUCCESS_HEIGHT_M,
+            "hold_time_s": LIFT_HOLD_TIME_S,
+            "velocity_cap": 0.45,
+        },
+    )
 
 
 # Backward compatibility alias

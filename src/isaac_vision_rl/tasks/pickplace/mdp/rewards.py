@@ -202,12 +202,12 @@ class LiftCubeProgress(GraspCubeProgress):
 
 
 class PlaceCubeProgress(ManagerTermBase):
-    """Pay only for each new best carry score; waiting near the box earns nothing.
+    """Pay new horizontal progress after a held cube clears the carry height.
 
-    ``object_goal_distance`` returns a grasp-gated score from 0 to 5. With a
-    reward weight of 12, its lifetime carry reward is capped at 60 points.
-    The score tracker resets with each episode and never pays twice for the
-    same box-distance improvement.
+    Height/contact enable credit but never scale it. The first eligible sample
+    establishes a baseline without paying. Best distance is tracked even during
+    contact loss, so pushing then regrasping cannot cash in unheld movement.
+    At weight 12, the episode carry budget remains at most 60 points.
     """
 
     MAX_SCORE = 5.0
@@ -215,10 +215,18 @@ class PlaceCubeProgress(ManagerTermBase):
     def __init__(self, cfg, env):
         super().__init__(cfg, env)
         self._best_score = torch.zeros(env.num_envs, device=env.device)
+        self._initial_score = torch.zeros_like(self._best_score)
+        self._earned_progress = torch.zeros_like(self._best_score)
+        self._initialized = torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+        self._previous_eligible = torch.zeros_like(self._initialized)
 
     def reset(self, env_ids=None) -> None:
         ids = slice(None) if env_ids is None else env_ids
         self._best_score[ids] = 0.0
+        self._initial_score[ids] = 0.0
+        self._earned_progress[ids] = 0.0
+        self._initialized[ids] = False
+        self._previous_eligible[ids] = False
 
     def __call__(
         self,
@@ -228,27 +236,103 @@ class PlaceCubeProgress(ManagerTermBase):
         goal_cfg: SceneEntityCfg = SceneEntityCfg("box"),
         ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
         ee_body_name: str = "gripper_frame_link",
+        full_height: float | None = None,
     ) -> torch.Tensor:
-        score = object_goal_distance(
-            env,
-            minimal_height=minimal_height,
-            object_cfg=object_cfg,
-            goal_cfg=goal_cfg,
-            ee_cfg=ee_cfg,
-            ee_body_name=ee_body_name,
+        robot = env.scene[ee_cfg.name]
+        cube_pos = env.scene[object_cfg.name].data.root_pos_w.torch
+        box_pos = env.scene[goal_cfg.name].data.root_pos_w.torch
+        body_idx = robot.find_bodies(ee_body_name)[0][0]
+        jaw_idx = robot.find_joints("gripper")[0][0]
+        tool_pos = robot.data.body_pos_w.torch[:, body_idx]
+        # Keep the existing configured full carry height; there is no height ramp.
+        carry_height = max(minimal_height, full_height) if full_height is not None else minimal_height
+        eligible = (
+            bilateral_cube_contact(env)
+            & (torch.norm(cube_pos - tool_pos, dim=-1) < 0.052)
+            & (robot.data.joint_pos.torch[:, jaw_idx] < 1.10)
+            & (cube_pos[:, 2] >= carry_height)
         )
-        progress = (score - self._best_score).clamp_min(0.0)
-        self._best_score[:] = torch.maximum(score, self._best_score)
+        xy_distance = torch.norm(box_pos[:, :2] - cube_pos[:, :2], dim=-1)
+        score = 2.0 * (1.0 - xy_distance / 0.30).clamp(0.0, 1.0) + 3.0 * torch.exp(-xy_distance / 0.06)
+        first = eligible & ~self._initialized
+        self._initial_score[first] = score[first]
+        self._best_score[first] = score[first]
+        self._initialized |= first
+        # Require support at both ends of the sampled movement. Re-entry never
+        # pays for movement that happened below height or without a valid grasp.
+        progress = torch.where(
+            eligible & self._previous_eligible,
+            (score - self._best_score).clamp_min(0.0),
+            torch.zeros_like(score),
+        )
+        self._best_score[:] = torch.where(
+            self._initialized, torch.maximum(score, self._best_score), self._best_score
+        )
+        self._earned_progress += progress
+        self._previous_eligible[:] = eligible
 
         # A separate 0-100 W&B/TensorBoard metric makes placement progress
         # easy to read without changing the policy reward.
         if hasattr(env, "extras"):
             env.extras.setdefault("log", {})["Place/best_carry_progress_percent"] = (
-                100.0 * self._best_score / self.MAX_SCORE
+                100.0 * self._earned_progress / (self.MAX_SCORE - self._initial_score).clamp_min(1e-6)
             ).mean()
+            env.extras["log"]["Place/cube_box_xy_distance_cm"] = (100.0 * xy_distance).mean()
+            env.extras["log"]["Place/carry_eligible_fraction"] = eligible.float().mean()
         # RewardManager multiplies ordinary rewards by step_dt. Dividing here
         # preserves the 60-point total regardless of control frequency.
         return progress / env.step_dt
+
+
+class CarryCloserProgress(ManagerTermBase):
+    """Pay for each step the held cube moves closer to the box, and take points away for moving back.
+
+    Unlike PlaceCubeProgress, this pays on every closer step, not only on a new best.
+    The total is the distance the cube really travels toward the box, so swinging back
+    and forth earns nothing. The first step of each try only sets the starting distance.
+    """
+
+    def __init__(self, cfg, env):
+        super().__init__(cfg, env)
+        self._prev_dist = torch.zeros(env.num_envs, device=env.device)
+        self._has_prev = torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+
+    def reset(self, env_ids=None) -> None:
+        ids = slice(None) if env_ids is None else env_ids
+        self._has_prev[ids] = False
+
+    def __call__(
+        self,
+        env: ManagerBasedRLEnv,
+        minimal_height: float = 0.49,
+        full_height: float = 0.526,
+        object_cfg: SceneEntityCfg = SceneEntityCfg("cube"),
+        goal_cfg: SceneEntityCfg = SceneEntityCfg("box"),
+        ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+        ee_body_name: str = "gripper_frame_link",
+    ) -> torch.Tensor:
+        robot: Articulation = env.scene[ee_cfg.name]
+        cube: RigidObject = env.scene[object_cfg.name]
+        box: RigidObject = env.scene[goal_cfg.name]
+
+        cube_pos = cube.data.root_pos_w.torch
+        body_idx = robot.find_bodies(ee_body_name)[0][0]
+        ee_cube_dist = torch.norm(cube_pos - robot.data.body_pos_w.torch[:, body_idx], dim=-1)
+        gripper_idx = robot.find_joints("gripper")[0][0]
+        is_held = (
+            bilateral_cube_contact(env)
+            & (ee_cube_dist < 0.052)
+            & (robot.data.joint_pos.torch[:, gripper_idx] < 1.10)
+        ).float()
+        is_lifted = torch.clamp((cube_pos[:, 2] - minimal_height) / (full_height - minimal_height), 0.0, 1.0)
+        gate = is_held * is_lifted
+
+        dist = torch.norm(box.data.root_pos_w.torch[:, :2] - cube_pos[:, :2], dim=-1)
+        closer = torch.where(self._has_prev, self._prev_dist - dist, torch.zeros_like(dist)) * gate
+        self._prev_dist[:] = dist
+        self._has_prev[:] = True
+        # RewardManager multiplies ordinary rewards by step_dt. Dividing here keeps the weight in points per metre.
+        return closer / env.step_dt
 
 
 class LiftSuccess(ManagerTermBase):
@@ -1033,8 +1117,13 @@ def object_goal_distance(
     goal_cfg: SceneEntityCfg = SceneEntityCfg("box"),
     ee_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     ee_body_name: str = "gripper_frame_link",
+    full_height: float | None = None,
 ) -> torch.Tensor:
-    """Dense transport reward, gated by elevation and geometric grasp proxy."""
+    """Dense transport reward, gated by elevation and geometric grasp proxy.
+
+    By default the elevation gate is a step at ``minimal_height``. With ``full_height`` it is a ramp:
+    0 at ``minimal_height`` and 1 at ``full_height``, so carry pay needs the cube to rise over the box wall.
+    """
     robot: Articulation = env.scene[ee_cfg.name]
     cube: RigidObject = env.scene[object_cfg.name]
     box: RigidObject = env.scene[goal_cfg.name]
@@ -1051,7 +1140,10 @@ def object_goal_distance(
         & (ee_cube_dist < 0.052)
         & (robot.data.joint_pos.torch[:, gripper_idx] < 1.10)
     ).float()
-    is_lifted = (cube_pos[:, 2] > minimal_height).float()
+    if full_height is None:
+        is_lifted = (cube_pos[:, 2] > minimal_height).float()
+    else:
+        is_lifted = torch.clamp((cube_pos[:, 2] - minimal_height) / (full_height - minimal_height), 0.0, 1.0)
 
     xy_dist = torch.norm(box.data.root_pos_w.torch[:, :2] - cube_pos[:, :2], dim=-1)
     # Continuous linear approach gradient from 0.30m + exponential capture bonus

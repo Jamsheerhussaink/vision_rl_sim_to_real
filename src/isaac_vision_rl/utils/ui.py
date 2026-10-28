@@ -121,6 +121,12 @@ class TrainingDashboard(SingleLineTrainingBar):
             f"Lift {rewards.get('Lift Cube', 0):+.4f}",
         )
         table.add_row(
+            "Placing",
+            f"Carry {rewards.get('Place Cube', 0):+.4f}   "
+            f"Release {rewards.get('Release Cube', 0):+.4f}   "
+            f"Placed {terms.get('Placed', 0) * 100:.1f}%",
+        )
+        table.add_row(
             "Penalties",
             f"Drag {rewards.get('Drag', 0):+.4f}   "
             f"Displacement {rewards.get('Displacement', 0):+.4f}   "
@@ -176,7 +182,8 @@ _GLOBAL_BAR: SingleLineTrainingBar | None = None
 def get_training_bar() -> SingleLineTrainingBar:
     global _GLOBAL_BAR
     if _GLOBAL_BAR is None:
-        _GLOBAL_BAR = SingleLineTrainingBar()
+        # Panel dashboard in a terminal; it falls back to plain progress lines when output goes to a file.
+        _GLOBAL_BAR = TrainingDashboard()
     return _GLOBAL_BAR
 
 
@@ -279,6 +286,7 @@ def setup_clean_terminal_ui() -> None:
                     "Drag": parsed_extras.get("Episode_Reward/drag_penalty", 0.0),
                     "Displacement": parsed_extras.get("Episode_Reward/displacement_penalty", 0.0),
                     "Place Cube": parsed_extras.get("Episode_Reward/place_cube", 0.0),
+                    "Release Cube": parsed_extras.get("Episode_Reward/release_cube", 0.0),
                     "Action Rate": parsed_extras.get("Episode_Reward/action_rate", 0.0),
                     "Camera Boundary": parsed_extras.get("Episode_Reward/camera_boundary", 0.0),
                     "Premature Close": parsed_extras.get("Episode_Reward/premature_close", 0.0),
@@ -300,6 +308,7 @@ def setup_clean_terminal_ui() -> None:
                         parsed_extras.get("Episode_Termination/lift_success", 0.0)
                         + parsed_extras.get("Episode_Termination/placed", 0.0)
                     ),
+                    "Placed": parsed_extras.get("Episode_Termination/placed", 0.0),
                     "Out of View": (
                         parsed_extras.get("Episode_Termination/gripper_out_of_view", 0.0)
                         + parsed_extras.get("Episode_Termination/cube_out_of_view", 0.0)

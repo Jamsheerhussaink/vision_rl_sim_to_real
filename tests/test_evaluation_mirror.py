@@ -4,6 +4,7 @@ import unittest
 
 from isaac_vision_rl.utils.calibration import FollowerArmCalibration
 from isaac_vision_rl.utils.evaluation_mirror import MirrorWorker, checked_ticks, mirror_reference
+from isaac_vision_rl.utils.motor_limits import GRIPPER_MIN_CLOSE_RAD
 
 
 class FakeBus:
@@ -131,11 +132,21 @@ class MirrorTests(unittest.TestCase):
         q = [0, 0, 0, 0, 0, 0.8]
         ref = mirror_reference(q, 0.0)
         self.assertEqual(ref[:5], q[:5])
-        self.assertEqual(ref[5], 0.0)
-        self.assertEqual(checked_ticks(self.calib, ref)[5], int(self.calib.range_mins[5]))
+        # A closed command (0.0) is raised to the shared floor so a cube-blocked jaw is never squeezed to overload
+        self.assertEqual(ref[5], GRIPPER_MIN_CLOSE_RAD)
+        self.assertGreater(checked_ticks(self.calib, ref)[5], int(self.calib.range_mins[5]))
         self.assertEqual(q[5], 0.8)
         with self.assertRaises(ValueError):
             mirror_reference(q, float("nan"))
+
+    def test_gripper_floor_keeps_cube_stall_gap_under_tracking_limit(self):
+        # Model 900 mirror run: jaw stalled on the cube at about 2440 ticks while 0.0 rad commanded 2029 ticks
+        stalled_ticks = 2440
+        old_gap = stalled_ticks - int(checked_ticks(self.calib, [0, 0, 0, 0, 0, 0.0])[5])
+        new_gap = stalled_ticks - int(checked_ticks(self.calib, mirror_reference([0] * 6, 0.0))[5])
+        self.assertGreater(old_gap, 350)
+        self.assertLess(new_gap, 350)
+        self.assertGreater(new_gap, 0)  # still squeezes the cube
 
     def test_home_return_reaches_initial_pose_and_preserves_torque(self):
         worker = self.make_worker(speed=2000, watchdog=1)
