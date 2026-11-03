@@ -1,0 +1,54 @@
+<mujoco model="so101_pick_place">
+  <!-- Robot: Madhan's SO-101 (menagerie, MJX-ready). It also sets option, defaults and actuators. -->
+  <include file="robot.xml"/>
+  <!-- Our table, cube and box -->
+  <include file="table.xml"/>
+  <include file="cube.xml"/>
+  <include file="box.xml"/>
+
+  <!-- MJX contact buffer headroom (same as Madhan's scene) -->
+  <custom>
+    <numeric data="40" name="max_contact_points"/>
+    <numeric data="16" name="max_geom_pairs"/>
+  </custom>
+
+  <visual>
+    <headlight diffuse="0.50 0.50 0.50" ambient="0.60 0.60 0.60" specular="0.05 0.05 0.05"/>
+    <global azimuth="130" elevation="-25" offwidth="1280" offheight="720"/>
+    <quality shadowsize="4096"/>
+  </visual>
+
+  <statistic center="0.25 0 0.45" extent="0.8"/>
+
+  <worldbody>
+    <geom name="floor" type="plane" size="5 5 0.05" rgba="0.88 0.88 0.88 1" friction="1 0.005 0.0001"/>
+
+    <light name="ceiling_light" pos="0.30 0.10 1.60" dir="-0.08 -0.05 -1.0"
+           diffuse="0.60 0.60 0.57" specular="0.25 0.25 0.25" castshadow="true"/>
+    <light name="fill_light" pos="-0.40 -0.40 1.20" dir="0.50 0.40 -0.80" directional="true"
+           diffuse="0.18 0.18 0.20" specular="0.05 0.05 0.05" castshadow="false"/>
+    <!-- Robot visibility: soft front key light from the camera side, plus a rim light from behind
+         the robot. The robot is black, so these mostly add edge highlights (specular) on it. -->
+    <light name="robot_key_light" pos="0.10 -0.90 1.10" dir="0.10 0.85 -0.50" directional="true"
+           diffuse="0.50 0.50 0.50" specular="0.25 0.25 0.25" castshadow="false"/>
+    <light name="robot_rim_light" pos="-0.30 0.60 0.90" dir="0.45 -0.65 -0.60" directional="true"
+           diffuse="0.30 0.30 0.30" specular="0.2 0.2 0.2" castshadow="false"/>
+
+    <!-- Main camera: RealSense D455 RGB, streamed at 424x240 @ 30 fps (see vision_rl/camera.py).
+         Pose fitted to images/real_env.png. fovy 58.85 = 2*atan(120 / fy) with the
+         D455's factory 424x240 colour intrinsics (fy = 212.753). -->
+    <camera name="realsense_d455_rgb" pos="0.259 -0.375 0.692"
+            xyaxes="0.9807853 0.1950903 0 -0.1101353 0.5536875 0.8254092" fovy="54.15"/>
+    <camera name="front_cam" pos="0.60 0.0 0.65" xyaxes="0 1 0 -0.5547 0 0.8321" fovy="50"/>
+    <camera name="top_cam" pos="0.28 0.0 0.90" xyaxes="0 1 0 -1 0 0" fovy="60"/>
+  </worldbody>
+
+  <keyframe>
+    <!-- qpos = 6 robot joints + cube (x y z, quat). Home arm pose = the folded pose in images/real_env_reference.jpg
+         (pan -0.495, lift -1.745, elbow 1.69, wrist flex 0.9, roll 0.4), gripper closed. Wrist flex was lowered
+         from the fitted 1.35 so the fingertip clears the table by 1.4 cm. Cube at our spot. -->
+    <key name="home"
+         qpos="-0.4949754 -1.7449802 1.6900023 0.9000663 0.4000295 -0.1745329  0.239 -0.175 0.425 0.9915017 0 0 -0.1300936"
+         ctrl="-0.4949754 -1.7449802 1.6900023 0.9000663 0.4000295 -0.1745329"/>
+  </keyframe>
+</mujoco>

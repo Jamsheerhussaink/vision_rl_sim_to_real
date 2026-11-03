@@ -1,0 +1,24 @@
+<mujoco model="box">
+  <asset>
+    <!-- Kraft cardboard, colour sampled from real_env_reference_1280x720.jpg -->
+    <material name="cardboard_outer_mat" rgba="0.426 0.274 0.198 1.0" specular="0.05" shininess="0.1"/>
+    <!-- Pink printed strip on the right end wall of the real box -->
+    <material name="cardboard_strip_mat" rgba="0.608 0.342 0.418 1.0" specular="0.05" shininess="0.1"/>
+  </asset>
+
+  <worldbody>
+    <!-- Open cardboard box 20cm x 16cm x 7.5cm, yawed -20 deg as in the real scene -->
+    <body name="target_box" pos="0.331 0.008 0.4" quat="0.9848078 0 0 -0.1736482">
+      <geom name="box_bottom" type="box" size="0.10 0.08 0.002" pos="0 0 0.002"
+            material="cardboard_outer_mat" mass="0.030" contype="1" conaffinity="1" friction="0.8 0.005 0.0001"/>
+      <geom name="box_wall_front" type="box" size="0.10 0.002 0.0375" pos="0 -0.078 0.0375"
+            material="cardboard_outer_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001"/>
+      <geom name="box_wall_back" type="box" size="0.10 0.002 0.0375" pos="0 0.078 0.0375"
+            material="cardboard_outer_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001"/>
+      <geom name="box_wall_left" type="box" size="0.002 0.076 0.0375" pos="-0.098 0 0.0375"
+            material="cardboard_outer_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001"/>
+      <geom name="box_wall_right" type="box" size="0.002 0.076 0.0375" pos="0.098 0 0.0375"
+            material="cardboard_strip_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001"/>
+    </body>
+  </worldbody>
+</mujoco>

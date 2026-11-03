@@ -69,3 +69,10 @@ test_render*.png
 .Trashes
 Thumbs.db
 ehthumbs.db
+
+# RL run artifacts and camera recordings
+runs/
+*.mp4
+
+# Test cache
+.pytest_cache/

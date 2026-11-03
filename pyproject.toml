@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vision_rl"
+version = "0.1.0"
+description = "Vision-based PPO for SO-101 pick and place on MuJoCo-JAX"
+requires-python = ">=3.10"
+dependencies = ["jax", "flax", "optax", "mujoco", "mujoco-mjx", "numpy", "Pillow"]
+
+[tool.setuptools.packages.find]
+include = ["vision_rl*"]
+
+[tool.setuptools.package-data]
+vision_rl = ["envs/assets/*.xml", "envs/assets/meshes/*"]
