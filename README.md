@@ -1,54 +1,83 @@
-# SO-101 Vision Pick & Place (MuJoCo-JAX)
+# SO-101 Vision RL
 
-The SO-101 arm picks a 5 cm cube and drops it into a cardboard box on a green table.
-It sees the scene through a simulated RealSense D455 camera (RGB only, 424x240 @ 30 fps, squashed to 224x224 for the policy). Fresh start: only the scene exists so far.
+Vision-based PPO for picking and lifting a 5 cm cube with an SO-101 arm.
+Physics and batch rendering run on the GPU through MuJoCo-MJX/Warp;
+the policy uses JAX, Flax and Optax. Placement is a later task.
 
-## Setup
+## Project structure
+
+```text
+vision_rl/
+  envs/          task, joint control, grasp geometry and vector environments
+    assets/      current scene XML, robot meshes and mesh license
+  models/        image encoder and actor-critic network
+  ppo/           PPO updates and advantage calculation
+  rendering/     GPU camera and low-poly visual meshes
+  rewards/       pick reward and reward-hacking audit
+  camera.py      shared camera settings and image resizing
+  train.py       training loop, logging and checkpoints
+scripts/         commands listed below
+tests/           scene, camera, reward, control and evaluation checks
+images/          freshly rendered views of the current scene only
+runs/            saved configurations, checkpoints, metrics and evaluations
+```
+
+`runs/` is local and Git-ignored. Keep existing runs to resume training or
+compare evaluations. `.claude/` and `CLAUDE.md` contain assistant configuration;
+Python caches and `*.egg-info/` are generated files, not project source.
+
+## Install
 
 ```bash
 conda activate vision_rl
 pip install "jax[cuda12]"
-pip install -e .            # makes `vision_rl` importable everywhere
+pip install -e ".[dev,tools]"
 ```
 
-## Try it
+Dependencies live in `pyproject.toml`; `requirements.txt` installs the same
+extras. The scene setup GUI also needs Tk support in the Python environment.
+
+## Commands
+
+Run these from the project root.
+
+| Task | Command |
+| --- | --- |
+| Inspect the scene in a GUI | `python scripts/view.py` |
+| Align the real camera and edit the scene | `python scripts/setup.py` |
+| Train pick-and-place from a pick checkpoint | `python scripts/pick_place.py --source runs/first_lift40_live --run runs/pick_place_new` |
+| Train headlessly | `python scripts/pick.py --run runs/pick_clean --image-dr` |
+| Train with a live viewer | `python scripts/pick.py --run runs/pick_clean --image-dr --live` |
+| Resume a saved run | `python scripts/pick.py --resume runs/pick_clean` |
+| Watch a saved policy | `python scripts/watch.py --run runs/pick_clean` |
+| Evaluate camera use and sustained lifts | `python scripts/evaluate.py --run runs/pick_clean --episodes 100` |
+| Check scripted grasp feasibility | `python scripts/check_pick.py --physics-only` |
+| Audit reward incentives | `python scripts/check_reward.py --only ours` |
+| Run tests on the CPU | `JAX_PLATFORMS=cpu MUJOCO_GL=egl python -m pytest -q tests` |
+| Read training charts | `tensorboard --logdir runs` |
+
+Use a new run name for each fresh training run. The headless and live training
+commands above are alternatives. All scripts support `--help`.
+
+## Current environment
+
+- Table surface: z = 0.40 m; cube centre starts at (0.239, -0.175, 0.425) m.
+- The box geometry is disabled for unobstructed pick training. Its empty body
+  remains as a reference for scene setup tools.
+- Main camera: `realsense_d455_rgb`, 424×240 RGB. Training uses the square image
+  size and frame stack recorded in each run's `config.json` (defaults: 128, 3).
+- `setup_env.py` saves scene edits and writes `.xml.bak` backups, ignored by Git.
+- Reward and loss describe learning signals. Assess robot performance using
+  recorded evaluations, sustained lift duration and grasp checks.
+
+Refresh the two scene previews without opening a window:
 
 ```bash
-python scripts/view_scene.py                                   # open the scene
-python scripts/view_scene.py --save images/camera_test.png     # save a 424x240 camera picture + its 224x224 version
-pytest tests                                                   # scene loads in MuJoCo + MJX
-python scripts/check_reward_hacking.py                         # audit the pick reward for hacks (ours vs Madhan's)
-python scripts/check_task_feasibility.py                       # can the real robot/camera satisfy the reward? (~2 min)
+MUJOCO_GL=egl python scripts/view.py --save images/current_env.png
 ```
 
-## Folders
+This saves `current_env.png` at 424×240 and `current_env_224.png` at 224×224.
+These previews show the XML home pose; training resets may open the jaw and
+randomize the starting state.
 
-```
-vision_rl/                 the Python package
-  envs/                    environments (task logic goes here)
-    assets/
-      scene.xml            puts everything together: lights, cameras, start pose
-      robot.xml            SO-101 robot (Madhan's menagerie version)
-      table.xml            green table (ours)
-      cube.xml             5 cm cube (ours)
-      box.xml              cardboard box (ours)
-      meshes/              robot 3D parts (.stl)
-  rewards/                 reward functions, pure math (no physics)
-    pick.py                staged top-down pick reward + hack fixes
-    audit/                 toy world, honest + exploit strategies, checks
-  models/                  neural networks: CNN + actor-critic   (to do)
-  ppo/                     PPO + GAE                              (to do)
-  rendering/               batch camera rendering on the GPU      (to do)
-scripts/                   things you run: view, train, eval
-tests/                     quick checks
-images/                    real photos and sim screenshots
-docs/                      notes
-```
-
-## Scene facts
-
-- Table top at z = 0.40 m. Robot base at (0.045, 0, 0.40).
-- Cube starts at (0.274, -0.128, 0.425). Box center at (0.326, 0.133, 0.40), turned -20°.
-- Home pose: all arm joints 0 (arm points straight up), gripper closed.
-- Physics: timestep 5 ms (Madhan's MJX settings, from robot.xml).
-- Main camera: `realsense_d455_rgb`, 424x240 @ 30 fps, squashed to 224x224 (`vision_rl/camera.py`). Also `front_cam` and `top_cam`.
+![Current environment](images/current_env.png)

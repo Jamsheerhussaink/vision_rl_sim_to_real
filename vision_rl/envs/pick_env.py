@@ -33,6 +33,8 @@ from flax import struct
 from mujoco import mjx
 
 from vision_rl.camera import CAM_HEIGHT, CAM_WIDTH, CAMERA_NAME
+from vision_rl.envs.grasp_geometry import opposing_finger_sides
+from vision_rl.envs.control import smooth_joint_targets
 from vision_rl.rewards.pick import (PickInputs, PickRewardConfig, PickRewardState,
                                     init_pick_state, pick_reward)
 
@@ -56,6 +58,8 @@ class PickEnvConfig:
     windup_margin: float = 0.1            # rad: joint target stays this close to the real joint.
                                           # Without it the target ran 1-1.8 rad into the table and
                                           # ~20 "up" steps in a row were needed before the arm moved.
+    start_jaw_open: bool = True           # episodes start with the jaw open (it started closed and the policy
+                                          # never opened it, so the top-down latch / held never fired)
     jaw_open: float = 1.2                 # rad, ~11 cm between the fingertips
     cube_range: float = 0.03              # cube xy spawn: keyframe spot +/- this (m)
     cube_yaw_range: float = np.pi / 4     # cube yaw spawn: +/- this
@@ -130,7 +134,11 @@ class PickEnv:
         self.cube_xy0 = self.home_qpos[self.cube_q:self.cube_q + 2].copy()
         self.cube_z0 = float(self.home_qpos[self.cube_q + 2])
         self.site = m.site("gripperframe").id
+        self.cube_body = m.body("cube").id
+        self.fixed_tip = m.geom("fixed_jaw_sph_tip1").id
+        self.moving_tip = m.geom("moving_jaw_sph_tip1").id
         self.jaw_q = int(m.jnt_qposadr[m.joint("gripper").id])
+        self.wrist_q = int(m.jnt_qposadr[m.joint("wrist_roll").id])
 
         self.jnt_lo = jnp.asarray(m.jnt_range[:N_ARM + 1, 0])
         self.jnt_hi = jnp.asarray(m.jnt_range[:N_ARM + 1, 1])
@@ -201,7 +209,11 @@ class PickEnv:
             home_dist=f(jnp.linalg.norm(grasp - self.home_grasp)),
             vis_excess=f(excess), vis_out=f(out), near_limit=f(near.sum()),
             action=action.astype(jnp.float32), cube_tilt=f(tilt),
-            joint_speed=f(jnp.sum(jnp.square(data.qvel[:N_ARM]))))
+            joint_speed=f(jnp.sum(jnp.square(data.qvel[:N_ARM]))),
+            opposing_sides=f(opposing_finger_sides(
+                data.geom_xpos[self.fixed_tip], data.geom_xpos[self.moving_tip], cube,
+                data.xmat[self.cube_body].reshape(3, 3), self.cfg.reward.cube_half)),
+            wrist_roll=f(data.qpos[self.wrist_q]))
 
     def _jaw_is_open(self, data):
         return data.ctrl[N_ARM] > 0.5 * (self.ctrl_lo[N_ARM] + self.cfg.jaw_open)
@@ -225,6 +237,9 @@ class PickEnv:
 
         data = self.make_data()
         ctrl = jnp.asarray(self.home_ctrl).at[:N_ARM].set(qpos[:N_ARM])
+        if cfg.start_jaw_open:
+            ctrl = ctrl.at[N_ARM].set(cfg.jaw_open)
+            qpos = qpos.at[self.jaw_q].set(cfg.jaw_open)
         data = data.replace(qpos=qpos, qvel=jnp.zeros_like(data.qvel), ctrl=ctrl)
         data = mjx.forward(self.mjx_model, data)
 
@@ -240,6 +255,9 @@ class PickEnv:
     def _metrics(self, x, rstate, fell, unstable):
         _, terms, _ = pick_reward(self.cfg.reward, rstate, x)
         out = {"held": terms["held"], "success": terms["success"], "aligned": terms["aligned"],
+               "opposing_sides": x.opposing_sides,
+               "wrist_roll_deg": jnp.degrees(x.wrist_roll),
+               "wrist_limit_violation": jnp.float32(jnp.abs(x.wrist_roll) > jnp.pi / 2),
                "lifted": terms["lifted"], "d_xy": x.d_xy, "cube_lift": x.cube_lift,
                "fell": jnp.float32(fell), "unstable": jnp.float32(unstable)}
         out.update({k: v for k, v in terms.items() if k.endswith(("_r", "_pr", "_pen", "_cost"))})
@@ -251,11 +269,10 @@ class PickEnv:
         data = state.data
 
         goal = self.ready + action[:N_ARM] * self.half_range
-        prev = data.ctrl[:N_ARM]
-        move = jnp.clip(cfg.smooth_alpha * (goal - prev), -cfg.max_joint_delta, cfg.max_joint_delta)
-        q = data.qpos[:N_ARM]
-        target = jnp.clip(prev + move, q - cfg.windup_margin, q + cfg.windup_margin)
-        target = jnp.clip(target, self.ctrl_lo[:N_ARM], self.ctrl_hi[:N_ARM])
+        target = smooth_joint_targets(
+            goal, data.ctrl[:N_ARM], data.qpos[:N_ARM], self.ctrl_lo[:N_ARM], self.ctrl_hi[:N_ARM],
+            max_delta=cfg.max_joint_delta, smooth_alpha=cfg.smooth_alpha,
+            windup_margin=cfg.windup_margin)
         h = cfg.jaw_hysteresis
         jaw_open = jnp.where(action[N_ARM] > h, True,
                              jnp.where(action[N_ARM] < -h, False, self._jaw_is_open(data)))
@@ -276,6 +293,9 @@ class PickEnv:
         reward = jnp.where(unstable, 0.0, jnp.nan_to_num(reward))
 
         metrics = {"held": terms["held"], "success": terms["success"],
+                   "opposing_sides": x.opposing_sides,
+                   "wrist_roll_deg": jnp.degrees(x.wrist_roll),
+                   "wrist_limit_violation": jnp.float32(jnp.abs(x.wrist_roll) > jnp.pi / 2),
                    "aligned": terms["aligned"], "lifted": terms["lifted"],
                    "d_xy": x.d_xy, "cube_lift": x.cube_lift,
                    "fell": fell.astype(jnp.float32), "unstable": unstable.astype(jnp.float32)}

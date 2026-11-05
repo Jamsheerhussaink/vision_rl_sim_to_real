@@ -5,7 +5,7 @@ One jitted `iteration` = collect `rollout_steps` x `num_envs` transitions
 GAE and PPO updates. The host only prints, writes metrics.csv and saves
 checkpoints.
 
-Run with `python scripts/train.py --help`.
+Run with `python scripts/pick.py --help`.
 """
 from __future__ import annotations
 
@@ -30,6 +30,8 @@ from vision_rl.models import ActorCritic
 from vision_rl.ppo import PPOConfig, gae, make_optimizer, ppo_update
 from vision_rl.rendering import load_lowpoly_model
 from vision_rl.rewards.pick import PickRewardConfig
+from vision_rl.envs.pick_place_env import PlaceConfig, PickPlaceEnv
+from vision_rl.envs import ASSETS_DIR
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,9 @@ class TrainConfig:
     log_every: int = 10                # iterations between progress lines
     ckpt_every: int = 200              # iterations
     every_step: bool = False           # also print one numbered line per robot step
+    task: str = "pick"
+    place: PlaceConfig = field(default_factory=PlaceConfig)
+    initial_checkpoint: str | None = None
 
     def to_dict(self):
         return dataclasses.asdict(self)
@@ -53,14 +58,30 @@ class TrainConfig:
     @classmethod
     def from_dict(cls, d):
         env = dict(d["env"])
-        env["reward"] = PickRewardConfig(**env["reward"])
-        return cls(**{**d, "env": PickEnvConfig(**env), "ppo": PPOConfig(**d["ppo"])})
+        reward = dict(env["reward"])
+        # Old checkpoints must keep the reward definition they were trained on.
+        reward.setdefault("staged_open_approach", False)
+        env["reward"] = PickRewardConfig(**reward)
+        ppo = dict(d["ppo"])
+        # Existing v5 checkpoints were saved with AdamW, including its optimizer
+        # state structure. New defaults must not silently change old runs.
+        ppo.setdefault("optimizer", "adamw" if "weight_decay" in ppo else "adam")
+        ppo.setdefault("weight_decay", 0.0 if ppo["optimizer"] == "adam" else 1e-4)
+        return cls(**{**d, "env": PickEnvConfig(**env), "ppo": PPOConfig(**ppo),
+                      "place": PlaceConfig(**d.get("place", {}))})
 
 
 def build(cfg: TrainConfig):
-    model = load_lowpoly_model()
-    env = PickEnv(model, cfg.env, num_envs=cfg.ppo.num_envs,
-                  contacts_per_world=cfg.contacts_per_world, njmax=cfg.njmax)
+    if cfg.task == "pick_place":
+        model = load_lowpoly_model(os.path.join(ASSETS_DIR, "place_scene.xml"))
+        env = PickPlaceEnv(model, cfg.env, cfg.place, num_envs=cfg.ppo.num_envs,
+                       contacts_per_world=cfg.contacts_per_world, njmax=cfg.njmax)
+    elif cfg.task == "pick":
+        model = load_lowpoly_model()
+        env = PickEnv(model, cfg.env, num_envs=cfg.ppo.num_envs,
+                      contacts_per_world=cfg.contacts_per_world, njmax=cfg.njmax)
+    else:
+        raise ValueError(f"Unknown task: {cfg.task}")
     venv = VecEnv(env, cfg.ppo.num_envs, frame_stack=cfg.frame_stack, image_size=cfg.image_size,
                   shadows=cfg.shadows, exact_render=cfg.exact_render, image_dr=cfg.image_dr)
     net = ActorCritic(action_dim=env.action_size, image_size=cfg.image_size)
@@ -152,7 +173,41 @@ class StepPrinter:
         sys.stdout.write("\n".join(lines) + "\n")
 
 
-def make_iteration(cfg: TrainConfig, venv: VecEnv, printer: StepPrinter | None = None):
+class LiveTrainingViewer:
+    """Display one training world; closing the window leaves training running."""
+
+    def __init__(self):
+        import mujoco
+        import mujoco.viewer
+        from vision_rl.envs import SCENE_XML
+
+        self.mujoco = mujoco
+        self.model = mujoco.MjModel.from_xml_path(SCENE_XML)
+        self.data = mujoco.MjData(self.model)
+        self.viewer = mujoco.viewer.launch_passive(
+            self.model, self.data, show_left_ui=False, show_right_ui=False)
+        self.viewer.cam.lookat[:] = [0.2, -0.1, 0.45]
+        self.viewer.cam.distance = 0.75
+        self.viewer.cam.azimuth = 135
+        self.viewer.cam.elevation = -30
+        self.last_frame = 0.0
+
+    def __call__(self, qpos):
+        now = time.monotonic()
+        if not self.viewer.is_running() or now - self.last_frame < 1 / 30:
+            return
+        with self.viewer.lock():
+            self.data.qpos[:] = np.asarray(qpos)
+            self.mujoco.mj_forward(self.model, self.data)
+        self.viewer.sync()
+        self.last_frame = now
+
+    def close(self):
+        self.viewer.close()
+
+
+def make_iteration(cfg: TrainConfig, venv: VecEnv, printer: StepPrinter | None = None,
+                   live_viewer=None):
     p = cfg.ppo
 
     def rollout(state: TrainState, vs, key):
@@ -163,6 +218,8 @@ def make_iteration(cfg: TrainConfig, venv: VecEnv, printer: StepPrinter | None =
             action = pi.sample(k_act)
             nxt = venv.step(vs, action)
             e = nxt.env
+            if live_viewer is not None:
+                jax.debug.callback(live_viewer, e.data.qpos[0], ordered=True)
             done = e.done
             tr = {"obs": vs.obs, "actions": action, "log_probs": pi.log_prob(action), "values": value,
                   "rewards": e.reward, "dones": done,
@@ -270,7 +327,7 @@ def _wandb(run_dir, cfg: TrainConfig, project: str, name: str | None):
 
 # ---------------------------------------------------------------------- main loop
 def train(cfg: TrainConfig, run_dir: str, resume: bool = False,
-          wandb_project: str | None = None, wandb_name: str | None = None):
+          wandb_project: str | None = None, wandb_name: str | None = None, live: bool = False):
     """wandb_project=None: no W&B. TensorBoard + metrics.csv are always written."""
     os.makedirs(run_dir, exist_ok=True)
     with open(os.path.join(run_dir, "config.json"), "w") as f:
@@ -283,6 +340,15 @@ def train(cfg: TrainConfig, run_dir: str, resume: bool = False,
     key, k_init, k_reset = jax.random.split(key, 3)
     state = TrainState.create(apply_fn=net.apply, params=net.init(k_init, venv.sample_obs()),
                               tx=make_optimizer(p))
+    if cfg.initial_checkpoint and not resume:
+        with open(cfg.initial_checkpoint, "rb") as checkpoint_file:
+            source = serialization.msgpack_restore(checkpoint_file.read())
+        params = jax.tree.map(jnp.asarray, source["params"])
+        if jax.tree.structure(params) != jax.tree.structure(state.params) or \
+           any(a.shape != b.shape for a, b in zip(jax.tree.leaves(params), jax.tree.leaves(state.params))):
+            raise ValueError("Source checkpoint network differs: preserve its image size/frame stack and observation layout")
+        state = TrainState.create(apply_fn=net.apply, params=params, tx=make_optimizer(p))
+        print(f"[transfer] copied policy/value weights from {cfg.initial_checkpoint}; fresh optimizer, source unchanged")
     start_it, steps = 0, 0
     if resume:
         with open(os.path.join(run_dir, "latest.txt")) as f:
@@ -297,7 +363,8 @@ def train(cfg: TrainConfig, run_dir: str, resume: bool = False,
     if cfg.every_step:
         printer = StepPrinter(p.num_iterations * p.batch_size)
         printer.step = steps                               # continue the count on --resume
-    iteration = make_iteration(cfg, venv, printer)
+    live_viewer = LiveTrainingViewer() if live else None
+    iteration = make_iteration(cfg, venv, printer, live_viewer)
     vs = jax.jit(venv.reset)(k_reset)
     print(f"[init] built in {time.time() - t0:.0f}s; compiling the training step (1-3 min)...")
 
@@ -355,6 +422,9 @@ def train(cfg: TrainConfig, run_dir: str, resume: bool = False,
             path = save_checkpoint(run_dir, state, it, steps, cfg)
             ui.print(f"[ckpt] {path}")
     ui.close()
+    if live_viewer is not None:
+        jax.effects_barrier()
+        live_viewer.close()
     csv_f.close()
     if tb is not None:
         tb.close()

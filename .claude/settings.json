@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/guard_paths.sh" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post_edit.sh" }] }
+    ]
+  },
+  "permissions": {
+    "allow": ["Bash(python -m pytest:*)", "Bash(python scripts/check_reward.py:*)", "Bash(python scripts/check_pick.py:*)", "Bash(ruff:*)"]
+  },
+  "enabledMcpjsonServers": ["context7"]
+}

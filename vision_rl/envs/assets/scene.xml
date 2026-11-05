@@ -35,8 +35,7 @@
            diffuse="0.30 0.30 0.30" specular="0.2 0.2 0.2" castshadow="false"/>
 
     <!-- Main camera: RealSense D455 RGB, streamed at 424x240 @ 30 fps (see vision_rl/camera.py).
-         Pose fitted to images/real_env.png. fovy 58.85 = 2*atan(120 / fy) with the
-         D455's factory 424x240 colour intrinsics (fy = 212.753). -->
+         Fixed calibrated pose; current vertical field of view is 54.15 degrees. -->
     <camera name="realsense_d455_rgb" pos="0.259 -0.375 0.692"
             xyaxes="0.9807853 0.1950903 0 -0.1101353 0.5536875 0.8254092" fovy="54.15"/>
     <camera name="front_cam" pos="0.60 0.0 0.65" xyaxes="0 1 0 -0.5547 0 0.8321" fovy="50"/>
@@ -44,7 +43,7 @@
   </worldbody>
 
   <keyframe>
-    <!-- qpos = 6 robot joints + cube (x y z, quat). Home arm pose = the folded pose in images/real_env_reference.jpg
+    <!-- qpos = 6 robot joints + cube (x y z, quat). Home arm pose = the calibrated folded pose
          (pan -0.495, lift -1.745, elbow 1.69, wrist flex 0.9, roll 0.4), gripper closed. Wrist flex was lowered
          from the fitted 1.35 so the fingertip clears the table by 1.4 cm. Cube at our spot. -->
     <key name="home"

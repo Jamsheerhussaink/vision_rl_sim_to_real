@@ -28,6 +28,7 @@ class PPOConfig:
     max_grad_norm: float = 0.5
     learning_rate: float = 3e-4
     lr_final_frac: float = 0.3        # linear anneal to 30% (not 0: late discoveries still learn)
+    optimizer: str = "adamw"
     weight_decay: float = 1e-4
     total_steps: int = 50_000_000
     seed: int = 0
@@ -44,8 +45,15 @@ class PPOConfig:
 def make_optimizer(cfg: PPOConfig):
     n = cfg.num_iterations * cfg.update_epochs * cfg.num_minibatches
     lr = optax.linear_schedule(cfg.learning_rate, cfg.learning_rate * cfg.lr_final_frac, n)
-    return optax.chain(optax.clip_by_global_norm(cfg.max_grad_norm),
-                       optax.adamw(lr, eps=1e-5, weight_decay=cfg.weight_decay))
+    if cfg.optimizer == "adam":
+        if cfg.weight_decay != 0.0:
+            raise ValueError("Plain Adam requires weight_decay=0; use optimizer='adamw' for weight decay")
+        optimizer = optax.adam(lr, eps=1e-5)
+    elif cfg.optimizer == "adamw":
+        optimizer = optax.adamw(lr, eps=1e-5, weight_decay=cfg.weight_decay)
+    else:
+        raise ValueError(f"Unknown optimizer: {cfg.optimizer}")
+    return optax.chain(optax.clip_by_global_norm(cfg.max_grad_norm), optimizer)
 
 
 def gae(rewards, values, dones, last_value, gamma, lam):

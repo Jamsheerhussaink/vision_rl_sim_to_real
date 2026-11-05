@@ -1,0 +1,15 @@
+<mujoco model="box">
+  <asset>
+    <material name="cardboard_outer_mat" rgba="0.426 0.274 0.198 1.0" specular="0.05" shininess="0.1" />
+    <material name="cardboard_strip_mat" rgba="0.608 0.342 0.418 1.0" specular="0.05" shininess="0.1" />
+  </asset>
+  <worldbody>
+    <body name="target_box" pos="0.331 0.008 0.4" quat="0.9848078 0 0 -0.1736482" mocap="true">
+      <geom name="box_bottom" type="box" size="0.10 0.08 0.002" pos="0 0 0.002" material="cardboard_outer_mat" mass="0.030" contype="1" conaffinity="1" friction="0.8 0.005 0.0001" />
+      <geom name="box_wall_front" type="box" size="0.10 0.002 0.0375" pos="0 -0.078 0.0375" material="cardboard_outer_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001" />
+      <geom name="box_wall_back" type="box" size="0.10 0.002 0.0375" pos="0 0.078 0.0375" material="cardboard_outer_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001" />
+      <geom name="box_wall_left" type="box" size="0.002 0.076 0.0375" pos="-0.098 0 0.0375" material="cardboard_outer_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001" />
+      <geom name="box_wall_right" type="box" size="0.002 0.076 0.0375" pos="0.098 0 0.0375" material="cardboard_strip_mat" mass="0.012" contype="1" conaffinity="1" friction="0.8 0.005 0.0001" />
+    </body>
+  </worldbody>
+</mujoco>

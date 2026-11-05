@@ -76,3 +76,7 @@ runs/
 
 # Test cache
 .pytest_cache/
+.ruff_cache/
+
+# Scene editor backups and temporary exports
+*.xml.bak

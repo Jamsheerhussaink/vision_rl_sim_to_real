@@ -2,7 +2,7 @@
 
 Ported from Madhan's `compute_pick_reward` (madhan/vision_rl-main,
 envs/so101_pick.py) and hardened against the hacks found by
-`scripts/check_reward_hacking.py`. The env computes the numbers in
+`scripts/check_reward.py`. The env computes the numbers in
 `PickInputs` from physics; this file only turns them into a reward, so it can
 be unit tested and audited without a simulator.
 
@@ -73,6 +73,8 @@ class PickRewardConfig:
     lift_requires_hold: bool = True   # lift reward only for a held cube (no tilting / ledges / tosses)
     height_cost_everywhere: bool = True  # not over the cube = pay the max height cost (no edge hovering)
     held_requires_topdown: bool = True   # a grasp counts only after an open-jaw approach from above
+    held_requires_opposing_sides: bool = True  # reject a finger on top / both fingers on one side
+    staged_open_approach: bool = True  # bonus, descent tracking and height cost share one valid approach
 
     @classmethod
     def madhan(cls) -> "PickRewardConfig":
@@ -82,7 +84,15 @@ class PickRewardConfig:
                        lift_requires_hold=False, height_cost_everywhere=False,
                        held_requires_topdown=False, low_zone_h=0.02,
                        vis_scale=0.0, vis_out_penalty=0.0, rate_scale=0.0, limit_penalty=0.0,
-                       joint_speed_scale=0.0, max_held_tilt=4.0)
+                       joint_speed_scale=0.0, max_held_tilt=4.0,
+                       held_requires_opposing_sides=False, staged_open_approach=False)
+
+    @classmethod
+    def first_run(cls) -> "PickRewardConfig":
+        """The exact reward of the first 30M-step run (later reward changes switched off)."""
+        return replace(cls(), pick_height=0.10, grasp_bonus=0.5, lift_scale=4.0, rate_scale=0.01,
+                       joint_speed_scale=0.0, max_held_tilt=4.0,
+                       held_requires_opposing_sides=False, staged_open_approach=False)
 
 
 class PickInputs(NamedTuple):
@@ -100,6 +110,8 @@ class PickInputs(NamedTuple):
     action: jnp.ndarray        # [6] action in [-1, 1]
     cube_tilt: jnp.ndarray = 0.0    # rad, cube tilt from resting flat on any face
     joint_speed: jnp.ndarray = 0.0  # sum of squared arm joint velocities (rad/s)^2
+    opposing_sides: jnp.ndarray = 1.0  # legacy callers; real env always measures finger placement
+    wrist_roll: jnp.ndarray = 0.0    # measured joint angle (rad), for evaluation metrics
 
 
 class PickRewardState(NamedTuple):
@@ -127,10 +139,11 @@ def pick_reward(cfg: PickRewardConfig, s: PickRewardState, x: PickInputs):
     aligned = f(x.d_xy < cfg.align_tol)
     at_height = f(jnp.abs(x.dz) < cfg.grasp_z_tol)
     low_zone = f((x.gripper_h < cfg.low_zone_h) & (x.d_xy >= cfg.grasp_dist))
+    valid_open_approach = aligned * f(x.dz > cfg.topdown_h) * x.grip_open
 
     # Top-down latch: set by hovering over the cube with the jaw open, cleared by going low
     # anywhere else. Without it a fast side swipe out-scored the top-down pick.
-    topdown = jnp.maximum(s.topdown, aligned * f(x.dz > cfg.topdown_h) * x.grip_open) * (1.0 - low_zone)
+    topdown = jnp.maximum(s.topdown, valid_open_approach) * (1.0 - low_zone)
 
     held = aligned * at_height * grip_closed
     if cfg.held_requires_stall:
@@ -138,6 +151,8 @@ def pick_reward(cfg: PickRewardConfig, s: PickRewardState, x: PickInputs):
         held = held * x.jaw_stalled
     if cfg.held_requires_topdown:
         held = held * topdown
+    if cfg.held_requires_opposing_sides:
+        held = held * x.opposing_sides
     # A cube tipped onto its edge and pinched across the diagonal looked "stalled" and sat
     # ~1 cm up; the first policy farmed that for the whole episode. Off the table (> lift_thresh)
     # a tilted cube is really in the hand, and a tilted carry is needed to clear the box walls.
@@ -157,7 +172,8 @@ def pick_reward(cfg: PickRewardConfig, s: PickRewardState, x: PickInputs):
 
     # 2 open: paid once per episode (a per-step bonus was campable)
     above = f(x.dz > cfg.grasp_z_tol)
-    was_open = jnp.maximum(s.was_open, aligned * above * x.grip_open)
+    open_event = valid_open_approach if cfg.staged_open_approach else aligned * above * x.grip_open
+    was_open = jnp.maximum(s.was_open, open_event)
     open_r = cfg.open_bonus * (was_open - s.was_open) * approach
 
     # 3 descend: steady cost for hovering high + bonus only for a NEW record low
@@ -168,10 +184,25 @@ def pick_reward(cfg: PickRewardConfig, s: PickRewardState, x: PickInputs):
         height = jnp.where(aligned > 0.5, height, cfg.height_cap)
     else:
         height = jnp.clip(x.dz - cfg.grasp_z_tol, 0.0, None) * aligned
+    descent_ready = aligned * x.grip_open * topdown
+    if cfg.staged_open_approach:
+        # Being low with a closed or unprepared jaw must not silence the height
+        # cost. A real grip still switches approach costs off through `approach`.
+        height = jnp.where(descent_ready > 0.5, height, cfg.height_cap)
     descend_r = -cfg.descend_scale * height * approach
-    min_dz = jnp.where(approach > 0.5, jnp.minimum(s.min_dz, x.dz), x.dz)
-    descend_pr = (cfg.descend_progress_scale * jnp.clip(s.min_dz - min_dz, 0.0, None)
-                  * aligned * x.grip_open * approach)
+    if cfg.staged_open_approach:
+        # Arm once per episode, when the open approach is actually established.
+        # This discards the low reset height without letting repeated hovering,
+        # jaw toggling or re-approaches refill the progress reward.
+        first_approach = (open_event > 0.5) & (s.was_open < 0.5)
+        previous_min = jnp.where(first_approach, jnp.maximum(x.dz, 0.0), s.min_dz)
+        min_dz = jnp.where((descent_ready * approach) > 0.5,
+                           jnp.minimum(previous_min, jnp.maximum(x.dz, 0.0)), previous_min)
+        descend_pr = cfg.descend_progress_scale * jnp.maximum(previous_min - min_dz, 0.0) * descent_ready * approach
+    else:
+        min_dz = jnp.where(approach > 0.5, jnp.minimum(s.min_dz, x.dz), x.dz)
+        descend_pr = (cfg.descend_progress_scale * jnp.clip(s.min_dz - min_dz, 0.0, None)
+                      * aligned * x.grip_open * approach)
 
     # 4 grasp, 5 lift + success
     grasp_r = cfg.grasp_bonus * held

@@ -7,10 +7,21 @@ name = "vision_rl"
 version = "0.1.0"
 description = "Vision-based PPO for SO-101 pick and place on MuJoCo-JAX"
 requires-python = ">=3.10"
-dependencies = ["jax", "flax", "optax", "mujoco", "mujoco-mjx", "numpy", "Pillow"]
+dependencies = [
+    "jax", "flax", "optax", "mujoco", "mujoco-mjx", "mujoco-warp",
+    "warp-lang", "numpy", "Pillow", "scipy", "trimesh",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+tools = ["opencv-python", "tensorboard", "wandb"]
 
 [tool.setuptools.packages.find]
 include = ["vision_rl*"]
 
 [tool.setuptools.package-data]
 vision_rl = ["envs/assets/*.xml", "envs/assets/meshes/*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"

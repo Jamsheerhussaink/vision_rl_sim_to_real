@@ -1,9 +1,3 @@
-# JAX with GPU:  pip install "jax[cuda12]"
-jax
-flax
-optax
-mujoco
-mujoco-mjx
-numpy
-Pillow
-pytest
+# Dependencies are maintained in pyproject.toml.
+# Install the NVIDIA JAX build separately: pip install "jax[cuda12]"
+-e .[dev,tools]

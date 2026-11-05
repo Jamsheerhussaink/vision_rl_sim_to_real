@@ -175,7 +175,10 @@
               <!-- Link gripper -->
               <body name="gripper" pos="5.55112e-17 -0.0611 0.0181" quat="0.0172091 -0.0172091 0.706897 0.706897">
                 <!-- Joint from wrist to gripper -->
-                <joint axis="0 0 1" name="wrist_roll" type="hinge" ref="-1.5707963" range="-2.7438473 2.7438473" class="sts3215"/>
+                <!-- Stop inside the user's +/-90 degree boundary. Commands stop at
+                     +/-85 degrees; the physical limit at +/-88 leaves overshoot room.
+                     MuJoCo joint stops are compliant, not exact position clamps. -->
+                <joint axis="0 0 1" name="wrist_roll" type="hinge" ref="-1.5707963" range="-1.535889742 1.535889742" class="sts3215"/>
                 <inertial pos="0.000214 0.000245 -0.025187" mass="0.087"
                   fullinertia="2.75087e-05 4.33657e-05 3.45059e-05 -3.35241e-07 -5.7352e-06 -5.17847e-08"/>
                 <!-- Part sts3215_03a_v1_5 -->
@@ -209,7 +212,9 @@
                 <geom name="fixed_jaw_box7" class="collision_gripper" type="box" size="0.001 0.01 0.008"
                   pos="-0.0143 0 -0.053"/>
                 <!-- Frame gripperframe -->
-                <site group="3" name="gripperframe" pos="0.012 -0.000218 -0.098127" quat="1 0 1 0"/>
+                <!-- Move the aiming point 8 mm towards the moving finger so an
+                     aligned 5 cm cube clears the fixed finger on descent. -->
+                <site group="3" name="gripperframe" pos="0.020 -0.000218 -0.098127" quat="1 0 1 0"/>
                 <!-- Link moving_jaw_so101_v1 -->
                 <body name="moving_jaw_so101_v1" pos="0.0202 0.0188 -0.0234" quat="1 1 0 0">
                   <!-- Joint from gripper to moving_jaw_so101_v1 -->
@@ -250,7 +255,7 @@
     <position class="sts3215" name="shoulder_lift" joint="shoulder_lift" ctrlrange="-1.74533 1.74533"/>
     <position class="sts3215" name="elbow_flex" joint="elbow_flex" ctrlrange="-1.69 1.69"/>
     <position class="sts3215" name="wrist_flex" joint="wrist_flex" ctrlrange="-1.65806 1.65806"/>
-    <position class="sts3215" name="wrist_roll" joint="wrist_roll" ctrlrange="-2.74385 2.84121"/>
+    <position class="sts3215" name="wrist_roll" joint="wrist_roll" ctrlrange="-1.483529864 1.483529864"/>
     <position class="sts3215" name="gripper" joint="gripper" ctrlrange="-0.17453 1.74533"/>
   </actuator>
 </mujoco>

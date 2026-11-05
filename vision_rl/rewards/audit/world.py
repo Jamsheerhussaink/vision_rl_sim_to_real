@@ -137,6 +137,7 @@ class ToyWorld:
             d_xy=d_xy, dz=dz, cube_lift=self.cube[2] - CUBE_REST_Z,
             gripper_h=self.grip[2] - TABLE_Z, grip_open=float(jaw_open),
             jaw_stalled=float(self.attached and not jaw_open),
+            opposing_sides=float(self.attached),
             home_dist=np.linalg.norm(self.grip - READY_POS),
             vis_excess=excess, vis_out=out, near_limit=0.0, action=action,
         )
